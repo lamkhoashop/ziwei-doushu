@@ -12,6 +12,7 @@ import {
 } from '@/lib/ziwei/vietnamese';
 import { detectPatterns, getMingGongSummary } from '@/lib/ziwei/patterns';
 import { streamOpenAiResponse, type AiMessage } from '@/lib/ai/client';
+import { aiQueue } from '@/lib/ai/queue';
 
 export const runtime = 'nodejs';
 
@@ -118,7 +119,11 @@ function buildChartContext(chart: ZiweiChart): string {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { chart, messages } = body as { chart: ZiweiChart; messages?: { role: string; content: string }[] };
+    const { chart, messages, vipKey } = body as {
+      chart: ZiweiChart;
+      messages?: { role: string; content: string }[];
+      vipKey?: string;
+    };
 
     if (!chart || !chart.palaces) {
       return new Response(JSON.stringify({ error: 'Dữ liệu lá số (chart) không hợp lệ' }), {
@@ -127,6 +132,7 @@ export async function POST(req: NextRequest) {
       });
     }
 
+    const isVip = aiQueue.checkIsVip(req, vipKey);
     const chartContext = buildChartContext(chart);
 
     const systemPrompt = `Bạn là bậc thầy Tử Vi Đẩu Số thông tuệ, điềm tĩnh, thấu tình đạt lý, am tường sâu sắc trường phái Thiên Kỷ của cụ Nghê Hải Hà (倪海厦) kết hợp với Dịch lý và học thuật Tử Vi Đẩu Số chính thống Việt Nam.
@@ -165,7 +171,79 @@ ${chartContext}
       });
     }
 
-    return await streamOpenAiResponse(aiMessages);
+    const encoder = new TextEncoder();
+
+    const stream = new ReadableStream({
+      async start(controller) {
+        let releaseSlot: (() => void) | null = null;
+        try {
+          // Báo tín hiệu VIP nếu hợp lệ
+          if (isVip) {
+            controller.enqueue(
+              encoder.encode(`data: ${JSON.stringify({ type: 'vip', message: 'Lệnh Bài Tri Kỷ đã ứng nghiệm' })}\n\n`)
+            );
+          }
+
+          // Xin cấp slot hoặc vào hàng đợi nếu đã đủ 10 người
+          releaseSlot = await aiQueue.acquireSlot({
+            isVip,
+            signal: req.signal,
+            onQueue: (position, total) => {
+              controller.enqueue(
+                encoder.encode(
+                  `data: ${JSON.stringify({
+                    type: 'queue',
+                    position,
+                    total,
+                    message: `Lúc này trong tĩnh thất, bần đạo đang dốc lòng nhập định thôi diễn thiên cơ cho các vị đạo hữu phía trước. Thiên cơ huyền ảo, dục tốc bất đạt. Kính mời đạo hữu hoan hỉ tĩnh tâm thưởng một chung trà, người đang ở vị trí số ${position} trong hàng đợi...`,
+                  })}\n\n`
+                )
+              );
+            },
+          });
+
+          // Khi đã được cấp slot: gửi thông báo bắt đầu
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'start' })}\n\n`));
+
+          // Chạy luồng AI từ OpenRouter
+          const aiResponse = await streamOpenAiResponse(aiMessages);
+          if (!aiResponse.body) {
+            controller.enqueue(encoder.encode('data: [DONE]\n\n'));
+            controller.close();
+            return;
+          }
+
+          const reader = aiResponse.body.getReader();
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            controller.enqueue(value);
+          }
+          controller.close();
+        } catch (err: any) {
+          if (err.message !== 'client_aborted') {
+            const errPayload = `data: ${JSON.stringify({
+              type: 'error',
+              delta: { text: `⚠️ ${err?.message || 'Lỗi hàng đợi luận giải'}` },
+            })}\n\ndata: [DONE]\n\n`;
+            controller.enqueue(encoder.encode(errPayload));
+          }
+          controller.close();
+        } finally {
+          if (releaseSlot) {
+            releaseSlot();
+          }
+        }
+      },
+    });
+
+    return new Response(stream, {
+      headers: {
+        'Content-Type': 'text/event-stream; charset=utf-8',
+        'Cache-Control': 'no-cache, no-transform',
+        'Connection': 'keep-alive',
+      },
+    });
   } catch (error: any) {
     return new Response(JSON.stringify({ error: error?.message || 'Lỗi xử lý yêu cầu' }), {
       status: 500,

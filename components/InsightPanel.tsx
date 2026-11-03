@@ -193,6 +193,12 @@ export default function InsightPanel({ chart, selectedPalace, selectedSiHua }: I
   const [loading, setLoading] = useState(false);
   const [activeTopic, setActiveTopic] = useState<string>('overview');
   const [showScrollBottom, setShowScrollBottom] = useState(false);
+  const [queueStatus, setQueueStatus] = useState<{
+    position: number;
+    total: number;
+    message?: string;
+  } | null>(null);
+  const [isVip, setIsVip] = useState(false);
   const messagesRef = useRef<Message[]>([]);
   const loadingRef = useRef(false);
   const autoLoaded = useRef(false);
@@ -203,6 +209,26 @@ export default function InsightPanel({ chart, selectedPalace, selectedSiHua }: I
 
   useEffect(() => { messagesRef.current = messages; }, [messages]);
   useEffect(() => { loadingRef.current = loading; }, [loading]);
+
+  // Kiểm tra và lưu trữ Lệnh Bài VIP (từ URL ?vip=... hoặc LocalStorage)
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const urlVip = params.get('vip');
+      if (urlVip) {
+        localStorage.setItem('ziwei_vip', urlVip);
+        document.cookie = `ziwei_vip=${urlVip}; path=/; max-age=31536000; SameSite=Lax`;
+        setIsVip(true);
+      } else {
+        const savedVip = localStorage.getItem('ziwei_vip');
+        if (savedVip) {
+          setIsVip(true);
+        }
+      }
+    } catch {
+      /* ignore */
+    }
+  }, []);
 
   const handleScroll = () => {
     if (!scrollRef.current) return;
@@ -328,10 +354,14 @@ Tia ảnh hưởng đến cung đối chiếu và tam hợp.
 
   const streamResponse = async (apiMessages: { role: 'user' | 'assistant'; content: string }[]) => {
     try {
+      const storedVip = typeof window !== 'undefined' ? localStorage.getItem('ziwei_vip') || undefined : undefined;
       const res = await fetch('/api/interpret', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ chart, messages: apiMessages }),
+        headers: {
+          'Content-Type': 'application/json',
+          ...(storedVip ? { 'x-vip-key': storedVip } : {}),
+        },
+        body: JSON.stringify({ chart, messages: apiMessages, vipKey: storedVip }),
       });
       if (res.status === 404) throw new Error('api-missing');
       if (!res.ok) {
@@ -354,6 +384,25 @@ Tia ảnh hưởng đến cung đối chiếu và tam hợp.
           if (data === '[DONE]') break;
           try {
             const parsed = JSON.parse(data);
+
+            // Xử lý các sự kiện quản lý hàng đợi Đạo gia
+            if (parsed.type === 'vip') {
+              setIsVip(true);
+              continue;
+            }
+            if (parsed.type === 'queue') {
+              setQueueStatus({
+                position: parsed.position,
+                total: parsed.total,
+                message: parsed.message,
+              });
+              continue;
+            }
+            if (parsed.type === 'start') {
+              setQueueStatus(null);
+              continue;
+            }
+
             const delta = parsed.delta?.text ?? parsed.choices?.[0]?.delta?.content ?? '';
             assistantText += delta;
             setMessages(prev => {
@@ -381,6 +430,7 @@ Tia ảnh hưởng đến cung đối chiếu và tam hợp.
     } finally {
       setLoading(false);
       loadingRef.current = false;
+      setQueueStatus(null);
     }
   };
 
@@ -417,7 +467,19 @@ Tia ảnh hưởng đến cung đối chiếu và tam hợp.
     <div className="flex flex-col h-full rounded-xl overflow-hidden card-glass">
 
       {/* ── Topic buttons ── */}
-      <div className="flex-shrink-0 px-2 pt-2.5 pb-2 relative z-30" style={{ borderBottom: '1px solid var(--t-border)' }}>
+      <div className="flex-shrink-0 px-2 pt-2 pb-2 relative z-30 flex flex-col gap-1.5" style={{ borderBottom: '1px solid var(--t-border)' }}>
+        {isVip && (
+          <div className="flex items-center justify-between px-1.5 py-0.5 rounded border border-amber-500/30 bg-amber-500/10 text-[9px] text-amber-300 font-serif">
+            <span className="flex items-center gap-1">
+              <span className="text-amber-400">✨</span>
+              <span className="font-bold tracking-wider uppercase">Lệnh Bài Tri Kỷ</span>
+              <span className="opacity-70 text-[8px] font-sans">— Luận giải ưu tiên không qua hàng đợi</span>
+            </span>
+            <span className="text-[8px] px-1.5 py-0.5 rounded border border-amber-500/50 bg-amber-500/20 text-amber-200 font-sans font-semibold">
+              VIP PASS
+            </span>
+          </div>
+        )}
         <div className="grid grid-cols-6 gap-1">
           {TOPICS.map((t, idx) => {
             const isActive = activeTopic === t.key;
@@ -537,20 +599,80 @@ Tia ảnh hưởng đến cung đối chiếu và tam hợp.
                   </div>
 
                   {isWaitingFirstToken ? (
-                    <div className="py-8 px-4 flex flex-col items-center justify-center text-center space-y-3 rounded-xl my-2 border border-dashed border-[rgba(212,168,67,0.25)] bg-[rgba(212,168,67,0.03)] backdrop-blur-sm">
-                      <div className="relative flex items-center justify-center">
-                        <div className="w-8 h-8 rounded-full border-2 border-dashed border-[var(--t-gold)] animate-spin opacity-50" />
-                        <span className="absolute text-xs" style={{ color: 'var(--t-gold)' }}>✦</span>
-                      </div>
-                      <div className="space-y-1">
-                        <p className="text-[12px] font-medium tracking-wide animate-pulse" style={{ color: 'var(--t-gold)' }}>
-                          Đang phân tích thiên bàn & luận giải lá số...
+                    queueStatus ? (
+                      /* Thẻ Hàng Đợi Phong Cách Đạo Giáo Tu Tiên */
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.96 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="py-5 px-4 flex flex-col items-center justify-center text-center space-y-3.5 rounded-xl my-2 border relative overflow-hidden"
+                        style={{
+                          background: 'linear-gradient(180deg, rgba(28, 20, 10, 0.95) 0%, rgba(14, 11, 7, 0.98) 100%)',
+                          borderColor: 'rgba(212, 168, 67, 0.45)',
+                          boxShadow: '0 8px 30px rgba(0, 0, 0, 0.7), inset 0 0 25px rgba(212, 168, 67, 0.08)',
+                        }}
+                      >
+                        {/* Họa tiết cổ phong 4 góc */}
+                        <div className="absolute top-1.5 left-2 text-[10px] opacity-35 select-none text-amber-400">╔</div>
+                        <div className="absolute top-1.5 right-2 text-[10px] opacity-35 select-none text-amber-400">╗</div>
+                        <div className="absolute bottom-1.5 left-2 text-[10px] opacity-35 select-none text-amber-400">╚</div>
+                        <div className="absolute bottom-1.5 right-2 text-[10px] opacity-35 select-none text-amber-400">╝</div>
+
+                        {/* Chung trà bốc khói & Bát Quái xoay */}
+                        <div className="relative flex items-center justify-center mt-1">
+                          <div className="w-13 h-13 rounded-full border border-amber-500/40 flex items-center justify-center bg-amber-500/10 shadow-[0_0_15px_rgba(212,168,67,0.25)]">
+                            <span className="text-2xl animate-bounce" style={{ animationDuration: '2.5s' }}>🍵</span>
+                          </div>
+                          <div className="absolute -inset-1 rounded-full border border-dashed border-amber-400/40 animate-spin" style={{ animationDuration: '20s' }} />
+                        </div>
+
+                        {/* Tiêu đề Đạo gia */}
+                        <div className="space-y-1">
+                          <h4 className="text-[12px] font-bold tracking-wider uppercase text-amber-300 flex items-center justify-center gap-1.5 font-serif">
+                            <span>✦</span> BẦN ĐẠO ĐANG NHẬP ĐỊNH THÔI DIỄN THIÊN CƠ <span>✦</span>
+                          </h4>
+                          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[9px] font-medium border border-amber-500/30 bg-amber-500/15 text-amber-200">
+                            <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping" />
+                            <span>Tĩnh thất đang tiếp 10 đạo hữu đàm đạo</span>
+                          </div>
+                        </div>
+
+                        {/* Thẻ vị trí hàng đợi */}
+                        <div className="px-4 py-2 rounded-lg border border-amber-500/30 bg-black/50 text-center w-full max-w-[280px]">
+                          <div className="text-[9px] tracking-widest text-amber-400/80 uppercase font-sans">Thứ tự tiếp duyên của bạn</div>
+                          <div className="text-2xl font-black text-amber-300 font-serif my-0.5 tracking-wider">
+                            VỊ TRÍ SỐ {queueStatus.position}
+                          </div>
+                          <div className="text-[9px] text-zinc-400 font-sans">
+                            Ước chừng khoảng {queueStatus.position * 15}–{queueStatus.position * 25} giây
+                          </div>
+                        </div>
+
+                        {/* Lời răn dạy của Đạo gia */}
+                        <p className="text-[11px] leading-relaxed max-w-[340px] italic font-serif text-amber-100/90 px-2">
+                          &ldquo;Thiên cơ huyền ảo, dục tốc bất đạt, không thể phân tâm. Kính mời đạo hữu tĩnh tọa ngưng thần, thưởng một chung trà thanh tâm... Đạo duyên sẽ tự khắc khai mở khi đến lượt!&rdquo;
                         </p>
-                        <p className="text-[10px]" style={{ color: 'var(--t-faint)' }}>
-                          Hệ thống AI đang đối chiếu cung vị và tinh diệu, quý bạn vui lòng đợi trong giây lát (khoảng 10-15s).
-                        </p>
+
+                        {/* Thanh chỉ báo linh lực */}
+                        <div className="w-full max-w-[220px] h-1 bg-amber-950/70 rounded-full overflow-hidden border border-amber-600/30">
+                          <div className="h-full bg-gradient-to-r from-amber-600 via-yellow-400 to-amber-600 animate-pulse w-full" />
+                        </div>
+                      </motion.div>
+                    ) : (
+                      <div className="py-8 px-4 flex flex-col items-center justify-center text-center space-y-3 rounded-xl my-2 border border-dashed border-[rgba(212,168,67,0.25)] bg-[rgba(212,168,67,0.03)] backdrop-blur-sm">
+                        <div className="relative flex items-center justify-center">
+                          <div className="w-8 h-8 rounded-full border-2 border-dashed border-[var(--t-gold)] animate-spin opacity-50" />
+                          <span className="absolute text-xs" style={{ color: 'var(--t-gold)' }}>✦</span>
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-[12px] font-medium tracking-wide animate-pulse" style={{ color: 'var(--t-gold)' }}>
+                            {isVip ? '✨ Lệnh Bài Tri Kỷ: Bần đạo lập tức trải tinh bàn đàm đạo...' : 'Đang phân tích thiên bàn & luận giải lá số...'}
+                          </p>
+                          <p className="text-[10px]" style={{ color: 'var(--t-faint)' }}>
+                            {isVip ? 'Đặc quyền thượng khách — kết nối ưu tiên trực tiếp tới AI cao cấp.' : 'Hệ thống AI đang đối chiếu cung vị và tinh diệu, quý bạn vui lòng đợi trong giây lát (khoảng 10-15s).'}
+                          </p>
+                        </div>
                       </div>
-                    </div>
+                    )
                   ) : (
                     <AiContent text={msg.content} streaming={loading && isLastMsg} />
                   )}

@@ -41,10 +41,14 @@ export default function ChatPanel({ chart }: ChatPanelProps) {
     setLoading(true);
 
     try {
+      const storedVip = typeof window !== 'undefined' ? localStorage.getItem('ziwei_vip') || undefined : undefined;
       const res = await fetch('/api/interpret', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ chart, messages: [...messages, userMsg] }),
+        headers: {
+          'Content-Type': 'application/json',
+          ...(storedVip ? { 'x-vip-key': storedVip } : {}),
+        },
+        body: JSON.stringify({ chart, messages: [...messages, userMsg], vipKey: storedVip }),
       });
 
       if (!res.ok) {
@@ -70,6 +74,30 @@ export default function ChatPanel({ chart }: ChatPanelProps) {
             if (data === '[DONE]') break;
             try {
               const parsed = JSON.parse(data);
+              if (parsed.type === 'queue') {
+                setMessages(prev => {
+                  const updated = [...prev];
+                  updated[updated.length - 1] = {
+                    role: 'assistant',
+                    content: `🍵 **Bần đạo kính cáo đạo hữu:**\n\n*Lúc này trong tĩnh thất đang có 10 đạo hữu cùng đàm đạo. Kính mời đạo hữu tĩnh tâm thưởng chung trà thanh tâm, người đang ở **vị trí số ${parsed.position}** trong hàng đợi.*\n\n*Đạo duyên sẽ tự khắc khai mở sau chốc lát...*`,
+                  };
+                  return updated;
+                });
+                continue;
+              }
+              if (parsed.type === 'start') {
+                assistantText = '';
+                setMessages(prev => {
+                  const updated = [...prev];
+                  updated[updated.length - 1] = { role: 'assistant', content: '' };
+                  return updated;
+                });
+                continue;
+              }
+              if (parsed.type === 'vip') {
+                continue;
+              }
+
               const delta = parsed.delta?.text ?? parsed.choices?.[0]?.delta?.content ?? '';
               assistantText += delta;
               setMessages(prev => {

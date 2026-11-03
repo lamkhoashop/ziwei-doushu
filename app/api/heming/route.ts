@@ -10,6 +10,7 @@ import {
   BRANCHES_VI,
 } from '@/lib/ziwei/vietnamese';
 import { streamOpenAiResponse, type AiMessage } from '@/lib/ai/client';
+import { aiQueue } from '@/lib/ai/queue';
 
 export const runtime = 'nodejs';
 
@@ -126,7 +127,76 @@ ${dualContext}
       { role: 'user', content: userPrompt },
     ];
 
-    return await streamOpenAiResponse(aiMessages);
+    const isVip = aiQueue.checkIsVip(req, body.vipKey);
+    const encoder = new TextEncoder();
+
+    const stream = new ReadableStream({
+      async start(controller) {
+        let releaseSlot: (() => void) | null = null;
+        try {
+          if (isVip) {
+            controller.enqueue(
+              encoder.encode(`data: ${JSON.stringify({ type: 'vip', message: 'Lệnh Bài Tri Kỷ đã ứng nghiệm' })}\n\n`)
+            );
+          }
+
+          releaseSlot = await aiQueue.acquireSlot({
+            isVip,
+            signal: req.signal,
+            onQueue: (position, total) => {
+              controller.enqueue(
+                encoder.encode(
+                  `data: ${JSON.stringify({
+                    type: 'queue',
+                    position,
+                    total,
+                    message: `Lúc này trong tĩnh thất, bần đạo đang dốc lòng nhập định thôi diễn thiên cơ cho các vị đạo hữu phía trước. Kính mời đạo hữu hoan hỉ tĩnh tâm thưởng một chung trà, người đang ở vị trí số ${position} trong hàng đợi...`,
+                  })}\n\n`
+                )
+              );
+            },
+          });
+
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'start' })}\n\n`));
+
+          const aiResponse = await streamOpenAiResponse(aiMessages);
+          if (!aiResponse.body) {
+            controller.enqueue(encoder.encode('data: [DONE]\n\n'));
+            controller.close();
+            return;
+          }
+
+          const reader = aiResponse.body.getReader();
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            controller.enqueue(value);
+          }
+          controller.close();
+        } catch (err: any) {
+          if (err.message !== 'client_aborted') {
+            const errPayload = `data: ${JSON.stringify({
+              type: 'error',
+              delta: { text: `⚠️ ${err?.message || 'Lỗi hàng đợi luận giải'}` },
+            })}\n\ndata: [DONE]\n\n`;
+            controller.enqueue(encoder.encode(errPayload));
+          }
+          controller.close();
+        } finally {
+          if (releaseSlot) {
+            releaseSlot();
+          }
+        }
+      },
+    });
+
+    return new Response(stream, {
+      headers: {
+        'Content-Type': 'text/event-stream; charset=utf-8',
+        'Cache-Control': 'no-cache, no-transform',
+        'Connection': 'keep-alive',
+      },
+    });
   } catch (error: any) {
     return new Response(JSON.stringify({ error: error?.message || 'Lỗi xử lý hợp số' }), {
       status: 500,
