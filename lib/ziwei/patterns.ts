@@ -17,6 +17,7 @@
 
 import 'server-only';
 import type { ZiweiChart, Palace, Star } from './types';
+import { toVietnamesePatternName } from './vietnamese';
 
 // ────────────────── 类型 ──────────────────
 export interface PatternCondition {
@@ -1072,7 +1073,10 @@ export function detectPatterns(chart: ZiweiChart): Pattern[] {
   detectKuiYueTongHui(chart, patterns);
   detectKeQuanShuangHui(chart, patterns);
 
-  return patterns;
+  return patterns.map(p => ({
+    ...p,
+    name: toVietnamesePatternName(p.name),
+  }));
 }
 
 // ────────────────── 命宫摘要（保持向后兼容）──────────────────
@@ -1087,33 +1091,33 @@ export function getMingGongSummary(chart: ZiweiChart): {
   const majorStars = mingPalace.stars.filter(s => s.type === 'major');
   const starNames = majorStars.map(s => s.name);
 
-  const keywordMap: Record<string, string[]> = {
-    '紫微': ['尊贵', '独立', '领导'],
-    '天机': ['智慧', '机变', '善谋'],
-    '太阳': ['阳刚', '官贵', '慷慨'],
-    '武曲': ['财富', '刚毅', '果断'],
-    '天同': ['温和', '享福', '随缘'],
-    '廉贞': ['才艺', '桃花', '多变'],
-    '天府': ['财库', '稳重', '保守'],
-    '太阴': ['柔美', '财富', '细腻'],
-    '贪狼': ['欲望', '桃花', '多才'],
-    '巨门': ['善辩', '多思', '口才'],
-    '天相': ['辅佐', '行政', '稳健'],
-    '天梁': ['荫护', '医药', '长辈'],
-    '七杀': ['将星', '果决', '孤克'],
-    '破军': ['开创', '变动', '破旧'],
+    const keywordMap: Record<string, string[]> = {
+    '紫微': ['Tôn quý', 'Độc lập', 'Lãnh đạo'],
+    '天机': ['Trí tuệ', 'Cơ biến', 'Thiện mưu'],
+    '太阳': ['Quang minh', 'Quan quý', 'Hào sảng'],
+    '武曲': ['Tài phú', 'Cương nghị', 'Quyết đoán'],
+    '天同': ['Ôn hòa', 'Hưởng phúc', 'Tùy duyên'],
+    '廉贞': ['Tài nghệ', 'Đào hoa', 'Đa biến'],
+    '天府': ['Tài khố', 'Trầm ổn', 'Bảo thủ'],
+    '太阴': ['Nhu mỹ', 'Tài phú', 'Tinh tế'],
+    '贪狼': ['Dục vọng', 'Đào hoa', 'Đa tài'],
+    '巨门': ['Hùng biện', 'Đa tư', 'Khẩu tài'],
+    '天相': ['Phụ tá', 'Hành chính', 'Vững vàng'],
+    '天梁': ['Ấm hộ', 'Y dược', 'Trưởng bối'],
+    '七杀': ['Tướng tinh', 'Quả quyết', 'Cô khắc'],
+    '破军': ['Khai sáng', 'Biến động', 'Phá cũ'],
   };
 
-  const natureMap: Record<string, string> = {
-    '紫微': '帝王星', '天机': '智慧星', '太阳': '贵人星',
-    '武曲': '财帛星', '天同': '福德星', '廉贞': '桃花星',
-    '天府': '财库星', '太阴': '财富星', '贪狼': '桃花星',
-    '巨门': '是非星', '天相': '印绶星', '天梁': '荫庇星',
-    '七杀': '将帅星', '破军': '变动星',
+    const natureMap: Record<string, string> = {
+    '紫微': 'Đế Vương Tinh', '天机': 'Trí Tuệ Tinh', '太阳': 'Quý Nhân Tinh',
+    '武曲': 'Tài Bạch Tinh', '天同': 'Phúc Đức Tinh', '廉贞': 'Đào Hoa Tinh',
+    '天府': 'Tài Khố Tinh', '太阴': 'Tài Phú Tinh', '贪狼': 'Đào Hoa Tinh',
+    '巨门': 'Thị Phi Tinh', '天相': 'Ấn Thụ Tinh', '天梁': 'Ấm Tinh',
+    '七杀': 'Tướng Soái Tinh', '破军': 'Biến Động Tinh',
   };
 
   const keywords = starNames.flatMap(n => keywordMap[n] ?? []).slice(0, 5);
-  const nature = starNames.length > 0 ? (natureMap[starNames[0]] ?? '') : '空宫';
+  const nature = starNames.length > 0 ? (natureMap[starNames[0]] ?? '') : 'Vô Chính Diệu';
 
   return { stars: starNames, keywords, nature };
 }

@@ -1,8 +1,10 @@
 // 天干 Heavenly Stems
 export const STEMS = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
+export const STEMS_VI = ['Giáp', 'Ất', 'Bính', 'Đinh', 'Mậu', 'Kỷ', 'Canh', 'Tân', 'Nhâm', 'Quý'];
 
 // 地支 Earthly Branches
 export const BRANCHES = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
+export const BRANCHES_VI = ['Tý', 'Sửu', 'Dần', 'Mão', 'Thìn', 'Tỵ', 'Ngọ', 'Mùi', 'Thân', 'Dậu', 'Tuất', 'Hợi'];
 
 // 时辰对应地支
 export const SHICHEN = [
@@ -20,10 +22,30 @@ export const SHICHEN = [
   { branch: 11, name: '亥时', range: '21:00-23:00' },
 ];
 
+export const SHICHEN_VI = [
+  { branch: 0, name: 'Giờ Tý', range: '23:00-01:00' },
+  { branch: 1, name: 'Giờ Sửu', range: '01:00-03:00' },
+  { branch: 2, name: 'Giờ Dần', range: '03:00-05:00' },
+  { branch: 3, name: 'Giờ Mão', range: '05:00-07:00' },
+  { branch: 4, name: 'Giờ Thìn', range: '07:00-09:00' },
+  { branch: 5, name: 'Giờ Tỵ', range: '09:00-11:00' },
+  { branch: 6, name: 'Giờ Ngọ', range: '11:00-13:00' },
+  { branch: 7, name: 'Giờ Mùi', range: '13:00-15:00' },
+  { branch: 8, name: 'Giờ Thân', range: '15:00-17:00' },
+  { branch: 9, name: 'Giờ Dậu', range: '17:00-19:00' },
+  { branch: 10, name: 'Giờ Tuất', range: '19:00-21:00' },
+  { branch: 11, name: 'Giờ Hợi', range: '21:00-23:00' },
+];
+
 // 十二宫名顺序；地支索引从命宫起每减 1 前进一宫（排盘界面为逆时针）
 export const PALACE_NAMES_ORDER = [
   '命宫', '兄弟宫', '夫妻宫', '子女宫', '财帛宫', '疾厄宫',
   '迁移宫', '交友宫', '官禄宫', '田宅宫', '福德宫', '父母宫'
+];
+
+export const PALACE_NAMES_ORDER_VI = [
+  'Mệnh Cung', 'Huynh Đệ', 'Phu Thê', 'Tử Tức', 'Tài Bạch', 'Tật Ách',
+  'Thiên Di', 'Nô Bộc', 'Quan Lộc', 'Điền Trạch', 'Phúc Đức', 'Phụ Mẫu'
 ];
 
 // 纳音五行（30组干支对的五行）
@@ -41,6 +63,10 @@ export const ELEMENT_TO_JU: Record<string, number> = {
 // 局数名称
 export const JU_NAMES: Record<number, string> = {
   2: '水二局', 3: '木三局', 4: '金四局', 5: '土五局', 6: '火六局'
+};
+
+export const JU_NAMES_VI: Record<number, string> = {
+  2: 'Thủy Nhị Cục', 3: 'Mộc Tam Cục', 4: 'Kim Tứ Cục', 5: 'Thổ Ngũ Cục', 6: 'Hỏa Lục Cục'
 };
 
 // 四化表（年干 → [化禄, 化权, 化科, 化忌]）
@@ -102,25 +128,20 @@ export const TIANMA_TABLE: Record<number, number> = {
   7: 5,   // 未年 → 巳
 };
 
-// ★ 所有星曜亮度（主星 + 辅星）已迁移到 algorithm.ts → astro.config({ brightness })
-// 覆写范围：9 颗主星 + 3 颗辅星（文曲/铃星/擎羊），共 24 处差异修正。
-// 其余星曜（武曲/廉贞/贪狼/巨门/破军/文昌/火星/陀罗）iztro 默认值与全书一致，无需覆写。
-// 旧 STAR_BRIGHTNESS 是死代码（从未被引用），已在 2026-05-08 清理。
-
-// 主星描述（倪师体系）
+// 主星描述（倪师体系 + Việt hóa）
 export const STAR_DESCRIPTIONS: Record<string, { keywords: string; nature: string; element: string }> = {
-  '紫微': { keywords: '帝王·尊贵·独立', nature: '中性偏吉', element: '土' },
-  '天机': { keywords: '智慧·机变·谋略', nature: '吉星', element: '木' },
-  '太阳': { keywords: '阳刚·官贵·慷慨', nature: '吉星', element: '火' },
-  '武曲': { keywords: '财富·刚毅·果断', nature: '中性', element: '金' },
-  '天同': { keywords: '温和·享福·随缘', nature: '吉星', element: '水' },
-  '廉贞': { keywords: '才艺·刑囚·桃花', nature: '凶中带吉', element: '火' },
-  '天府': { keywords: '财库·稳重·保守', nature: '吉星', element: '土' },
-  '太阴': { keywords: '柔美·财富·阴柔', nature: '吉星', element: '水' },
-  '贪狼': { keywords: '欲望·桃花·多才', nature: '中性', element: '木' },
-  '巨门': { keywords: '口舌·是非·善辩', nature: '凶中带吉', element: '水' },
-  '天相': { keywords: '辅佐·行政·印绶', nature: '吉星', element: '水' },
-  '天梁': { keywords: '荫护·医药·长辈', nature: '吉星', element: '土' },
-  '七杀': { keywords: '将星·果决·孤克', nature: '凶星', element: '金' },
-  '破军': { keywords: '开创·变动·破坏', nature: '凶星', element: '水' },
+  '紫微': { keywords: 'Đế vương · Tôn quý · Độc lập', nature: 'Chính tinh (Bắc Đẩu)', element: 'Thổ' },
+  '天机': { keywords: 'Trí tuệ · Linh hoạt · Mưu lược', nature: 'Thiện tinh (Nam Đẩu)', element: 'Mộc' },
+  '太阳': { keywords: 'Quang minh · Quan quý · Hào sảng', nature: 'Quý tinh (Trung Thiên)', element: 'Hỏa' },
+  '武曲': { keywords: 'Tài tinh · Quả đoán · Cương nghị', nature: 'Tài tinh (Bắc Đẩu)', element: 'Kim' },
+  '天同': { keywords: 'Ôn hòa · Phúc lộc · Thong dong', nature: 'Phúc tinh (Nam Đẩu)', element: 'Thủy' },
+  '廉贞': { keywords: 'Đào hoa · Khí phách · Quyền biến', nature: 'Thứ đào hoa (Bắc Đẩu)', element: 'Hỏa' },
+  '天府': { keywords: 'Kho tiền · Vững chãi · Bao dung', nature: 'Tài khố lệnh tinh (Nam Đẩu)', element: 'Thổ' },
+  '太阴': { keywords: 'Thanh tao · Phú quý · Tế nhị', nature: 'Phú tinh (Trung Thiên)', element: 'Thủy' },
+  '贪狼': { keywords: 'Dục vọng · Đa tài · Giao tế', nature: 'Đào hoa sát tinh (Bắc Đẩu)', element: 'Mộc/Thủy' },
+  '巨门': { keywords: 'Hùng biện · Sâu sắc · Trực ngôn', nature: 'Ám tinh (Bắc Đẩu)', element: 'Thủy' },
+  '天相': { keywords: 'Tướng ấn · Phò tá · Tận tụy', nature: 'Ấn tinh (Nam Đẩu)', element: 'Thủy' },
+  '天梁': { keywords: 'Ấm tinh · Trường thọ · Che chở', nature: 'Ấm tinh (Nam Đẩu)', element: 'Thổ' },
+  '七杀': { keywords: 'Tướng quân · Quyết liệt · Khai phá', nature: 'Sát tinh (Nam Đẩu)', element: 'Kim/Hỏa' },
+  '破军': { keywords: 'Khai phong · Đột phá · Tiên phong', nature: 'Hao tinh (Bắc Đẩu)', element: 'Thủy' },
 };

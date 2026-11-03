@@ -1,6 +1,12 @@
 'use client';
 import { motion } from 'framer-motion';
-import { STEMS, SI_HUA_TABLE } from '@/lib/ziwei/constants';
+import { SI_HUA_TABLE } from '@/lib/ziwei/constants';
+import {
+  toVietnameseStar,
+  toVietnameseStem,
+  toVietnameseSiHua,
+  STEMS_VI,
+} from '@/lib/ziwei/vietnamese';
 import type { ZiweiChart } from '@/lib/ziwei/types';
 
 export type TimeView = 'mingpan' | 'daxian' | 'liunian';
@@ -13,12 +19,12 @@ interface TimeNavProps {
   onYearChange: (year: number) => void;
 }
 
-/** 由年份计算天干索引 (0-9) */
+/** Từ năm tính chỉ số Thiên can (0-9) */
 export function getYearStemIndex(year: number): number {
   return ((year - 4) % 10 + 10) % 10;
 }
 
-/** 根据天干索引返回四化映射：starName → SiHua */
+/** Tứ Hóa ánh xạ: starName → SiHua */
 export function buildSiHuaOverlay(stemIndex: number): Record<string, string> {
   const stars = SI_HUA_TABLE[stemIndex];
   if (!stars) return {};
@@ -46,8 +52,8 @@ export default function TimeNav({
 }: TimeNavProps) {
   const currentDx = chart.daXians[chart.currentDaXianIndex];
 
-  // 计算当前叠加四化信息
-  const getOverlayInfo = (): { stemName: string; overlay: Record<string, string> } | null => {
+  // Tính thông tin Tứ Hóa xếp chồng
+  const getOverlayInfo = (): { stemNameVi: string; overlay: Record<string, string> } | null => {
     if (view === 'mingpan') return null;
 
     if (view === 'daxian' && currentDx) {
@@ -55,7 +61,7 @@ export default function TimeNav({
       if (!dxPalace) return null;
       const stemIndex = dxPalace.stem;
       return {
-        stemName: STEMS[stemIndex],
+        stemNameVi: STEMS_VI[stemIndex] ?? toVietnameseStem(stemIndex),
         overlay: buildSiHuaOverlay(stemIndex),
       };
     }
@@ -63,7 +69,7 @@ export default function TimeNav({
     if (view === 'liunian') {
       const stemIndex = getYearStemIndex(liunianYear);
       return {
-        stemName: STEMS[stemIndex],
+        stemNameVi: STEMS_VI[stemIndex] ?? toVietnameseStem(stemIndex),
         overlay: buildSiHuaOverlay(stemIndex),
       };
     }
@@ -75,28 +81,28 @@ export default function TimeNav({
 
   return (
     <div className="mb-3">
-      {/* Tab 行 */}
+      {/* Hàng Tab */}
       <div
         className="flex items-center rounded-xl p-1 gap-1"
         style={{ background: 'var(--t-surface)', border: '1px solid var(--t-border)' }}
       >
-        {/* 本命 */}
+        {/* Bản Mệnh */}
         <TabButton
           active={view === 'mingpan'}
           onClick={() => onViewChange('mingpan')}
         >
-          本命
+          Bản Mệnh
         </TabButton>
 
-        {/* 大限 */}
+        {/* Đại Hạn */}
         <TabButton
           active={view === 'daxian'}
           onClick={() => onViewChange('daxian')}
         >
-          {currentDx ? `大限 ${currentDx.startAge}–${currentDx.endAge}` : '大限'}
+          {currentDx ? `Đại Hạn (${currentDx.startAge}–${currentDx.endAge}t)` : 'Đại Hạn'}
         </TabButton>
 
-        {/* 流年 — 含年份切换 */}
+        {/* Lưu Niên — Kèm chuyển năm */}
         <div
           className="relative flex-1 flex items-center justify-center rounded-lg py-1.5 gap-1 transition-all duration-200"
           style={{
@@ -113,19 +119,20 @@ export default function TimeNav({
             className="text-[10px] font-medium flex-1 text-center"
             style={{ color: view === 'liunian' ? 'var(--t-gold)' : 'var(--t-faint)' }}
           >
-            流年
+            Lưu Niên
           </button>
-          {/* 年份 +/- */}
+          {/* Nút tăng giảm năm */}
           <div className="flex items-center gap-0.5">
             <button
               onClick={e => { e.stopPropagation(); onYearChange(liunianYear - 1); if (view !== 'liunian') onViewChange('liunian'); }}
-              className="text-[9px] w-4 h-4 flex items-center justify-center rounded"
+              className="text-[9px] w-4 h-4 flex items-center justify-center rounded hover:bg-white/10"
               style={{ color: 'var(--t-faint)' }}
+              title="Năm trước"
             >
               ‹
             </button>
             <span
-              className="text-[10px] font-mono min-w-[28px] text-center cursor-pointer"
+              className="text-[10px] font-mono min-w-[28px] text-center cursor-pointer font-bold"
               style={{ color: view === 'liunian' ? 'var(--t-gold)' : 'var(--t-faint)' }}
               onClick={() => onViewChange('liunian')}
             >
@@ -133,8 +140,9 @@ export default function TimeNav({
             </span>
             <button
               onClick={e => { e.stopPropagation(); onYearChange(liunianYear + 1); if (view !== 'liunian') onViewChange('liunian'); }}
-              className="text-[9px] w-4 h-4 flex items-center justify-center rounded"
+              className="text-[9px] w-4 h-4 flex items-center justify-center rounded hover:bg-white/10"
               style={{ color: 'var(--t-faint)' }}
+              title="Năm kế"
             >
               ›
             </button>
@@ -142,7 +150,7 @@ export default function TimeNav({
         </div>
       </div>
 
-      {/* 叠加四化说明行 */}
+      {/* Dòng hiển thị Tứ Hóa xếp chồng */}
       {overlayInfo && (
         <motion.div
           initial={{ opacity: 0, y: -4 }}
@@ -151,14 +159,16 @@ export default function TimeNav({
           className="flex items-center gap-2 mt-1.5 px-1 flex-wrap"
         >
           <span className="text-[9px]" style={{ color: 'var(--t-faint)' }}>
-            {view === 'daxian' ? '大限' : `${liunianYear}`}·{overlayInfo.stemName}年四化：
+            {view === 'daxian' ? 'Tứ Hóa Đại Hạn' : `Tứ Hóa Lưu Niên ${liunianYear}`} (Can {overlayInfo.stemNameVi}):
           </span>
           {(['禄', '权', '科', '忌'] as const).map(sh => {
             const starName = Object.keys(overlayInfo.overlay).find(k => overlayInfo.overlay[k] === sh);
             if (!starName) return null;
+            const starNameVi = toVietnameseStar(starName);
+            const siHuaVi = toVietnameseSiHua(sh);
             return (
               <span key={sh} className="text-[9px] font-medium" style={{ color: SIHUA_COLORS[sh] }}>
-                {starName}化{sh}
+                {starNameVi} Hóa {siHuaVi}
               </span>
             );
           })}

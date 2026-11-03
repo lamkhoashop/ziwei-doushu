@@ -14,6 +14,46 @@ export interface ProvinceInfo {
 //   打开地点选择框时才动态加载（lib/ziwei/county-data.ts）。区县选中后城市字段存成「地级市·区县」，
 //   见 lib/ziwei/county-label.ts。省直辖县级单位（仙桃、海南各市县、新疆兵团各市）仍是本表的市一级。
 export const PROVINCES: ProvinceInfo[] = [
+  // ─── Việt Nam ──────────────────────────────────────────
+  {
+    name: 'Việt Nam',
+    cities: [
+      { name: 'Hà Nội', longitude: 105.85 },
+      { name: 'TP. Hồ Chí Minh', longitude: 106.66 },
+      { name: 'Đà Nẵng', longitude: 108.20 },
+      { name: 'Hải Phòng', longitude: 106.68 },
+      { name: 'Cần Thơ', longitude: 105.78 },
+      { name: 'Thừa Thiên Huế', longitude: 107.59 },
+      { name: 'Nha Trang (Khánh Hòa)', longitude: 109.19 },
+      { name: 'Bình Dương (Thủ Dầu Một)', longitude: 106.65 },
+      { name: 'Đồng Nai (Biên Hòa)', longitude: 106.84 },
+      { name: 'Bà Rịa - Vũng Tàu', longitude: 107.08 },
+      { name: 'Quảng Ninh (Hạ Long)', longitude: 107.07 },
+      { name: 'Thanh Hóa', longitude: 105.78 },
+      { name: 'Nghệ An (Vinh)', longitude: 105.68 },
+      { name: 'Hà Tĩnh', longitude: 105.90 },
+      { name: 'Quảng Bình (Đồng Hới)', longitude: 106.62 },
+      { name: 'Quảng Nam (Tam Kỳ)', longitude: 108.48 },
+      { name: 'Quảng Ngãi', longitude: 108.80 },
+      { name: 'Bình Định (Quy Nhơn)', longitude: 109.23 },
+      { name: 'Phú Yên (Tuy Hòa)', longitude: 109.30 },
+      { name: 'Đắk Lắk (Buôn Ma Thuột)', longitude: 108.04 },
+      { name: 'Lâm Đồng (Đà Lạt)', longitude: 108.44 },
+      { name: 'Gia Lai (Pleiku)', longitude: 108.00 },
+      { name: 'Tiền Giang (Mỹ Tho)', longitude: 106.36 },
+      { name: 'Bến Tre', longitude: 106.37 },
+      { name: 'Vĩnh Long', longitude: 105.97 },
+      { name: 'An Giang (Long Xuyên)', longitude: 105.43 },
+      { name: 'Kiên Giang (Rạch Giá)', longitude: 105.08 },
+      { name: 'Cà Mau', longitude: 105.15 },
+      { name: 'Bắc Ninh', longitude: 106.07 },
+      { name: 'Hải Dương', longitude: 106.31 },
+      { name: 'Nam Định', longitude: 106.16 },
+      { name: 'Thái Bình', longitude: 106.34 },
+      { name: 'Thái Nguyên', longitude: 105.84 },
+      { name: 'Phú Thọ (Việt Trì)', longitude: 105.39 }
+    ]
+  },
   // ─── 直辖市 ───────────────────────────────────────────
   {
     name: '北京市',

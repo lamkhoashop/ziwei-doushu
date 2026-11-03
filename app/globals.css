@@ -56,6 +56,16 @@
   --r-lg:  16px;
   --r-xl:  24px;
   --r-pill:999px;
+
+  /* ─── Bridge Token cho Lá Số Tử Vi (Sáng) ─── */
+  --t-bg: #fdfaf2;
+  --t-border: rgba(184, 146, 42, 0.35);
+  --t-surface: #f7f3e8;
+  --t-card: #ffffff;
+  --t-gold: #8b6410;
+  --t-faint: #6a7282;
+  --t-text: #1a1d24;
+  --t-text2: #3a3f4a;
 }
 
 /* ─── 暗色模式 Token 覆盖 ──────────────────────────────── */
@@ -88,6 +98,16 @@
 
   --bg-card: rgba(255,255,255,0.04);
   --bg-page: #020810;
+
+  /* ─── Bridge Token cho Lá Số Tử Vi (Tối) ─── */
+  --t-bg: #071022;
+  --t-border: rgba(212, 168, 67, 0.35);
+  --t-surface: #0a1324;
+  --t-card: rgba(255, 255, 255, 0.05);
+  --t-gold: #d4a843;
+  --t-faint: rgba(212, 226, 248, 0.70);
+  --t-text: #e8eef6;
+  --t-text2: #b8c6df;
 }
 
 /* ─── 全局基础 ───────────────────────────────────────────── */
@@ -434,3 +454,33 @@ body {
    select 本身是半透明底 + 浅色字，Windows 上原生下拉列表是白底，浅灰字配白底看不清（#14） */
 [data-theme="dark"] select { color-scheme: dark; }
 [data-theme="dark"] select option { background-color: var(--bg-2); color: var(--tx-1); }
+
+
+/* ─── Hiệu ứng kính mờ Card Glass & Card Inner ─────────────── */
+.card-glass {
+  background: rgba(10, 18, 34, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--t-border);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.45);
+}
+
+.card-inner {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="light"] .card-glass,
+:root:not([data-theme="dark"]) .card-glass {
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--t-border);
+  box-shadow: 0 4px 20px rgba(140, 100, 20, 0.12);
+}
+
+[data-theme="light"] .card-inner,
+:root:not([data-theme="dark"]) .card-inner {
+  background: rgba(0, 0, 0, 0.025);
+  border: 1px solid rgba(184, 146, 42, 0.18);
+}
