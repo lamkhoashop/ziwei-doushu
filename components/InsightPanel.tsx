@@ -405,7 +405,6 @@ Tia ảnh hưởng đến cung đối chiếu và tam hợp.
               <div
                 key={t.key}
                 className="relative group"
-                title={loading ? 'Đang luận giải lá số, vui lòng đợi hoàn tất trước khi chuyển chủ đề' : undefined}
               >
                 <button
                   type="button"
@@ -562,7 +561,6 @@ Tia ảnh hưởng đến cung đối chiếu và tam hợp.
             onKeyDown={e => e.key === 'Enter' && !e.shiftKey && handleSend()}
             placeholder={loading ? 'Đang luận giải, vui lòng đợi hoàn tất để hỏi tiếp...' : 'Đặt câu hỏi thêm: Năm nay công danh thế nào?...'}
             disabled={loading}
-            title={loading ? 'Đang luận giải, vui lòng đợi...' : undefined}
             className={`flex-1 rounded-lg px-3 py-2 text-[11px] focus:outline-none transition-colors ${
               loading ? 'opacity-50 cursor-not-allowed' : ''
             }`}
@@ -575,7 +573,6 @@ Tia ảnh hưởng đến cung đối chiếu và tam hợp.
           <button
             onClick={handleSend}
             disabled={loading || !input.trim()}
-            title={loading ? 'Đang luận giải, vui lòng đợi...' : undefined}
             className="px-3 py-2 rounded-lg text-[11px] font-medium transition-all disabled:opacity-30 disabled:cursor-not-allowed"
             style={{
               background: 'rgba(212,168,67,0.15)',
