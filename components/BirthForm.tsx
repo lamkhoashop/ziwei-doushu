@@ -61,8 +61,8 @@ export default function BirthForm({ onSubmit, loading, initialData, onFormSave, 
     clockMinute: initialData?.clockMinute ?? '0',
     unknownTime: initialData?.unknownTime ?? false,
     province: initialData?.province ?? 'Việt Nam',
-    city: initialData?.city ?? 'Hà Nội',
-    longitude: initialData?.longitude ?? 105.85,
+    city: initialData?.city ?? 'TP. Hồ Chí Minh',
+    longitude: initialData?.longitude ?? 106.66,
     gender: initialData?.gender ?? 'male',
   });
 
@@ -132,14 +132,14 @@ export default function BirthForm({ onSubmit, loading, initialData, onFormSave, 
       ...form,
       province: prov,
       city: firstCity?.name || '',
-      longitude: firstCity?.longitude ?? (prov === 'Việt Nam' ? 105.85 : 120),
+      longitude: firstCity?.longitude ?? (prov === 'Việt Nam' ? 106.66 : 120),
     });
   };
 
   const handleCity = (cityName: string) => {
     const prov = PROVINCES.find(p => p.name === form.province);
     const cityData = prov?.cities.find(c => c.name === cityName);
-    setForm({ ...form, city: cityName, longitude: cityData?.longitude ?? 105.85 });
+    setForm({ ...form, city: cityName, longitude: cityData?.longitude ?? 106.66 });
   };
 
   const handleSubmit = (e: React.FormEvent) => {
