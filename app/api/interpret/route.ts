@@ -119,10 +119,11 @@ function buildChartContext(chart: ZiweiChart): string {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { chart, messages, vipKey } = body as {
+    const { chart, messages, vipKey, vipExp } = body as {
       chart: ZiweiChart;
       messages?: { role: string; content: string }[];
       vipKey?: string;
+      vipExp?: number;
     };
 
     if (!chart || !chart.palaces) {
@@ -132,7 +133,7 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    const isVip = aiQueue.checkIsVip(req, vipKey);
+    const isVip = aiQueue.checkIsVip(req, vipKey, vipExp);
     const chartContext = buildChartContext(chart);
 
     const systemPrompt = `Bạn là bậc thầy Tử Vi Đẩu Số thông tuệ, điềm tĩnh, thấu tình đạt lý, am tường sâu sắc trường phái Thiên Kỷ của cụ Nghê Hải Hà (倪海厦) kết hợp với Dịch lý và học thuật Tử Vi Đẩu Số chính thống Việt Nam.

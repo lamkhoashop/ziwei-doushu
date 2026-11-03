@@ -104,7 +104,7 @@ export async function streamOpenAiResponse(messages: AiMessage[]): Promise<Respo
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${currentKey}`,
-          'HTTP-Referer': 'http://localhost:3005',
+          'HTTP-Referer': process.env.NEXT_PUBLIC_SITE_URL || 'https://tuvi.lamkhoa.store',
           'X-Title': 'Tu Vi Dau So',
         },
         body: JSON.stringify({

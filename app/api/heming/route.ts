@@ -127,7 +127,7 @@ ${dualContext}
       { role: 'user', content: userPrompt },
     ];
 
-    const isVip = aiQueue.checkIsVip(req, body.vipKey);
+    const isVip = aiQueue.checkIsVip(req, body.vipKey, body.vipExp);
     const encoder = new TextEncoder();
 
     const stream = new ReadableStream({

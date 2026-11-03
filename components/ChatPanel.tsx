@@ -42,13 +42,16 @@ export default function ChatPanel({ chart }: ChatPanelProps) {
 
     try {
       const storedVip = typeof window !== 'undefined' ? localStorage.getItem('ziwei_vip') || undefined : undefined;
+      const storedExp = typeof window !== 'undefined' ? Number(localStorage.getItem('ziwei_vip_exp')) || undefined : undefined;
+      const validVip = storedVip && (!storedExp || Date.now() < storedExp) ? storedVip : undefined;
+
       const res = await fetch('/api/interpret', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...(storedVip ? { 'x-vip-key': storedVip } : {}),
+          ...(validVip ? { 'x-vip-key': validVip, 'x-vip-exp': String(storedExp) } : {}),
         },
-        body: JSON.stringify({ chart, messages: [...messages, userMsg], vipKey: storedVip }),
+        body: JSON.stringify({ chart, messages: [...messages, userMsg], vipKey: validVip, vipExp: storedExp }),
       });
 
       if (!res.ok) {

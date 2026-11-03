@@ -198,7 +198,7 @@ export default function InsightPanel({ chart, selectedPalace, selectedSiHua }: I
     total: number;
     message?: string;
   } | null>(null);
-  const [isVip, setIsVip] = useState(false);
+  const [isVip, setIsVip] = useState<string | false>(false);
   const messagesRef = useRef<Message[]>([]);
   const loadingRef = useRef(false);
   const autoLoaded = useRef(false);
@@ -210,19 +210,49 @@ export default function InsightPanel({ chart, selectedPalace, selectedSiHua }: I
   useEffect(() => { messagesRef.current = messages; }, [messages]);
   useEffect(() => { loadingRef.current = loading; }, [loading]);
 
-  // Kiểm tra và lưu trữ Lệnh Bài VIP (từ URL ?vip=... hoặc LocalStorage)
+  // Kiểm tra và lưu trữ Lệnh Bài VIP (Hỗ trợ vip1h: 1 giờ, ltk: 1 tháng làm mới liên tục)
   useEffect(() => {
     try {
       const params = new URLSearchParams(window.location.search);
-      const urlVip = params.get('vip');
+      const urlVip = params.get('vip') || (params.has('vip1h') ? 'vip1h' : null);
+
       if (urlVip) {
-        localStorage.setItem('ziwei_vip', urlVip);
-        document.cookie = `ziwei_vip=${urlVip}; path=/; max-age=31536000; SameSite=Lax`;
-        setIsVip(true);
+        const clean = urlVip.trim().toLowerCase();
+        let maxAge = 3600; // 1 giờ mặc định
+        let label = 'vip1h';
+
+        if (clean === 'ltk') {
+          maxAge = 30 * 24 * 3600; // 30 ngày (1 tháng)
+          label = 'ltk';
+        } else if (clean === 'vip1h' || clean === '1h') {
+          maxAge = 3600; // 1 giờ
+          label = 'vip1h';
+        } else {
+          maxAge = 365 * 24 * 3600; // Master key: 1 năm
+          label = clean;
+        }
+
+        const expireTime = Date.now() + maxAge * 1000;
+        localStorage.setItem('ziwei_vip', label);
+        localStorage.setItem('ziwei_vip_exp', String(expireTime));
+        document.cookie = `ziwei_vip=${label}; path=/; max-age=${maxAge}; SameSite=Lax`;
+        document.cookie = `ziwei_vip_exp=${expireTime}; path=/; max-age=${maxAge}; SameSite=Lax`;
+        setIsVip(label);
       } else {
         const savedVip = localStorage.getItem('ziwei_vip');
-        if (savedVip) {
-          setIsVip(true);
+        const savedExp = localStorage.getItem('ziwei_vip_exp');
+        if (savedVip && savedExp) {
+          const expTime = Number(savedExp);
+          if (Date.now() < expTime) {
+            setIsVip(savedVip);
+          } else {
+            // Hết hạn cookie -> thu hồi đặc quyền
+            localStorage.removeItem('ziwei_vip');
+            localStorage.removeItem('ziwei_vip_exp');
+            document.cookie = 'ziwei_vip=; path=/; max-age=0;';
+            document.cookie = 'ziwei_vip_exp=; path=/; max-age=0;';
+            setIsVip(false);
+          }
         }
       }
     } catch {
@@ -355,13 +385,18 @@ Tia ảnh hưởng đến cung đối chiếu và tam hợp.
   const streamResponse = async (apiMessages: { role: 'user' | 'assistant'; content: string }[]) => {
     try {
       const storedVip = typeof window !== 'undefined' ? localStorage.getItem('ziwei_vip') || undefined : undefined;
+      const storedExp = typeof window !== 'undefined' ? Number(localStorage.getItem('ziwei_vip_exp')) || undefined : undefined;
+
+      // Kiểm tra tính hợp lệ về hạn dùng của VIP
+      const validVip = storedVip && (!storedExp || Date.now() < storedExp) ? storedVip : undefined;
+
       const res = await fetch('/api/interpret', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...(storedVip ? { 'x-vip-key': storedVip } : {}),
+          ...(validVip ? { 'x-vip-key': validVip, 'x-vip-exp': String(storedExp) } : {}),
         },
-        body: JSON.stringify({ chart, messages: apiMessages, vipKey: storedVip }),
+        body: JSON.stringify({ chart, messages: apiMessages, vipKey: validVip, vipExp: storedExp }),
       });
       if (res.status === 404) throw new Error('api-missing');
       if (!res.ok) {
@@ -387,7 +422,7 @@ Tia ảnh hưởng đến cung đối chiếu và tam hợp.
 
             // Xử lý các sự kiện quản lý hàng đợi Đạo gia
             if (parsed.type === 'vip') {
-              setIsVip(true);
+              setIsVip(prev => prev || 'vip');
               continue;
             }
             if (parsed.type === 'queue') {
@@ -469,18 +504,24 @@ Tia ảnh hưởng đến cung đối chiếu và tam hợp.
       {/* ── Topic buttons ── */}
       <div className="flex-shrink-0 px-2 pt-2 pb-2 relative z-30 flex flex-col gap-1.5" style={{ borderBottom: '1px solid var(--t-border)' }}>
         {isVip && (
-          <div className="flex items-center justify-between px-1.5 py-0.5 rounded border border-amber-500/30 bg-amber-500/10 text-[9px] text-amber-300 font-serif">
-            <span className="flex items-center gap-1">
+          <div className="flex items-center justify-between px-2 py-1 rounded border border-amber-500/40 bg-gradient-to-r from-amber-500/15 to-transparent text-[9px] text-amber-300 font-serif">
+            <span className="flex items-center gap-1.5">
               <span className="text-amber-400">✨</span>
-              <span className="font-bold tracking-wider uppercase">Lệnh Bài Tri Kỷ</span>
-              <span className="opacity-70 text-[8px] font-sans">— Luận giải ưu tiên không qua hàng đợi</span>
+              <span className="font-bold tracking-wider uppercase">
+                {isVip === 'ltk'
+                  ? 'Lệnh Bài Tri Kỷ (Hạn 1 Tháng)'
+                  : isVip === 'vip1h'
+                  ? 'Lệnh Bài Tạm Thời (Hạn 1 Giờ)'
+                  : 'Lệnh Bài Thượng Khách'}
+              </span>
+              <span className="opacity-70 text-[8px] font-sans hidden sm:inline">— Luận giải ưu tiên không qua hàng đợi</span>
             </span>
             <span className="text-[8px] px-1.5 py-0.5 rounded border border-amber-500/50 bg-amber-500/20 text-amber-200 font-sans font-semibold">
-              VIP PASS
+              {isVip === 'ltk' ? '1 THÁNG' : isVip === 'vip1h' ? '1 GIỜ' : 'VIP'}
             </span>
           </div>
         )}
-        <div className="grid grid-cols-6 gap-1">
+        <div className="flex sm:grid sm:grid-cols-6 gap-1.5 overflow-x-auto pb-1 no-scrollbar">
           {TOPICS.map((t, idx) => {
             const isActive = activeTopic === t.key;
             const isFirst = idx === 0;
@@ -494,13 +535,13 @@ Tia ảnh hưởng đến cung đối chiếu và tam hợp.
             return (
               <div
                 key={t.key}
-                className="relative group"
+                className="relative group flex-shrink-0 min-w-[76px] sm:min-w-0 sm:w-full"
               >
                 <button
                   type="button"
                   onClick={() => handleTopicClick(t.key)}
                   disabled={loading}
-                  className={`w-full py-1.5 text-[10px] font-medium rounded-lg transition-all duration-150 ${
+                  className={`w-full py-1.5 px-2 sm:px-1 text-[10px] font-medium rounded-lg transition-all duration-150 whitespace-nowrap ${
                     loading ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer hover:border-[var(--t-gold)]'
                   }`}
                   style={{
@@ -658,17 +699,21 @@ Tia ảnh hưởng đến cung đối chiếu và tam hợp.
                         </div>
                       </motion.div>
                     ) : (
-                      <div className="py-8 px-4 flex flex-col items-center justify-center text-center space-y-3 rounded-xl my-2 border border-dashed border-[rgba(212,168,67,0.25)] bg-[rgba(212,168,67,0.03)] backdrop-blur-sm">
+                      <div className="py-7 px-4 flex flex-col items-center justify-center text-center space-y-3 rounded-xl my-2 border border-dashed border-amber-500/35 bg-gradient-to-b from-amber-500/10 via-amber-500/5 to-transparent backdrop-blur-md max-w-full overflow-hidden shadow-lg">
                         <div className="relative flex items-center justify-center">
-                          <div className="w-8 h-8 rounded-full border-2 border-dashed border-[var(--t-gold)] animate-spin opacity-50" />
-                          <span className="absolute text-xs" style={{ color: 'var(--t-gold)' }}>✦</span>
+                          <div className="w-10 h-10 rounded-full border-2 border-dashed border-[var(--t-gold)] animate-spin opacity-60" style={{ animationDuration: '12s' }} />
+                          <span className="absolute text-sm" style={{ color: 'var(--t-gold)' }}>✦</span>
                         </div>
-                        <div className="space-y-1">
-                          <p className="text-[12px] font-medium tracking-wide animate-pulse" style={{ color: 'var(--t-gold)' }}>
-                            {isVip ? '✨ Lệnh Bài Tri Kỷ: Bần đạo lập tức trải tinh bàn đàm đạo...' : 'Đang phân tích thiên bàn & luận giải lá số...'}
+                        <div className="space-y-1.5 w-full max-w-[320px] mx-auto px-1">
+                          <p className="text-[12px] sm:text-[13px] font-serif font-bold tracking-wider text-amber-300 animate-pulse break-words uppercase">
+                            {isVip
+                              ? '✨ LỆNH BÀI TRI KỶ: BẦN ĐẠO TRẢI BÀN ĐÀM ĐẠO...'
+                              : '✦ BẦN ĐẠO ĐANG KHAI MỞ THIÊN BÀN ✦'}
                           </p>
-                          <p className="text-[10px]" style={{ color: 'var(--t-faint)' }}>
-                            {isVip ? 'Đặc quyền thượng khách — kết nối ưu tiên trực tiếp tới AI cao cấp.' : 'Hệ thống AI đang đối chiếu cung vị và tinh diệu, quý bạn vui lòng đợi trong giây lát (khoảng 10-15s).'}
+                          <p className="text-[10px] sm:text-[11px] leading-relaxed text-amber-100/80 italic font-serif break-words">
+                            {isVip
+                              ? 'Thượng khách quang lâm, bần đạo lập tức vận khởi linh cơ soi tỏ vận số, không để đạo hữu chờ đợi.'
+                              : 'Bần đạo đang vận chuyển thần thức, điểm chỉ tinh diệu và soi tỏ khí số bản mệnh. Đạo hữu hoan hỉ tĩnh tâm chờ trong giây lát (~10–15s)...'}
                           </p>
                         </div>
                       </div>

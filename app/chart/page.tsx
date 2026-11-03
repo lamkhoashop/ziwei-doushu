@@ -206,8 +206,16 @@ export default function ChartPage() {
             }}
             className="chart-main-grid"
           >
-            <div ref={boardRef} className="w-full">
-              <ChartBoard chart={chart} onPalaceSelect={setSelectedPalace} />
+            <div ref={boardRef} className="w-full overflow-x-auto pb-2">
+              <div className="flex items-center justify-between text-[10px] text-amber-400/80 lg:hidden mb-1.5 px-1 font-serif">
+                <span>✦ Mệnh Bàn 12 Cung Vị</span>
+                <span className="inline-flex items-center gap-1 text-[9px] px-2 py-0.5 rounded-full border border-amber-500/30 bg-amber-500/10 text-amber-300 animate-pulse">
+                  <span>↔</span> Vuốt ngang xem trọn lá số
+                </span>
+              </div>
+              <div className="min-w-[560px] lg:min-w-0">
+                <ChartBoard chart={chart} onPalaceSelect={setSelectedPalace} />
+              </div>
             </div>
             <div
               className="insight-panel-container w-full"

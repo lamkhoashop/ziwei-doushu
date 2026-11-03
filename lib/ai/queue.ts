@@ -33,22 +33,52 @@ class AiQueueManager {
   }
 
   /**
-   * Kiểm tra xem request có mang Lệnh Bài VIP hay không
+   * Kiểm tra xem request có mang Lệnh Bài VIP hợp lệ hay không
+   * Hỗ trợ 3 loại:
+   * 1. 'ltk': Lệnh Bài Tri Kỷ (thời hạn 1 tháng, làm mới mỗi lần vào link)
+   * 2. 'vip1h' / '1h': Lệnh Bài Tạm Thời (thời hạn đúng 1 giờ, hết 1h là vô hiệu)
+   * 3. Master Key (VIP_SECRET_KEY / ziwei2026)
    */
-  public checkIsVip(req: NextRequest, clientKey?: string): boolean {
-    if (clientKey && clientKey === VIP_SECRET_KEY) return true;
+  public checkIsVip(req: NextRequest, clientKey?: string, clientExp?: number): boolean {
+    const checkToken = (key?: string | null, exp?: number | string | null): boolean => {
+      if (!key) return false;
+      const clean = key.trim().toLowerCase();
 
-    // Kiểm tra qua query param: ?vip=...
-    const urlVip = req.nextUrl.searchParams.get('vip');
-    if (urlVip && urlVip === VIP_SECRET_KEY) return true;
+      // Master key luôn hợp lệ
+      if (clean === VIP_SECRET_KEY.toLowerCase() || clean === 'ziwei2026') return true;
+
+      // Kiểm tra hạn sử dụng nếu có
+      if (exp) {
+        const expNum = Number(exp);
+        if (!isNaN(expNum) && Date.now() > expNum) {
+          return false;
+        }
+      }
+
+      // VIP 1 tháng (ltk)
+      if (clean === 'ltk') return true;
+
+      // VIP 1 giờ (vip1h hoặc 1h)
+      if (clean === 'vip1h' || clean === '1h') return true;
+
+      return false;
+    };
+
+    if (checkToken(clientKey, clientExp)) return true;
+
+    // Kiểm tra qua query param: ?vip=... hoặc ?vip1h
+    const urlVip = req.nextUrl.searchParams.get('vip') || (req.nextUrl.searchParams.has('vip1h') ? 'vip1h' : null);
+    if (checkToken(urlVip)) return true;
 
     // Kiểm tra qua header
     const headerVip = req.headers.get('x-vip-key');
-    if (headerVip && headerVip === VIP_SECRET_KEY) return true;
+    const headerExp = req.headers.get('x-vip-exp');
+    if (checkToken(headerVip, headerExp)) return true;
 
     // Kiểm tra qua Cookie
     const cookieVip = req.cookies.get('ziwei_vip')?.value;
-    if (cookieVip && cookieVip === VIP_SECRET_KEY) return true;
+    const cookieExp = req.cookies.get('ziwei_vip_exp')?.value;
+    if (checkToken(cookieVip, cookieExp)) return true;
 
     return false;
   }
