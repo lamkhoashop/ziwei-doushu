@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { motion, useScroll, useTransform, useInView, AnimatePresence } from 'framer-motion';
 import StarField from '@/components/StarField';
 import { useTheme, type Theme } from '@/components/ThemeProvider';
@@ -502,20 +503,20 @@ export default function HomePage() {
         </div>
         <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0">
           <ThemeToggle />
-          <motion.button
-            whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
-            onClick={() => router.push('/heming')}
-            className="text-[11px] sm:text-xs px-2.5 sm:px-4 py-1 sm:py-1.5 rounded-full transition-all duration-300"
+          <Link
+            href="/heming"
+            prefetch={true}
+            className="text-[11px] sm:text-xs px-2.5 sm:px-4 py-1 sm:py-1.5 rounded-full transition-all duration-300 inline-flex items-center justify-center"
             style={{ border: `1px solid ${c.navBorder}`, color: c.textMuted }}>
             Hợp Số
-          </motion.button>
-          <motion.button
-            whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
-            onClick={() => router.push('/chart')}
-            className="text-[11px] sm:text-xs px-2.5 sm:px-4 py-1 sm:py-1.5 rounded-full transition-all duration-300"
+          </Link>
+          <Link
+            href="/chart"
+            prefetch={true}
+            className="text-[11px] sm:text-xs px-2.5 sm:px-4 py-1 sm:py-1.5 rounded-full transition-all duration-300 inline-flex items-center justify-center"
             style={{ border: `1px solid ${c.goldLine}`, color: c.goldSolid }}>
             Lập Lá Số
-          </motion.button>
+          </Link>
         </div>
       </nav>
 
@@ -567,13 +568,13 @@ export default function HomePage() {
           <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.85 }}
             className="flex flex-col items-center gap-4">
-            <motion.button
-              whileHover={{ y: -2, filter: 'brightness(1.06)' }} whileTap={{ scale: 0.97 }}
-              onClick={() => router.push('/chart')}
-              className="px-12 py-4 font-semibold text-base tracking-widest rounded-full"
+            <Link
+              href="/chart"
+              prefetch={true}
+              className="px-12 py-4 font-semibold text-base tracking-widest rounded-full inline-flex items-center justify-center transition-all hover:brightness-105 active:scale-95 shadow-xl"
               style={{ background: c.ctaBg, color: c.ctaText }}>
               LẬP LÁ SỐ NGAY
-            </motion.button>
+            </Link>
           </motion.div>
 
           {/* 14 Chính Tinh Pill Grid */}
@@ -1015,13 +1016,13 @@ export default function HomePage() {
             Nhập ngày tháng năm và giờ sinh để thiết lập lá số chuẩn mực chỉ trong vài giây<br />
             và cùng AI Agent khám phá những chỉ dẫn sâu sắc từ cổ nhân
           </p>
-          <motion.button
-            whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
-            onClick={() => router.push('/chart')}
-            className="px-14 py-4 font-semibold text-base tracking-widest rounded-full"
+          <Link
+            href="/chart"
+            prefetch={true}
+            className="px-14 py-4 font-semibold text-base tracking-widest rounded-full inline-flex items-center justify-center transition-all hover:scale-105 active:scale-95 shadow-2xl"
             style={{ background: c.ctaBg, color: c.ctaText }}>
             LẬP LÁ SỐ NGAY
-          </motion.button>
+          </Link>
         </FadeIn>
       </section>
 

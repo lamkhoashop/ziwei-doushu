@@ -76,18 +76,28 @@ export default function ChartPage() {
   const [chart, setChart] = useState<ZiweiChart | null>(null);
   const [selectedPalace, setSelectedPalace] = useState<Palace | null>(null);
   const [boardHeight, setBoardHeight] = useState<number | undefined>(undefined);
+  const [lastSavedInfo, setLastSavedInfo] = useState<BirthInfo | null>(null);
   const boardRef = useRef<HTMLDivElement>(null);
   const { theme } = useTheme();
   const isDark = theme === 'dark';
 
-  // Khôi phục lá số từ localStorage khi F5 làm mới trang
+  // Khôi phục lá số: CHỈ tự động nạp lại khi người dùng thực hiện F5 (Reload trang)
   useEffect(() => {
     try {
       const saved = localStorage.getItem('ziwei_active_birth_info');
       if (saved) {
-        const info = JSON.parse(saved);
+        const info: BirthInfo = JSON.parse(saved);
         if (info && info.year && info.month && info.day !== undefined) {
-          setChart(generateChart(info));
+          setLastSavedInfo(info);
+
+          // Nhận diện xem người dùng đang F5/Reload trang hay vừa bấm từ trang chủ vào
+          const navEntries = typeof window !== 'undefined' && window.performance?.getEntriesByType?.('navigation');
+          const isPageReload = navEntries && navEntries.length > 0 && (navEntries[0] as PerformanceNavigationTiming).type === 'reload';
+          const isViewingActive = sessionStorage.getItem('ziwei_chart_active') === 'true';
+
+          if (isPageReload && isViewingActive) {
+            setChart(generateChart(info));
+          }
         }
       }
     } catch { /* ignore */ }
@@ -116,6 +126,7 @@ export default function ChartPage() {
   const handleGenerateChart = (info: BirthInfo) => {
     try {
       localStorage.setItem('ziwei_active_birth_info', JSON.stringify(info));
+      sessionStorage.setItem('ziwei_chart_active', 'true');
     } catch { /* ignore */ }
     setChart(generateChart(info));
   };
@@ -123,8 +134,10 @@ export default function ChartPage() {
   const handleReset = () => {
     try {
       localStorage.removeItem('ziwei_active_birth_info');
+      sessionStorage.removeItem('ziwei_chart_active');
     } catch { /* ignore */ }
     setChart(null);
+    setLastSavedInfo(null);
     setSelectedPalace(null);
   };
 
@@ -178,6 +191,26 @@ export default function ChartPage() {
             Nhập ngày tháng năm giờ sinh và địa phương để hệ thống tự động hiệu chỉnh giờ mặt trời thực (True Solar Time),
             thiết lập 12 cung vị, an sao chính tinh - phụ tinh và phân tích vận hạn.
           </p>
+          {lastSavedInfo && (
+            <div className="mb-6 p-3.5 rounded-xl border border-amber-500/30 bg-amber-500/10 flex items-center justify-between gap-3 text-xs flex-wrap sm:flex-nowrap">
+              <div className="flex items-center gap-2">
+                <span className="text-amber-400">📋</span>
+                <span style={{ color: 'var(--t-gold)' }}>
+                  Lá số vừa xem gần nhất: <strong>{lastSavedInfo.name || 'Bản mệnh'}</strong> ({lastSavedInfo.day}/{lastSavedInfo.month}/{lastSavedInfo.year})
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  try { sessionStorage.setItem('ziwei_chart_active', 'true'); } catch { /* ignore */ }
+                  setChart(generateChart(lastSavedInfo));
+                }}
+                className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 border border-amber-500/40 cursor-pointer flex-shrink-0 transition-all"
+              >
+                Tiếp tục xem lại →
+              </button>
+            </div>
+          )}
           <div className="card-glass rounded-2xl p-6 sm:p-8">
             <BirthForm onSubmit={handleGenerateChart} />
           </div>

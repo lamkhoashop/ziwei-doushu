@@ -20,7 +20,8 @@ export default function StarField() {
     window.addEventListener('resize', resize);
 
     const isLight = theme === 'light';
-    const count = isLight ? 120 : 200;
+    const isMobile = window.innerWidth < 768;
+    const count = isMobile ? (isLight ? 20 : 35) : (isLight ? 80 : 130);
 
     type Particle = {
       x: number; y: number; r: number;
@@ -45,8 +46,8 @@ export default function StarField() {
         if (p.alpha <= 0) { p.alpha = 0; p.alphaDir = 1; }
 
         const color = isLight
-          ? `rgba(160, 110, 20, ${p.alpha})`   // 亮色: 金色尘埃
-          : `rgba(200, 220, 255, ${p.alpha})`;  // 暗色: 蓝白星光
+          ? `rgba(160, 110, 20, ${p.alpha})`
+          : `rgba(200, 220, 255, ${p.alpha})`;
 
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
