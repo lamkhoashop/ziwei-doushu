@@ -196,6 +196,133 @@ export const SHICHEN_VI = [
   { branch: 11, name: 'Giờ Hợi', range: '21:00 - 23:00' },
 ];
 
+// ─── Ngũ Hành Tinh Diệu (Kim, Mộc, Thủy, Hỏa, Thổ) ────────
+export type WuXingElement = 'kim' | 'moc' | 'thuy' | 'hoa' | 'tho';
+
+export const STAR_ELEMENT_MAP: Record<string, WuXingElement> = {
+  // 14 Chính Tinh
+  '紫微': 'tho',  // Tử Vi - Âm Thổ
+  '天机': 'moc',  // Thiên Cơ - Âm Mộc
+  '太阳': 'hoa',  // Thái Dương - Dương Hỏa
+  '武曲': 'kim',  // Vũ Khúc - Âm Kim
+  '天同': 'thuy', // Thiên Đồng - Dương Thủy
+  '廉贞': 'hoa',  // Liêm Trinh - Âm Hỏa
+  '天府': 'tho',  // Thiên Phủ - Dương Thổ
+  '太阴': 'thuy', // Thái Âm - Âm Thủy
+  '贪狼': 'moc',  // Tham Lang - Giáp Mộc / Nhâm Thủy
+  '巨门': 'thuy', // Cự Môn - Âm Thủy
+  '天相': 'thuy', // Thiên Tướng - Dương Thủy
+  '天梁': 'tho',  // Thiên Lương - Dương Thổ
+  '七杀': 'kim',  // Thất Sát - Dương Kim
+  '破军': 'thuy', // Phá Quân - Âm Thủy
+
+  // Lục cát tinh & Cát tinh
+  '文昌': 'kim',  // Dương Kim
+  '文曲': 'thuy', // Âm Thủy
+  '左辅': 'tho',  // Dương Thổ
+  '右弼': 'thuy', // Âm Thủy
+  '天魁': 'hoa',  // Dương Hỏa
+  '天钺': 'hoa',  // Âm Hỏa
+  '禄存': 'tho',  // Kỷ Thổ
+  '天马': 'hoa',  // Bính Hỏa
+
+  // Lục sát tinh
+  '擎羊': 'kim',  // Canh Kim
+  '陀罗': 'kim',  // Tân Kim
+  '火星': 'hoa',  // Dương Hỏa
+  '铃星': 'hoa',  // Âm Hỏa
+  '地空': 'hoa',  // Bính Hỏa
+  '地劫': 'hoa',  // Bính Hỏa
+
+  // Phụ tinh khác
+  '红鸾': 'thuy',
+  '天喜': 'thuy',
+  '天刑': 'hoa',
+  '天姚': 'thuy',
+  '天哭': 'kim',
+  '天虚': 'thuy',
+  '龙池': 'thuy',
+  '凤阁': 'tho',
+  '孤辰': 'hoa',
+  '寡宿': 'hoa',
+  '大耗': 'hoa',
+  '小耗': 'hoa',
+  '截空': 'hoa',
+  '旬空': 'hoa',
+  '台辅': 'tho',
+  '封诰': 'tho',
+  '三台': 'thuy',
+  '八座': 'thuy',
+  '恩光': 'hoa',
+  '天贵': 'tho',
+  '天官': 'hoa',
+  '天福': 'tho',
+  '解神': 'thuy',
+  '天德': 'hoa',
+  '月德': 'hoa',
+  '天才': 'tho',
+  '天寿': 'tho',
+  '华盖': 'kim',
+  '咸池': 'thuy',
+  '沐浴': 'thuy',
+};
+
+export interface ElementStyle {
+  label: string;
+  color: string;       // Text color
+  colorDim: string;    // Dim text color
+  bg: string;          // Badge bg
+  border: string;      // Badge border
+  glow: string;        // Glow drop-shadow
+}
+
+export const ELEMENT_STYLES: Record<WuXingElement, ElementStyle> = {
+  kim: {
+    label: 'Kim',
+    color: '#F8FAFC',        // Trắng bạc ánh bạch kim
+    colorDim: '#94A3B8',
+    bg: 'rgba(248, 250, 252, 0.12)',
+    border: 'rgba(248, 250, 252, 0.35)',
+    glow: '0 0 8px rgba(248, 250, 252, 0.45)',
+  },
+  moc: {
+    label: 'Mộc',
+    color: '#34D399',        // Xanh ngọc lục bảo
+    colorDim: '#059669',
+    bg: 'rgba(16, 185, 129, 0.12)',
+    border: 'rgba(52, 211, 153, 0.35)',
+    glow: '0 0 8px rgba(52, 211, 153, 0.45)',
+  },
+  thuy: {
+    label: 'Thủy',
+    color: '#38BDF8',        // Xanh lam biếc huyền thủy
+    colorDim: '#0284C7',
+    bg: 'rgba(14, 165, 233, 0.12)',
+    border: 'rgba(56, 189, 248, 0.35)',
+    glow: '0 0 8px rgba(56, 189, 248, 0.45)',
+  },
+  hoa: {
+    label: 'Hỏa',
+    color: '#F87171',        // Đỏ son chu sa rực rỡ
+    colorDim: '#DC2626',
+    bg: 'rgba(239, 68, 68, 0.12)',
+    border: 'rgba(248, 113, 113, 0.35)',
+    glow: '0 0 8px rgba(248, 113, 113, 0.45)',
+  },
+  tho: {
+    label: 'Thổ',
+    color: '#FBBF24',        // Hoàng kim hổ phách uy nghi
+    colorDim: '#D97706',
+    bg: 'rgba(245, 158, 11, 0.12)',
+    border: 'rgba(251, 191, 36, 0.35)',
+    glow: '0 0 8px rgba(251, 191, 36, 0.45)',
+  },
+};
+
+export function getStarElement(starName: string): WuXingElement {
+  return STAR_ELEMENT_MAP[starName] ?? 'tho';
+}
+
 // ─── Tên Cách cục kinh điển ────────────────────────────────
 export const PATTERN_NAMES_CN_TO_VI: Record<string, string> = {
   '君臣庆会': 'Quân Thần Khánh Hội',

@@ -101,30 +101,34 @@ export default function ChartBoard({ chart, onStarSelect, onPalaceSelect, onSiHu
         onYearChange={setLiunianYear}
       />
 
-      {/* Tiêu đề lá số */}
+      {/* Tiêu đề lá số cổ điển Á Đông */}
       <motion.div
         initial={{ opacity: 0, y: -8 }}
         animate={{ opacity: 1, y: 0 }}
         className="text-center mb-3"
       >
-        <div className="text-[10px] tracking-[0.5em] uppercase mb-1" style={{ color: 'var(--t-faint)' }}>
-          TỬ VI ĐẨU SỐ TOÀN THƯ
+        <div className="flex items-center justify-center gap-2 mb-1">
+          <span className="w-8 h-[1px] bg-gradient-to-r from-transparent to-[#d4a843]" />
+          <span className="text-[10px] tracking-[0.4em] font-serif uppercase font-semibold" style={{ color: 'var(--t-gold)' }}>
+            ✦ THIÊN BÀN TỬ VI ĐẨU SỐ ✦
+          </span>
+          <span className="w-8 h-[1px] bg-gradient-to-l from-transparent to-[#d4a843]" />
         </div>
-        <h2 className="text-sm tracking-[0.2em] font-medium" style={{ color: 'var(--t-gold)' }}>
+        <h2 className="text-base font-serif tracking-[0.15em] font-bold" style={{ color: 'var(--t-gold)', textShadow: '0 0 12px rgba(212,168,67,0.3)' }}>
           {chart.birthInfo.name ? `Lá Số Tử Vi: ${chart.birthInfo.name}` : 'Lá Số Tử Vi Mệnh Bàn'}
         </h2>
       </motion.div>
 
-      {/* Lưới 4x4 Mệnh Bàn (kèm tia nối SVG) */}
+      {/* Lưới 4x4 Mệnh Bàn (kèm viền cổ phong & tia nối SVG) */}
       <div
         className="grid rounded-xl overflow-hidden relative"
         style={{
           gridTemplateColumns: 'repeat(4, 1fr)',
           gridTemplateRows: 'repeat(4, minmax(135px, 1fr))',
           gap: '1px',
-          background: 'var(--t-border)',
-          border: '1px solid var(--t-border)',
-          boxShadow: '0 4px 32px rgba(0,0,0,0.15)',
+          background: 'rgba(212,168,67,0.25)',
+          border: '1px solid rgba(212,168,67,0.35)',
+          boxShadow: '0 8px 40px rgba(0,0,0,0.35), inset 0 0 0 1px rgba(212,168,67,0.2)',
         }}
       >
         {ANIMATION_ORDER.map((branch, i) => {
@@ -148,40 +152,79 @@ export default function ChartBoard({ chart, onStarSelect, onPalaceSelect, onSiHu
           );
         })}
 
-        {/* Khu vực thông tin trung tâm (Thiên Bàn) */}
+        {/* ── Khu vực trung tâm: Bát Quái Trận Đồ & Thiên Bàn ── */}
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.5 }}
-          className="flex flex-col items-center justify-center p-4 gap-2.5 text-center"
-          style={{ gridRow: '2 / 4', gridColumn: '2 / 4', background: 'var(--t-bg)' }}
+          className="relative flex flex-col items-center justify-center p-4 gap-2 text-center overflow-hidden"
+          style={{ gridRow: '2 / 4', gridColumn: '2 / 4', background: 'radial-gradient(circle at center, rgba(30,22,12,0.95) 0%, rgba(12,14,22,0.98) 100%)' }}
         >
-          <div className="text-5xl select-none leading-none" style={{ color: 'var(--t-gold)', opacity: 0.15, filter: 'drop-shadow(0 0 12px rgba(180,120,30,0.15))' }}>
+          {/* Vòng Bát Quái Trận Đồ chìm tinh xảo */}
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.12] select-none text-[var(--t-gold)]">
+            <svg viewBox="0 0 200 200" className="w-56 h-56 animate-[spin_180s_linear_infinite]">
+              <circle cx="100" cy="100" r="95" fill="none" stroke="currentColor" strokeWidth="1" strokeDasharray="3,3" />
+              <circle cx="100" cy="100" r="85" fill="none" stroke="currentColor" strokeWidth="0.8" />
+              <circle cx="100" cy="100" r="62" fill="none" stroke="currentColor" strokeWidth="0.6" strokeDasharray="4,2" />
+              <g fontSize="8" fontWeight="bold" textAnchor="middle" fill="currentColor">
+                <text x="100" y="24">☰ CÀN</text>
+                <text x="156" y="47">☱ ĐOÀI</text>
+                <text x="180" y="103">☲ LY</text>
+                <text x="156" y="160">☳ CHẤN</text>
+                <text x="100" y="184">☴ TỐN</text>
+                <text x="44" y="160">☵ KHẢM</text>
+                <text x="20" y="103">☶ CẤN</text>
+                <text x="44" y="47">☷ KHÔN</text>
+              </g>
+            </svg>
+          </div>
+
+          {/* Thái Cực Đồ Ánh Kim */}
+          <div className="relative text-4xl select-none leading-none drop-shadow-[0_0_16px_rgba(212,168,67,0.4)]" style={{ color: 'var(--t-gold)' }}>
             ☯
           </div>
 
-          <div className="space-y-1">
-            <div className="text-[10px] tracking-[0.25em] font-semibold uppercase" style={{ color: 'var(--t-gold)' }}>Tử Vi Đẩu Số</div>
-            <div className="text-[11px] space-y-0.5" style={{ color: 'var(--t-faint)' }}>
-              <div>Mệnh tại cung: <span style={{ color: 'var(--t-gold)', fontWeight: 600 }}>{BRANCHES_VI[chart.mingGongBranch]}</span></div>
-              <div>Thân cư cung: <span className="text-sky-500 font-semibold">{BRANCHES_VI[chart.shenGongBranch]}</span></div>
-              <div className="text-[10px] font-medium" style={{ color: 'var(--t-gold)', opacity: 0.85 }}>{toVietnameseJu(chart.wuxingJuName)}</div>
+          <div className="relative z-10 space-y-1.5 w-full max-w-[220px]">
+            <div className="text-[10px] tracking-[0.3em] font-serif font-bold uppercase text-amber-200/90 border-b border-[#d4a843]/20 pb-1">
+              MỆNH BÀN ĐẨU SỐ
+            </div>
+
+            <div className="text-[11px] font-serif space-y-1">
+              <div className="flex items-center justify-center gap-2">
+                <span className="text-white/60 text-[10px]">Mệnh tại:</span>
+                <span className="font-bold text-amber-300 px-1.5 py-0.5 rounded bg-amber-950/60 border border-amber-500/30">
+                  {BRANCHES_VI[chart.mingGongBranch]}
+                </span>
+                <span className="text-white/60 text-[10px]">Thân tại:</span>
+                <span className="font-bold text-sky-300 px-1.5 py-0.5 rounded bg-sky-950/60 border border-sky-500/30">
+                  {BRANCHES_VI[chart.shenGongBranch]}
+                </span>
+              </div>
+
+              {/* Ngũ Hành Cục */}
+              <div>
+                <span className="inline-block text-[10px] font-semibold px-2 py-0.5 rounded-full border border-amber-400/40 bg-gradient-to-r from-amber-500/10 via-amber-400/20 to-amber-500/10 text-amber-200 shadow-[0_0_8px_rgba(245,158,11,0.2)]">
+                  ❖ {toVietnameseJu(chart.wuxingJuName)} ❖
+                </span>
+              </div>
             </div>
           </div>
 
+          {/* Đại Hạn Hiện Tại */}
           {chart.currentDaXianIndex >= 0 && (() => {
             const dx = chart.daXians[chart.currentDaXianIndex];
             return (
-              <div className="border border-purple-500/30 rounded-lg px-3 py-1 text-center"
-                style={{ background: 'rgba(147,51,234,0.06)' }}>
-                <div className="text-[8px] text-purple-500/80 tracking-wider">Đại Hạn Hiện Tại</div>
-                <div className="text-[11px] text-purple-400 font-medium tabular-nums">{dx.startAge}–{dx.endAge} tuổi</div>
-                <div className="text-[9px] text-purple-500/70">{toVietnamesePalace(dx.palaceName)}</div>
+              <div className="relative z-10 border border-purple-400/40 rounded-lg px-3 py-1 text-center shadow-[0_0_10px_rgba(168,85,247,0.15)]"
+                style={{ background: 'linear-gradient(135deg, rgba(88,28,135,0.2) 0%, rgba(59,7,100,0.25) 100%)' }}>
+                <div className="text-[8px] text-purple-300/90 tracking-widest font-serif uppercase">ĐẠI HẠN HIỆN TẠI</div>
+                <div className="text-[11px] text-purple-200 font-bold tabular-nums">{dx.startAge}–{dx.endAge} tuổi</div>
+                <div className="text-[9px] text-purple-300/80 font-medium">Tại cung {toVietnamesePalace(dx.palaceName)}</div>
               </div>
             );
           })()}
 
-          <div className="text-[8px] text-center leading-relaxed font-mono" style={{ color: 'var(--t-faint)', opacity: 0.75 }}>
+          {/* Lịch Âm */}
+          <div className="relative z-10 text-[9px] text-center leading-relaxed font-serif text-amber-100/60 border-t border-[#d4a843]/15 pt-1">
             Âm lịch: {chart.lunarInfo.lunarYear} · {chart.lunarInfo.isLeapMonth ? 'Nhuận ' : ''}Tháng {chart.lunarInfo.lunarMonth} · Ngày {chart.lunarInfo.lunarDay}
           </div>
         </motion.div>
