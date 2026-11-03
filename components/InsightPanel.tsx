@@ -192,18 +192,40 @@ export default function InsightPanel({ chart, selectedPalace, selectedSiHua }: I
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [activeTopic, setActiveTopic] = useState<string>('overview');
+  const [showScrollBottom, setShowScrollBottom] = useState(false);
   const messagesRef = useRef<Message[]>([]);
   const loadingRef = useRef(false);
   const autoLoaded = useRef(false);
   const lastPalaceBranch = useRef<number | undefined>(undefined);
   const lastSiHuaKey = useRef<string | undefined>(undefined);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const isAtBottomRef = useRef(true);
 
   useEffect(() => { messagesRef.current = messages; }, [messages]);
   useEffect(() => { loadingRef.current = loading; }, [loading]);
 
+  const handleScroll = () => {
+    if (!scrollRef.current) return;
+    const { scrollTop, scrollHeight, clientHeight } = scrollRef.current;
+    // Nếu cách đáy dưới 70px thì coi như người dùng đang ở đáy
+    const atBottom = scrollHeight - scrollTop - clientHeight <= 70;
+    isAtBottomRef.current = atBottom;
+    setShowScrollBottom(!atBottom);
+  };
+
+  const scrollToBottom = () => {
+    if (!scrollRef.current) return;
+    isAtBottomRef.current = true;
+    setShowScrollBottom(false);
+    scrollRef.current.scrollTo({
+      top: scrollRef.current.scrollHeight,
+      behavior: 'smooth',
+    });
+  };
+
+  // Chỉ tự động cuộn xuống nếu người dùng đang ở đáy (không bị giật khi người dùng kéo lên đọc)
   useEffect(() => {
-    if (scrollRef.current) {
+    if (scrollRef.current && isAtBottomRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages]);
@@ -338,6 +360,8 @@ Tia ảnh hưởng đến cung đối chiếu và tam hợp.
     if (!text.trim() || loadingRef.current) return;
     loadingRef.current = true;
     setLoading(true);
+    isAtBottomRef.current = true;
+    setShowScrollBottom(false);
 
     const userMsg: Message = { role: 'user', content: text, hidden };
     const apiMessages = [...messagesRef.current, userMsg].map(m => ({
@@ -426,82 +450,106 @@ Tia ảnh hưởng đến cung đối chiếu và tam hợp.
       </div>
 
       {/* ── Messages ── */}
-      <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-4 min-h-0">
+      <div className="relative flex-1 min-h-0 flex flex-col">
+        <div
+          ref={scrollRef}
+          onScroll={handleScroll}
+          className="flex-1 overflow-y-auto p-4 space-y-4"
+        >
 
-        {/* Loading state before first message */}
-        {messages.length === 0 && (
-          <div className="flex flex-col items-center justify-center h-full text-center">
-            <div className="text-4xl mb-3" style={{ color: 'var(--t-gold)', opacity: 0.1 }}>✦</div>
-            <p className="text-[10px] animate-pulse" style={{ color: 'var(--t-faint)' }}>Đang khởi tạo luận giải mệnh cách…</p>
-          </div>
-        )}
+          {/* Loading state before first message */}
+          {messages.length === 0 && (
+            <div className="flex flex-col items-center justify-center h-full text-center">
+              <div className="text-4xl mb-3" style={{ color: 'var(--t-gold)', opacity: 0.1 }}>✦</div>
+              <p className="text-[10px] animate-pulse" style={{ color: 'var(--t-faint)' }}>Đang khởi tạo luận giải mệnh cách…</p>
+            </div>
+          )}
 
-        <AnimatePresence initial={false}>
-          {messages.map((msg, i) => {
-            if (msg.role === 'user' && msg.hidden) return null;
+          <AnimatePresence initial={false}>
+            {messages.map((msg, i) => {
+              if (msg.role === 'user' && msg.hidden) return null;
 
-            if (msg.role === 'user') {
+              if (msg.role === 'user') {
+                return (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex justify-end"
+                  >
+                    <div
+                      className="max-w-[85%] rounded-xl px-3 py-2 text-[11px]"
+                      style={{
+                        background: 'rgba(212,168,67,0.08)',
+                        border: '1px solid rgba(212,168,67,0.18)',
+                        color: 'var(--t-gold)',
+                      }}
+                    >
+                      {msg.content}
+                    </div>
+                  </motion.div>
+                );
+              }
+
+              // Assistant message
+              const isLastMsg = i === messages.length - 1;
+              const isWaitingFirstToken = loading && isLastMsg && (!msg.content || msg.content.trim() === '');
+
               return (
                 <motion.div
                   key={i}
                   initial={{ opacity: 0, y: 6 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="flex justify-end"
                 >
                   <div
-                    className="max-w-[85%] rounded-xl px-3 py-2 text-[11px]"
-                    style={{
-                      background: 'rgba(212,168,67,0.08)',
-                      border: '1px solid rgba(212,168,67,0.18)',
-                      color: 'var(--t-gold)',
-                    }}
+                    className="text-[9px] tracking-widest mb-2 flex items-center gap-1.5"
+                    style={{ color: 'var(--t-faint)' }}
                   >
-                    {msg.content}
+                    <span style={{ color: 'var(--t-gold)', opacity: 0.4 }}>✦</span>
+                    LUẬN GIẢI MỆNH LÝ
                   </div>
+
+                  {isWaitingFirstToken ? (
+                    <div className="py-8 px-4 flex flex-col items-center justify-center text-center space-y-3 rounded-xl my-2 border border-dashed border-[rgba(212,168,67,0.25)] bg-[rgba(212,168,67,0.03)] backdrop-blur-sm">
+                      <div className="relative flex items-center justify-center">
+                        <div className="w-8 h-8 rounded-full border-2 border-dashed border-[var(--t-gold)] animate-spin opacity-50" />
+                        <span className="absolute text-xs" style={{ color: 'var(--t-gold)' }}>✦</span>
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-[12px] font-medium tracking-wide animate-pulse" style={{ color: 'var(--t-gold)' }}>
+                          Đang phân tích thiên bàn & luận giải lá số...
+                        </p>
+                        <p className="text-[10px]" style={{ color: 'var(--t-faint)' }}>
+                          Hệ thống AI đang đối chiếu cung vị và tinh diệu, quý bạn vui lòng đợi trong giây lát (khoảng 10-15s).
+                        </p>
+                      </div>
+                    </div>
+                  ) : (
+                    <AiContent text={msg.content} streaming={loading && isLastMsg} />
+                  )}
                 </motion.div>
               );
-            }
+            })}
+          </AnimatePresence>
+        </div>
 
-            // Assistant message
-            const isLastMsg = i === messages.length - 1;
-            const isWaitingFirstToken = loading && isLastMsg && (!msg.content || msg.content.trim() === '');
-
-            return (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 6 }}
-                animate={{ opacity: 1, y: 0 }}
-              >
-                <div
-                  className="text-[9px] tracking-widest mb-2 flex items-center gap-1.5"
-                  style={{ color: 'var(--t-faint)' }}
-                >
-                  <span style={{ color: 'var(--t-gold)', opacity: 0.4 }}>✦</span>
-                  LUẬN GIẢI MỆNH LÝ
-                </div>
-
-                {isWaitingFirstToken ? (
-                  <div className="py-8 px-4 flex flex-col items-center justify-center text-center space-y-3 rounded-xl my-2 border border-dashed border-[rgba(212,168,67,0.25)] bg-[rgba(212,168,67,0.03)] backdrop-blur-sm">
-                    <div className="relative flex items-center justify-center">
-                      <div className="w-8 h-8 rounded-full border-2 border-dashed border-[var(--t-gold)] animate-spin opacity-50" />
-                      <span className="absolute text-xs" style={{ color: 'var(--t-gold)' }}>✦</span>
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-[12px] font-medium tracking-wide animate-pulse" style={{ color: 'var(--t-gold)' }}>
-                        Đang phân tích thiên bàn & luận giải lá số...
-                      </p>
-                      <p className="text-[10px]" style={{ color: 'var(--t-faint)' }}>
-                        Hệ thống AI đang đối chiếu cung vị và tinh diệu, quý bạn vui lòng đợi trong giây lát (khoảng 10-15s).
-                      </p>
-                    </div>
-                  </div>
-                ) : (
-                  <AiContent text={msg.content} streaming={loading && isLastMsg} />
-                )}
-              </motion.div>
-            );
-          })}
-        </AnimatePresence>
+        {/* Nút nổi 'Xuống dưới cùng' khi người dùng chủ động kéo lên trên đọc */}
+        {showScrollBottom && (
+          <button
+            onClick={scrollToBottom}
+            type="button"
+            className="absolute bottom-3 right-4 px-2.5 py-1 rounded-full text-[10px] font-medium shadow-2xl backdrop-blur-md flex items-center gap-1 transition-all z-20 hover:scale-105 active:scale-95"
+            style={{
+              background: 'rgba(15, 20, 32, 0.94)',
+              border: '1px solid rgba(212, 168, 67, 0.5)',
+              color: 'var(--t-gold)',
+              boxShadow: '0 4px 16px rgba(0,0,0,0.5)',
+            }}
+          >
+            <span>Xuống cuối</span>
+            <span className="text-xs">↓</span>
+          </button>
+        )}
       </div>
 
       {/* ── Input ── */}
