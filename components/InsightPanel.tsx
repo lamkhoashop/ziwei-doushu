@@ -294,8 +294,6 @@ Tia ảnh hưởng đến cung đối chiếu và tam hợp.
       const decoder = new TextDecoder();
       let assistantText = '';
 
-      setMessages(prev => [...prev, { role: 'assistant', content: '' }]);
-
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
@@ -318,12 +316,18 @@ Tia ảnh hưởng đến cung đối chiếu và tam hợp.
       }
     } catch (e: any) {
       const missing = e instanceof Error && e.message === 'api-missing';
-      setMessages(prev => [...prev, {
-        role: 'assistant',
-        content: missing
-          ? 'Chưa kết nối backend /api/interpret. Vui lòng cấu hình AI_API_KEY trong file .env.local.'
-          : (e?.message || 'Không thể tải luận giải, vui lòng thử lại sau.'),
-      }]);
+      const errorMsg = missing
+        ? 'Chưa kết nối backend /api/interpret. Vui lòng cấu hình AI_API_KEY trong file .env.local.'
+        : (e?.message || 'Không thể tải luận giải, vui lòng thử lại sau.');
+      setMessages(prev => {
+        const updated = [...prev];
+        const lastIdx = updated.length - 1;
+        if (lastIdx >= 0 && updated[lastIdx].role === 'assistant' && !updated[lastIdx].content) {
+          updated[lastIdx] = { role: 'assistant', content: errorMsg };
+          return updated;
+        }
+        return [...prev, { role: 'assistant', content: errorMsg }];
+      });
     } finally {
       setLoading(false);
       loadingRef.current = false;
@@ -341,7 +345,8 @@ Tia ảnh hưởng đến cung đối chiếu và tam hợp.
       content: m.content,
     }));
 
-    setMessages(prev => [...prev, userMsg]);
+    // Thêm ngay placeholder assistant rỗng để hiển thị trạng thái chờ tức thì (không bị trắng màn hình)
+    setMessages(prev => [...prev, userMsg, { role: 'assistant', content: '' }]);
     setInput('');
     streamResponse(apiMessages);
   };
@@ -365,19 +370,43 @@ Tia ảnh hưởng đến cung đối chiếu và tam hợp.
           {TOPICS.map(t => {
             const isActive = activeTopic === t.key;
             return (
-              <button
+              <div
                 key={t.key}
-                onClick={() => handleTopicClick(t.key)}
-                disabled={loading}
-                className="py-1.5 text-[10px] font-medium rounded-lg transition-all duration-150 disabled:opacity-40"
-                style={{
-                  background: isActive ? 'rgba(212,168,67,0.12)' : 'transparent',
-                  border: `1px solid ${isActive ? 'rgba(212,168,67,0.3)' : 'var(--t-border)'}`,
-                  color: isActive ? 'var(--t-gold)' : 'var(--t-faint)',
-                }}
+                className="relative group"
+                title={loading ? 'Đang luận giải lá số, vui lòng đợi hoàn tất trước khi chuyển chủ đề' : undefined}
               >
-                {t.label}
-              </button>
+                <button
+                  type="button"
+                  onClick={() => handleTopicClick(t.key)}
+                  disabled={loading}
+                  className={`w-full py-1.5 text-[10px] font-medium rounded-lg transition-all duration-150 ${
+                    loading ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer hover:border-[var(--t-gold)]'
+                  }`}
+                  style={{
+                    background: isActive ? 'rgba(212,168,67,0.12)' : 'transparent',
+                    border: `1px solid ${isActive ? 'rgba(212,168,67,0.3)' : 'var(--t-border)'}`,
+                    color: isActive ? 'var(--t-gold)' : 'var(--t-faint)',
+                  }}
+                >
+                  {t.label}
+                </button>
+
+                {/* Badge thông báo hiển thị khi rê chuột vào trong lúc đang luận giải */}
+                {loading && (
+                  <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-1.5 hidden group-hover:flex z-50 pointer-events-none">
+                    <div
+                      className="px-2.5 py-1 rounded-md text-[9px] font-medium whitespace-nowrap shadow-xl backdrop-blur-md"
+                      style={{
+                        background: 'rgba(15, 18, 26, 0.96)',
+                        border: '1px solid rgba(212, 168, 67, 0.4)',
+                        color: 'var(--t-gold)',
+                      }}
+                    >
+                      Đang luận giải, vui lòng đợi...
+                    </div>
+                  </div>
+                )}
+              </div>
             );
           })}
         </div>
@@ -422,6 +451,8 @@ Tia ảnh hưởng đến cung đối chiếu và tam hợp.
 
             // Assistant message
             const isLastMsg = i === messages.length - 1;
+            const isWaitingFirstToken = loading && isLastMsg && (!msg.content || msg.content.trim() === '');
+
             return (
               <motion.div
                 key={i}
@@ -435,7 +466,25 @@ Tia ảnh hưởng đến cung đối chiếu và tam hợp.
                   <span style={{ color: 'var(--t-gold)', opacity: 0.4 }}>✦</span>
                   LUẬN GIẢI MỆNH LÝ
                 </div>
-                <AiContent text={msg.content} streaming={loading && isLastMsg} />
+
+                {isWaitingFirstToken ? (
+                  <div className="py-8 px-4 flex flex-col items-center justify-center text-center space-y-3 rounded-xl my-2 border border-dashed border-[rgba(212,168,67,0.25)] bg-[rgba(212,168,67,0.03)] backdrop-blur-sm">
+                    <div className="relative flex items-center justify-center">
+                      <div className="w-8 h-8 rounded-full border-2 border-dashed border-[var(--t-gold)] animate-spin opacity-50" />
+                      <span className="absolute text-xs" style={{ color: 'var(--t-gold)' }}>✦</span>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-[12px] font-medium tracking-wide animate-pulse" style={{ color: 'var(--t-gold)' }}>
+                        Đang phân tích thiên bàn & luận giải lá số...
+                      </p>
+                      <p className="text-[10px]" style={{ color: 'var(--t-faint)' }}>
+                        Hệ thống AI đang đối chiếu cung vị và tinh diệu, quý bạn vui lòng đợi trong giây lát (khoảng 10-15s).
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <AiContent text={msg.content} streaming={loading && isLastMsg} />
+                )}
               </motion.div>
             );
           })}
@@ -450,9 +499,12 @@ Tia ảnh hưởng đến cung đối chiếu và tam hợp.
             value={input}
             onChange={e => setInput(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && !e.shiftKey && handleSend()}
-            placeholder="Đặt câu hỏi thêm: Năm nay công danh thế nào?..."
+            placeholder={loading ? 'Đang luận giải, vui lòng đợi hoàn tất để hỏi tiếp...' : 'Đặt câu hỏi thêm: Năm nay công danh thế nào?...'}
             disabled={loading}
-            className="flex-1 rounded-lg px-3 py-2 text-[11px] focus:outline-none transition-colors"
+            title={loading ? 'Đang luận giải, vui lòng đợi...' : undefined}
+            className={`flex-1 rounded-lg px-3 py-2 text-[11px] focus:outline-none transition-colors ${
+              loading ? 'opacity-50 cursor-not-allowed' : ''
+            }`}
             style={{
               background: 'var(--t-card)',
               border: '1px solid var(--t-border)',
@@ -462,6 +514,7 @@ Tia ảnh hưởng đến cung đối chiếu và tam hợp.
           <button
             onClick={handleSend}
             disabled={loading || !input.trim()}
+            title={loading ? 'Đang luận giải, vui lòng đợi...' : undefined}
             className="px-3 py-2 rounded-lg text-[11px] font-medium transition-all disabled:opacity-30 disabled:cursor-not-allowed"
             style={{
               background: 'rgba(212,168,67,0.15)',
