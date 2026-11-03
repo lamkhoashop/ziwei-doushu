@@ -80,6 +80,19 @@ export default function ChartPage() {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
 
+  // Khôi phục lá số từ localStorage khi F5 làm mới trang
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('ziwei_active_birth_info');
+      if (saved) {
+        const info = JSON.parse(saved);
+        if (info && info.year && info.month && info.day !== undefined) {
+          setChart(generateChart(info));
+        }
+      }
+    } catch { /* ignore */ }
+  }, []);
+
   useEffect(() => {
     if (!boardRef.current) return;
     const updateHeight = () => {
@@ -99,6 +112,21 @@ export default function ChartPage() {
       window.removeEventListener('resize', updateHeight);
     };
   }, [chart]);
+
+  const handleGenerateChart = (info: BirthInfo) => {
+    try {
+      localStorage.setItem('ziwei_active_birth_info', JSON.stringify(info));
+    } catch { /* ignore */ }
+    setChart(generateChart(info));
+  };
+
+  const handleReset = () => {
+    try {
+      localStorage.removeItem('ziwei_active_birth_info');
+    } catch { /* ignore */ }
+    setChart(null);
+    setSelectedPalace(null);
+  };
 
   return (
     <div className="min-h-screen relative overflow-x-hidden" style={{ background: 'var(--bg-0)' }}>
@@ -144,7 +172,7 @@ export default function ChartPage() {
             thiết lập 12 cung vị, an sao chính tinh - phụ tinh và phân tích vận hạn.
           </p>
           <div className="card-glass rounded-2xl p-6 sm:p-8">
-            <BirthForm onSubmit={(info: BirthInfo) => setChart(generateChart(info))} />
+            <BirthForm onSubmit={handleGenerateChart} />
           </div>
         </main>
       ) : (
@@ -153,7 +181,7 @@ export default function ChartPage() {
           <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
             <button
               type="button"
-              onClick={() => { setChart(null); setSelectedPalace(null); }}
+              onClick={handleReset}
               className="hover:bg-white/5 transition-all px-4 py-2 rounded-lg cursor-pointer inline-flex items-center gap-2 text-xs font-medium border"
               style={{
                 borderColor: 'var(--t-border)',

@@ -230,12 +230,40 @@ export default function InsightPanel({ chart, selectedPalace, selectedSiHua }: I
     }
   }, [messages]);
 
-  // Tự động phân tích Mệnh cách tổng quan khi tải trang
+  const chartKey = `ziwei_chat_${chart.birthInfo.name || ''}_${chart.birthInfo.year}_${chart.birthInfo.month}_${chart.birthInfo.day}_${chart.birthInfo.hour}`;
+
+  // Khôi phục lịch sử luận giải từ sessionStorage khi F5
   useEffect(() => {
-    if (autoLoaded.current) return;
-    autoLoaded.current = true;
-    sendMessage(TOPIC_PROMPTS.overview, true);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    try {
+      const saved = sessionStorage.getItem(chartKey);
+      if (saved) {
+        const parsed: Message[] = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const cleaned = parsed.filter(m => m.content && m.content.trim().length > 0);
+          if (cleaned.length > 0) {
+            setMessages(cleaned);
+            autoLoaded.current = true;
+            return;
+          }
+        }
+      }
+    } catch { /* ignore */ }
+
+    // Nếu chưa có tin nhắn nào được lưu, tự động bắt đầu luận giải Mệnh cách
+    if (!autoLoaded.current) {
+      autoLoaded.current = true;
+      sendMessage(TOPIC_PROMPTS.overview, true);
+    }
+  }, [chartKey]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Lưu tin nhắn vào sessionStorage mỗi khi cập nhật để giữ nguyên khi F5
+  useEffect(() => {
+    if (messages.length > 0) {
+      try {
+        sessionStorage.setItem(chartKey, JSON.stringify(messages));
+      } catch { /* ignore */ }
+    }
+  }, [messages, chartKey]);
 
   // Phân tích cung vị khi người dùng nhấn chọn một cung trên bàn cờ
   useEffect(() => {
