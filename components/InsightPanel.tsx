@@ -365,10 +365,18 @@ Tia ảnh hưởng đến cung đối chiếu và tam hợp.
     <div className="flex flex-col h-full rounded-xl overflow-hidden card-glass">
 
       {/* ── Topic buttons ── */}
-      <div className="flex-shrink-0 px-2 pt-2.5 pb-2" style={{ borderBottom: '1px solid var(--t-border)' }}>
+      <div className="flex-shrink-0 px-2 pt-2.5 pb-2 relative z-30" style={{ borderBottom: '1px solid var(--t-border)' }}>
         <div className="grid grid-cols-6 gap-1">
-          {TOPICS.map(t => {
+          {TOPICS.map((t, idx) => {
             const isActive = activeTopic === t.key;
+            const isFirst = idx === 0;
+            const isLast = idx === TOPICS.length - 1;
+            const tooltipPos = isFirst
+              ? 'left-0'
+              : isLast
+              ? 'right-0'
+              : 'left-1/2 -translate-x-1/2';
+
             return (
               <div
                 key={t.key}
@@ -391,18 +399,23 @@ Tia ảnh hưởng đến cung đối chiếu và tam hợp.
                   {t.label}
                 </button>
 
-                {/* Badge thông báo hiển thị khi rê chuột vào trong lúc đang luận giải */}
+                {/* Badge thông báo hiển thị phía dưới nút khi rê chuột vào trong lúc đang luận giải (không bị khuất mép trên) */}
                 {loading && (
-                  <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-1.5 hidden group-hover:flex z-50 pointer-events-none">
+                  <div className={`absolute ${tooltipPos} top-full mt-1.5 hidden group-hover:flex flex-col items-center z-50 pointer-events-none`}>
                     <div
-                      className="px-2.5 py-1 rounded-md text-[9px] font-medium whitespace-nowrap shadow-xl backdrop-blur-md"
+                      className="w-0 h-0 border-x-4 border-x-transparent border-b-4 mb-[1px]"
+                      style={{ borderBottomColor: 'rgba(212, 168, 67, 0.9)' }}
+                    />
+                    <div
+                      className="px-2.5 py-1.5 rounded-lg text-[10px] font-medium whitespace-nowrap shadow-2xl backdrop-blur-md"
                       style={{
-                        background: 'rgba(15, 18, 26, 0.96)',
-                        border: '1px solid rgba(212, 168, 67, 0.4)',
+                        background: 'rgba(12, 15, 24, 0.98)',
+                        border: '1px solid rgba(212, 168, 67, 0.6)',
                         color: 'var(--t-gold)',
+                        boxShadow: '0 8px 24px rgba(0, 0, 0, 0.7)',
                       }}
                     >
-                      Đang luận giải, vui lòng đợi...
+                      Đang luận giải, vui lòng đợi hoàn tất...
                     </div>
                   </div>
                 )}
