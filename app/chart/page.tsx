@@ -144,9 +144,16 @@ export default function ChartPage() {
       {/* ── Thanh điều hướng trên cùng ── */}
       <header className="relative z-20 flex items-center justify-between px-4 sm:px-8 py-3.5 border-b"
         style={{ borderColor: 'var(--t-border)', background: isDark ? 'rgba(2,8,16,0.85)' : 'rgba(245,239,224,0.85)', backdropFilter: 'blur(12px)' }}>
-        <Link href="/" className="flex items-center gap-2 text-decoration-none">
-          <span className="text-sm font-semibold tracking-[0.25em]" style={{ color: 'var(--t-gold)' }}>
-            ✦ TỬ VI ĐẨU SỐ
+        <Link href="/" className="flex items-center gap-2.5 text-decoration-none group">
+          {/* Icon Bát Quái Huyền Bí */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/icon.svg"
+            alt="Bát Quái"
+            className="w-6 h-6 rounded-full shadow-[0_0_10px_rgba(212,168,67,0.45)] group-hover:rotate-180 transition-transform duration-700 select-none"
+          />
+          <span className="text-sm font-semibold tracking-[0.22em] font-serif" style={{ color: 'var(--t-gold)' }}>
+            TỬ VI ĐẨU SỐ
           </span>
         </Link>
         <div className="flex items-center gap-3">

@@ -1,0 +1,138 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <!-- Background Gradient -->
+    <radialGradient id="bgGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#2a1d0d"/>
+      <stop offset="65%" stop-color="#0c101a"/>
+      <stop offset="100%" stop-color="#030508"/>
+    </radialGradient>
+
+    <!-- Gold Foil Gradient -->
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fff1aa"/>
+      <stop offset="30%" stop-color="#e5b84c"/>
+      <stop offset="70%" stop-color="#f7da87"/>
+      <stop offset="100%" stop-color="#9d6f1a"/>
+    </linearGradient>
+
+    <!-- Yin Yang Dark Gradient -->
+    <linearGradient id="darkGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e2533"/>
+      <stop offset="100%" stop-color="#05070a"/>
+    </linearGradient>
+
+    <!-- Hào Dương (Solid Yang bar) -->
+    <g id="yang">
+      <rect x="-32" y="-4.5" width="64" height="9" rx="3.5" fill="url(#goldGrad)"/>
+    </g>
+
+    <!-- Hào Âm (Broken Yin bar) -->
+    <g id="yin">
+      <rect x="-32" y="-4.5" width="28" height="9" rx="3.5" fill="url(#goldGrad)"/>
+      <rect x="4" y="-4.5" width="28" height="9" rx="3.5" fill="url(#goldGrad)"/>
+    </g>
+
+    <!-- 8 Quẻ (Tiên Thiên Bát Quái Đồ) -->
+    <!-- 1. Càn ☰ -->
+    <g id="qian">
+      <use href="#yang" y="-15"/>
+      <use href="#yang" y="0"/>
+      <use href="#yang" y="15"/>
+    </g>
+    <!-- 2. Đoài ☱ -->
+    <g id="dui">
+      <use href="#yin" y="-15"/>
+      <use href="#yang" y="0"/>
+      <use href="#yang" y="15"/>
+    </g>
+    <!-- 3. Ly ☲ -->
+    <g id="li">
+      <use href="#yang" y="-15"/>
+      <use href="#yin" y="0"/>
+      <use href="#yang" y="15"/>
+    </g>
+    <!-- 4. Chấn ☳ -->
+    <g id="zhen">
+      <use href="#yin" y="-15"/>
+      <use href="#yin" y="0"/>
+      <use href="#yang" y="15"/>
+    </g>
+    <!-- 5. Tốn ☴ -->
+    <g id="xun">
+      <use href="#yang" y="-15"/>
+      <use href="#yang" y="0"/>
+      <use href="#yin" y="15"/>
+    </g>
+    <!-- 6. Khảm ☵ -->
+    <g id="kan">
+      <use href="#yin" y="-15"/>
+      <use href="#yang" y="0"/>
+      <use href="#yin" y="15"/>
+    </g>
+    <!-- 7. Cấn ☶ -->
+    <g id="gen">
+      <use href="#yang" y="-15"/>
+      <use href="#yin" y="0"/>
+      <use href="#yin" y="15"/>
+    </g>
+    <!-- 8. Khôn ☷ -->
+    <g id="kun">
+      <use href="#yin" y="-15"/>
+      <use href="#yin" y="0"/>
+      <use href="#yin" y="15"/>
+    </g>
+  </defs>
+
+  <!-- Nền tròn vũ trụ huyền bí -->
+  <circle cx="256" cy="256" r="252" fill="url(#bgGrad)"/>
+  
+  <!-- Vành đai thiên cơ ngoài cùng -->
+  <circle cx="256" cy="256" r="248" fill="none" stroke="url(#goldGrad)" stroke-width="4.5" opacity="0.85"/>
+  <circle cx="256" cy="256" r="240" fill="none" stroke="url(#goldGrad)" stroke-width="1.5" stroke-dasharray="5 4" opacity="0.6"/>
+
+  <!-- Vòng Bát Quái Trận Đồ (8 Quẻ quanh tâm) -->
+  <!-- Bắc (Trên): Càn ☰ (0°) -->
+  <g transform="translate(256, 60)"><use href="#qian"/></g>
+  <!-- Đông Bắc: Đoài ☱ (45°) -->
+  <g transform="translate(395, 117) rotate(45)"><use href="#dui"/></g>
+  <!-- Đông (Phải): Ly ☲ (90°) -->
+  <g transform="translate(452, 256) rotate(90)"><use href="#li"/></g>
+  <!-- Đông Nam: Chấn ☳ (135°) -->
+  <g transform="translate(395, 395) rotate(135)"><use href="#zhen"/></g>
+  <!-- Nam (Dưới): Khôn ☷ (180°) -->
+  <g transform="translate(256, 452) rotate(180)"><use href="#kun"/></g>
+  <!-- Tây Nam: Cấn ☶ (225°) -->
+  <g transform="translate(117, 395) rotate(225)"><use href="#gen"/></g>
+  <!-- Tây (Trái): Khảm ☵ (270°) -->
+  <g transform="translate(60, 256) rotate(270)"><use href="#kan"/></g>
+  <!-- Tây Bắc: Tốn ☴ (315°) -->
+  <g transform="translate(117, 117) rotate(315)"><use href="#xun"/></g>
+
+  <!-- Vành đai linh lực ngăn cách Bát Quái và Thái Cực -->
+  <circle cx="256" cy="256" r="144" fill="none" stroke="url(#goldGrad)" stroke-width="3" opacity="0.75"/>
+  <circle cx="256" cy="256" r="137" fill="none" stroke="url(#goldGrad)" stroke-width="1.2" stroke-dasharray="6 3" opacity="0.55"/>
+
+  <!-- THÁI CỰC ĐỒ (Yin-Yang Taiji R = 130) -->
+  <g id="taiji" transform="translate(256, 256)">
+    <!-- Nửa Âm (Tối) -->
+    <circle cx="0" cy="0" r="130" fill="url(#darkGrad)"/>
+
+    <!-- Nửa Dương (Hoàng Kim) uốn lượn S-Curve -->
+    <path d="M 0 -130
+             A 130 130 0 0 1 0 130
+             A 65 65 0 0 1 0 0
+             A 65 65 0 0 0 0 -130 Z"
+          fill="url(#goldGrad)"/>
+
+    <!-- Mắt Âm (Tối) nằm trong vùng Dương -->
+    <circle cx="0" cy="-65" r="20" fill="url(#darkGrad)" stroke="url(#goldGrad)" stroke-width="2.5"/>
+    <circle cx="0" cy="-65" r="6" fill="url(#goldGrad)"/>
+
+    <!-- Mắt Dương (Kim) nằm trong vùng Âm -->
+    <circle cx="0" cy="65" r="20" fill="url(#goldGrad)"/>
+    <circle cx="0" cy="65" r="6" fill="url(#darkGrad)"/>
+  </g>
+
+  <!-- Viền hoàng kim sáng bao bọc Thái Cực -->
+  <circle cx="256" cy="256" r="130" fill="none" stroke="url(#goldGrad)" stroke-width="3" opacity="0.9"/>
+</svg>

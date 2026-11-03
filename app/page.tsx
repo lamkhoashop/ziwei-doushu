@@ -488,9 +488,17 @@ export default function HomePage() {
         style={{
           background: c.navBg,
         }}>
-        <div className="text-[11px] sm:text-xs tracking-[0.3em] sm:tracking-[0.4em] font-medium transition-colors duration-300 flex-shrink-0"
-          style={{ color: c.goldSolid }}>
-          TỬ VI ĐẨU SỐ
+        <div className="flex items-center gap-2.5 flex-shrink-0 group cursor-pointer" onClick={() => router.push('/')}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/icon.svg"
+            alt="Bát Quái"
+            className="w-5 h-5 sm:w-6 sm:h-6 rounded-full shadow-[0_0_10px_rgba(212,168,67,0.45)] group-hover:rotate-180 transition-transform duration-700 select-none"
+          />
+          <span className="text-[11px] sm:text-xs tracking-[0.25em] sm:tracking-[0.35em] font-medium font-serif transition-colors duration-300"
+            style={{ color: c.goldSolid }}>
+            TỬ VI ĐẨU SỐ
+          </span>
         </div>
         <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0">
           <ThemeToggle />
