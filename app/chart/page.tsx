@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import BirthForm from '@/components/BirthForm';
@@ -75,8 +75,30 @@ function ThemeToggle() {
 export default function ChartPage() {
   const [chart, setChart] = useState<ZiweiChart | null>(null);
   const [selectedPalace, setSelectedPalace] = useState<Palace | null>(null);
+  const [boardHeight, setBoardHeight] = useState<number | undefined>(undefined);
+  const boardRef = useRef<HTMLDivElement>(null);
   const { theme } = useTheme();
   const isDark = theme === 'dark';
+
+  useEffect(() => {
+    if (!boardRef.current) return;
+    const updateHeight = () => {
+      if (boardRef.current && window.innerWidth > 1024) {
+        const h = boardRef.current.offsetHeight;
+        if (h > 0) setBoardHeight(h);
+      } else {
+        setBoardHeight(undefined);
+      }
+    };
+    updateHeight();
+    const ro = new ResizeObserver(updateHeight);
+    ro.observe(boardRef.current);
+    window.addEventListener('resize', updateHeight);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener('resize', updateHeight);
+    };
+  }, [chart]);
 
   return (
     <div className="min-h-screen relative overflow-x-hidden" style={{ background: 'var(--bg-0)' }}>
@@ -150,12 +172,19 @@ export default function ChartPage() {
             style={{
               display: 'grid',
               gridTemplateColumns: 'minmax(0, 1.35fr) minmax(0, 0.95fr)',
-              gap: 20, marginTop: 16, alignItems: 'stretch',
+              gap: 20,
+              marginTop: 16,
+              alignItems: 'start',
             }}
             className="chart-main-grid"
           >
-            <ChartBoard chart={chart} onPalaceSelect={setSelectedPalace} />
-            <div className="insight-panel-container w-full h-full">
+            <div ref={boardRef} className="w-full">
+              <ChartBoard chart={chart} onPalaceSelect={setSelectedPalace} />
+            </div>
+            <div
+              className="insight-panel-container w-full"
+              style={boardHeight ? { height: `${boardHeight}px`, maxHeight: `${boardHeight}px` } : undefined}
+            >
               <InsightPanel chart={chart} selectedPalace={selectedPalace} />
             </div>
           </div>
@@ -165,13 +194,14 @@ export default function ChartPage() {
               display: flex;
               flex-direction: column;
               height: 100%;
-              min-height: 660px;
+              min-height: 0;
+              overflow: hidden;
             }
             @media (max-width: 1024px) {
               .chart-main-grid { grid-template-columns: 1fr !important; }
               .insight-panel-container {
-                height: 600px !important;
-                min-height: none !important;
+                height: 580px !important;
+                max-height: 580px !important;
               }
             }
           `}</style>
