@@ -11,6 +11,7 @@ import {
 } from '@/lib/ziwei/vietnamese';
 import PalaceCell from './PalaceCell';
 import TimeNav, { type TimeView, getYearStemIndex, buildSiHuaOverlay } from './TimeNav';
+import CenterLightning from './CenterLightning';
 
 interface ChartBoardProps {
   chart: ZiweiChart;
@@ -289,6 +290,9 @@ export default function ChartBoard({ chart, onStarSelect, onPalaceSelect, onSiHu
               : 'inset 0 0 0 1px rgba(184, 146, 42, 0.35), 0 2px 12px rgba(140, 100, 20, 0.08)',
           }}
         >
+          {/* Tơ lôi điện Tu Tiên huyền bí nhẹ nhàng lướt qua ô giữa */}
+          <CenterLightning />
+
           {/* Vòng Bát Quái Trận Đồ chìm tinh xảo */}
           <div
             className="absolute inset-0 flex items-center justify-center pointer-events-none select-none"

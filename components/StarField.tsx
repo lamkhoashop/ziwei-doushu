@@ -21,23 +21,6 @@ interface Particle {
   speed: number;
 }
 
-interface LightningSegment {
-  x1: number;
-  y1: number;
-  x2: number;
-  y2: number;
-}
-
-interface LightningState {
-  segments: LightningSegment[];
-  branches: LightningSegment[];
-  birth: number;
-  duration: number;
-  flashAura: number;
-  auraColor: string;
-  glowColor: string;
-}
-
 export default function StarField() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const { theme } = useTheme();
@@ -99,69 +82,6 @@ export default function StarField() {
         : darkCloudTones[Math.floor(Math.random() * darkCloudTones.length)],
     }));
 
-    // ── 3. THIÊN LÔI / SẤM CHỚP HUYỀN ẢO (Subtle Occasional Celestial Lightning) ──
-    let lightning: LightningState | null = null;
-    let lastLightningTime = Date.now();
-    // Lần sấm chớp đầu tiên sau 7-12s, các lần tiếp theo ngẫu nhiên 16-32s
-    let nextLightningDelay = Math.random() * 5000 + 7000;
-
-    const createLightning = (): LightningState => {
-      const startX = Math.random() * (w * 0.7) + w * 0.15;
-      const startY = -15;
-      const targetY = Math.random() * (h * 0.55) + h * 0.25;
-
-      const segments: LightningSegment[] = [];
-      const branches: LightningSegment[] = [];
-
-      let curX = startX;
-      let curY = startY;
-      const steps = Math.floor(Math.random() * 12 + 10);
-      const stepY = (targetY - startY) / steps;
-
-      for (let i = 0; i < steps; i++) {
-        const nextX = curX + (Math.random() - 0.5) * (isMobile ? 30 : 45);
-        const nextY = curY + stepY;
-        segments.push({ x1: curX, y1: curY, x2: nextX, y2: nextY });
-
-        // Tạo nhánh lôi điện phân nhánh tinh tế
-        if (Math.random() < 0.35 && i > 2 && i < steps - 2) {
-          let bX = nextX;
-          let bY = nextY;
-          const bSteps = Math.floor(Math.random() * 5 + 3);
-          const bDir = Math.random() > 0.5 ? 1 : -1;
-          for (let j = 0; j < bSteps; j++) {
-            const nbX = bX + (Math.random() * 25 + 8) * bDir;
-            const nbY = bY + stepY * 0.65;
-            branches.push({ x1: bX, y1: bY, x2: nbX, y2: nbY });
-            bX = nbX;
-            bY = nbY;
-          }
-        }
-
-        curX = nextX;
-        curY = nextY;
-      }
-
-      // Màu sắc: 65% Lôi Điện Băng Lam (Cyan-Blue), 35% Kim Lôi (Celestial Gold)
-      const isGolden = Math.random() < 0.35;
-      const auraColor = isLight
-        ? '217, 119, 6' // Light mode: ấm áp
-        : isGolden ? '254, 240, 138' : '147, 197, 253';
-      const glowColor = isLight
-        ? '180, 83, 9'
-        : isGolden ? '217, 119, 6' : '59, 130, 246';
-
-      return {
-        segments,
-        branches,
-        birth: Date.now(),
-        duration: 320, // 320ms nhấp nháy êm dịu
-        flashAura: isLight ? 0.08 : 0.15,
-        auraColor,
-        glowColor,
-      };
-    };
-
     let animId: number;
     const draw = () => {
       ctx.clearRect(0, 0, w, h);
@@ -201,68 +121,6 @@ export default function StarField() {
         ctx.fillStyle = starColor;
         ctx.fill();
       });
-
-      // C. Xử Lý Sấm Chớp Lôi Kiếp (Celestial Lightning Flash)
-      const now = Date.now();
-      if (!lightning && now - lastLightningTime > nextLightningDelay) {
-        lightning = createLightning();
-        lastLightningTime = now;
-        nextLightningDelay = Math.random() * 16000 + 16000; // 16 - 32 giây một lần
-      }
-
-      if (lightning) {
-        const elapsed = now - lightning.birth;
-        if (elapsed > lightning.duration) {
-          lightning = null;
-        } else {
-          // Tính đường cong nhấp nháy tự nhiên (2 đợt chớp nhẹ)
-          let flashIntensity = 0;
-          if (elapsed < 50) {
-            flashIntensity = elapsed / 50;
-          } else if (elapsed < 110) {
-            flashIntensity = 1 - ((elapsed - 50) / 60) * 0.6;
-          } else if (elapsed < 170) {
-            flashIntensity = 0.85; // đợt giật phụ
-          } else {
-            flashIntensity = Math.max(0, 1 - (elapsed - 170) / (lightning.duration - 170));
-          }
-
-          // 1. Quầng sáng rực mây trời (Ambient Cloud Glow)
-          if (flashIntensity > 0) {
-            ctx.fillStyle = `rgba(${lightning.auraColor}, ${lightning.flashAura * flashIntensity})`;
-            ctx.fillRect(0, 0, w, h);
-          }
-
-          // 2. Tia Lôi Điện Chính (Main Bolt)
-          ctx.save();
-          ctx.strokeStyle = `rgba(255, 255, 255, ${flashIntensity * 0.95})`;
-          ctx.lineWidth = isMobile ? 1.8 : 2.4;
-          ctx.shadowColor = `rgba(${lightning.glowColor}, 0.85)`;
-          ctx.shadowBlur = isMobile ? 10 : 16;
-          ctx.lineCap = 'round';
-          ctx.lineJoin = 'miter';
-
-          ctx.beginPath();
-          lightning.segments.forEach((seg) => {
-            ctx.moveTo(seg.x1, seg.y1);
-            ctx.lineTo(seg.x2, seg.y2);
-          });
-          ctx.stroke();
-
-          // 3. Các Nhánh Lôi Phụ (Branching Forks)
-          ctx.strokeStyle = `rgba(${lightning.auraColor}, ${flashIntensity * 0.75})`;
-          ctx.lineWidth = isMobile ? 0.9 : 1.2;
-          ctx.shadowBlur = isMobile ? 6 : 9;
-          ctx.beginPath();
-          lightning.branches.forEach((b) => {
-            ctx.moveTo(b.x1, b.y1);
-            ctx.lineTo(b.x2, b.y2);
-          });
-          ctx.stroke();
-
-          ctx.restore();
-        }
-      }
 
       animId = requestAnimationFrame(draw);
     };
