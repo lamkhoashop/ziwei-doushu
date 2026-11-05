@@ -192,16 +192,13 @@ export default function ChartBoard({ chart, onStarSelect, onPalaceSelect, onSiHu
           </span>
 
           <span
-            className="font-calligraphy text-2xl sm:text-3xl font-bold tracking-wide px-1"
+            className="font-calligraphy text-2xl sm:text-3xl font-bold tracking-wide px-1 select-text"
             style={{
-              background: isDark
-                ? 'linear-gradient(135deg, #FFFFFF 0%, #FEF08A 35%, #F59E0B 75%, #D97706 100%)'
-                : 'linear-gradient(135deg, #78350F 0%, #B45309 60%, #92400E 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              filter: isDark
-                ? 'drop-shadow(0 0 16px rgba(250,204,21,0.65)) drop-shadow(0 2px 4px rgba(0,0,0,0.9))'
-                : 'drop-shadow(0 1px 1px rgba(255,255,255,0.9)) drop-shadow(0 2px 4px rgba(120,53,15,0.15))',
+              color: isDark ? '#FEF08A' : '#78350F',
+              textShadow: isDark
+                ? '0 0 16px rgba(250,204,21,0.7), 0 0 28px rgba(234,179,8,0.45), 0 1px 2px rgba(0,0,0,0.9)'
+                : '0 1px 0 rgba(255,255,255,0.9), 0 2px 4px rgba(120,53,15,0.18)',
+              filter: isDark ? 'drop-shadow(0 0 8px rgba(212,168,67,0.5))' : undefined,
               lineHeight: 1.15,
             }}
           >
