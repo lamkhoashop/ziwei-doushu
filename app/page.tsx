@@ -1067,7 +1067,7 @@ export default function HomePage() {
 
         <div className="text-center">
           <p className="text-[10px] tracking-wider mb-3" style={{ color: c.footerText }}>
-            Tử Vi Đẩu Số (v1.0.0) · Trường phái Thiên Kỷ Nghê Hải Hà · Tri mệnh để tạo vận, tự thân nắm giữ tương lai
+            Tử Vi Đẩu Số (v1.1.0) · Trường phái Thiên Kỷ Nghê Hải Hà · Tri mệnh để tạo vận, tự thân nắm giữ tương lai
           </p>
           <p className="text-[10px] tracking-wider mb-3 max-w-2xl mx-auto leading-relaxed"
             style={{ color: c.footerText, opacity: 0.85 }}>

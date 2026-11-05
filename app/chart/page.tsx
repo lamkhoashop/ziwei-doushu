@@ -423,7 +423,7 @@ export default function ChartPage() {
                 <span>🔒</span> Lưu trữ riêng trên máy
               </span>
               <span>·</span>
-              <span>Trường phái Thiên Kỷ Nghê Hải Hà · Tự động hiệu chỉnh giờ mặt trời thực (v1.0.0)</span>
+              <span>Trường phái Thiên Kỷ Nghê Hải Hà · Tự động hiệu chỉnh giờ mặt trời thực (v1.1.0)</span>
             </div>
           </div>
 
