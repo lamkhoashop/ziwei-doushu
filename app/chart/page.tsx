@@ -24,7 +24,7 @@ function ThemeToggle() {
       whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 0.95 }}
       aria-label={isDark ? 'Chuyển sang giao diện sáng' : 'Chuyển sang giao diện tối'}
-      className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border cursor-pointer select-none"
+      className="inline-flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full border cursor-pointer select-none"
       style={{
         borderColor: isDark ? 'rgba(254,240,138,0.3)' : 'rgba(184,146,42,0.45)',
         background: isDark
@@ -199,7 +199,7 @@ export default function ChartPage() {
       </div>
 
       {/* ── Thanh điều hướng trên cùng ── */}
-      <header className="relative z-20 flex items-center justify-between px-4 sm:px-8 py-3.5 border-b"
+      <header className="relative z-20 flex items-center justify-between px-3 sm:px-8 py-2.5 sm:py-3.5 border-b min-w-0"
         style={{ borderColor: 'var(--t-border)', background: isDark ? 'rgba(2,8,16,0.85)' : 'rgba(245,239,224,0.85)', backdropFilter: 'blur(12px)' }}>
         <Link href="/" className="flex items-center gap-2.5 text-decoration-none group">
           {/* Icon Bát Quái Huyền Bí */}
@@ -213,13 +213,13 @@ export default function ChartPage() {
             TỬ VI ĐẨU SỐ
           </span>
         </Link>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           <ThemeToggle />
           <motion.button
             onClick={() => setProfileBookOpen(true)}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="relative inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border cursor-pointer select-none text-xs font-mystic font-semibold tracking-wider transition-all"
+            className="relative inline-flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full border cursor-pointer select-none text-xs font-mystic font-semibold tracking-wider transition-all"
             style={{
               borderColor: isDark ? 'rgba(254,240,138,0.35)' : 'rgba(184,146,42,0.45)',
               background: isDark
@@ -242,7 +242,7 @@ export default function ChartPage() {
           </motion.button>
           <Link
             href="/heming"
-            className="text-xs px-3 py-1.5 rounded-full border transition-all"
+            className="text-xs px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full border transition-all"
             style={{
               borderColor: isDark ? 'rgba(212,168,67,0.25)' : 'rgba(184,146,42,0.35)',
               background: isDark
@@ -296,7 +296,7 @@ export default function ChartPage() {
 
           {lastSavedInfo && (
             <div className="mb-6 p-3.5 rounded-xl border border-amber-500/30 bg-amber-500/10 flex items-center justify-between gap-3 text-xs flex-wrap sm:flex-nowrap">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
                 <span className="text-amber-400">📋</span>
                 <span style={{ color: 'var(--t-gold)' }}>
                   Lá số vừa xem gần nhất: <strong>{lastSavedInfo.name || 'Bản mệnh'}</strong> ({lastSavedInfo.day}/{lastSavedInfo.month}/{lastSavedInfo.year})
@@ -320,7 +320,7 @@ export default function ChartPage() {
         </main>
       ) : (
         /* ── Đã an sao: Hiển thị lá số + AI Luận giải ── */
-        <main className="relative z-10 max-w-[1360px] mx-auto px-4 sm:px-6 py-6">
+        <main className="relative z-10 max-w-[1360px] mx-auto px-3 sm:px-6 py-4 sm:py-6 min-w-0">
           <div className="mb-4">
             <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 sm:gap-2.5 w-full sm:w-auto">
               <button
@@ -342,7 +342,7 @@ export default function ChartPage() {
               >
                 <span className={clsx("font-sans text-sm leading-none", isDark ? "text-amber-400" : "text-[#78350F]")}>←</span>
                 <span className="hidden sm:inline">Nhập Lại Thông Tin Khác</span>
-                <span className="sm:hidden">Nhập Lại Khác</span>
+                <span className="sm:hidden truncate">Nhập Lại</span>
               </button>
               <button
                 type="button"
@@ -363,7 +363,7 @@ export default function ChartPage() {
               >
                 <span>🎴</span>
                 <span className="hidden sm:inline">Xuất Thiệp Lá Số</span>
-                <span className="sm:hidden">Xuất Thiệp Lá Số</span>
+                <span className="sm:hidden truncate">Xuất Thiệp</span>
               </button>
               <button
                 type="button"
@@ -384,7 +384,7 @@ export default function ChartPage() {
               >
                 <span>📖</span>
                 <span className="hidden sm:inline">Sổ Tay Gia Đình</span>
-                <span className="sm:hidden">Sổ Tay Gia Đình</span>
+                <span className="sm:hidden truncate">Sổ Tay</span>
                 {savedProfileCount > 0 && (
                   <span className={clsx("px-1.5 py-0.2 rounded-full text-[10px] font-bold shadow-sm ml-0.5", isDark ? "bg-amber-500 text-slate-950" : "bg-amber-600 text-white")}>
                     {savedProfileCount}
@@ -420,7 +420,7 @@ export default function ChartPage() {
               >
                 <span>🔖</span>
                 <span className="hidden sm:inline">Lưu Lá Số Này</span>
-                <span className="sm:hidden">Lưu Lá Số Này</span>
+                <span className="sm:hidden truncate">Lưu Lá Số</span>
               </button>
             </div>
             <div className="flex items-center justify-between gap-2 text-[10.5px] sm:text-[11px] mt-2.5 px-0.5" style={{ color: isDark ? 'var(--t-faint)' : '#57534E' }}>
@@ -439,9 +439,9 @@ export default function ChartPage() {
               marginTop: 16,
               alignItems: 'start',
             }}
-            className="grid grid-cols-1 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,0.95fr)]"
+            className="grid grid-cols-1 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,0.95fr)] min-w-0"
           >
-            <div ref={boardRef} className="w-full">
+            <div ref={boardRef} className="w-full min-w-0 overflow-hidden">
               <ChartBoard chart={chart} onPalaceSelect={setSelectedPalace} />
             </div>
             <div

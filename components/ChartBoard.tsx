@@ -103,7 +103,7 @@ export default function ChartBoard({ chart, onStarSelect, onPalaceSelect, onSiHu
   const th2Pos = selectedBranch !== null ? BRANCH_SVG_POS[(selectedBranch + 8) % 12] : null;
 
   return (
-    <div className="w-full select-none">
+    <div className="w-full min-w-0 select-none">
       {/* Thanh điều hướng thời gian */}
       <TimeNav
         chart={chart}
@@ -244,7 +244,7 @@ export default function ChartBoard({ chart, onStarSelect, onPalaceSelect, onSiHu
       </div>
 
       {/* Lưới 4x4 Mệnh Bàn: Cuộn ngang độc lập trên mobile */}
-      <div className="w-full overflow-x-auto pb-2 -mx-1 px-1 sm:mx-0 sm:px-0">
+      <div className="w-full min-w-0 max-w-full overflow-x-auto pb-2 -mx-1 px-1 sm:mx-0 sm:px-0">
         <div
           className="grid rounded-xl overflow-hidden relative min-w-[540px] lg:min-w-0"
           style={{
