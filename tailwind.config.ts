@@ -34,6 +34,7 @@ const config: Config = {
         ji:   "#A83228",
       },
       fontFamily: {
+        mystic: ["var(--font-mystic)", "serif"],
         sans: ["var(--font-sans)", "sans-serif"],
         serif: ["var(--font-serif)", "serif"],
         mono: ["var(--font-mono)", "monospace"],

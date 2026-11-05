@@ -167,7 +167,7 @@ export default function ChartPage() {
             alt="Bát Quái"
             className="w-6 h-6 rounded-full shadow-[0_0_10px_rgba(212,168,67,0.45)] group-hover:rotate-180 transition-transform duration-700 select-none"
           />
-          <span className="text-sm font-semibold tracking-[0.22em] font-serif" style={{ color: 'var(--t-gold)' }}>
+          <span className="text-sm font-bold tracking-[0.28em] font-mystic" style={{ color: 'var(--t-gold)', textShadow: '0 0 10px rgba(212,168,67,0.4)' }}>
             TỬ VI ĐẨU SỐ
           </span>
         </Link>
@@ -237,7 +237,7 @@ export default function ChartPage() {
               <button
                 type="button"
                 onClick={() => setShareOpen(true)}
-                className="hover:scale-[1.02] active:scale-[0.98] transition-all px-3.5 py-2 rounded-lg cursor-pointer inline-flex items-center gap-1.5 text-xs font-bold border border-amber-500/40 shadow-[0_2px_12px_rgba(212,168,67,0.2)]"
+                className="hover:scale-[1.02] active:scale-[0.98] transition-all px-3.5 py-2 rounded-lg cursor-pointer inline-flex items-center gap-1.5 text-xs font-mystic font-bold tracking-wider border border-amber-500/40 shadow-[0_2px_12px_rgba(212,168,67,0.2)]"
                 style={{
                   background: 'linear-gradient(135deg, rgba(212,168,67,0.25) 0%, rgba(184,146,42,0.35) 100%)',
                   color: 'var(--t-gold)',

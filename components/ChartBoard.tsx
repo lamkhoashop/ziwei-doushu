@@ -115,12 +115,12 @@ export default function ChartBoard({ chart, onStarSelect, onPalaceSelect, onSiHu
       >
         <div className="flex items-center justify-center gap-2 mb-1">
           <span className="w-8 h-[1px] bg-gradient-to-r from-transparent to-[#d4a843]" />
-          <span className="text-[10px] tracking-[0.4em] font-serif uppercase font-semibold" style={{ color: 'var(--t-gold)' }}>
+          <span className="text-[11px] tracking-[0.45em] font-mystic uppercase font-bold" style={{ color: 'var(--t-gold)', textShadow: '0 0 10px rgba(212,168,67,0.4)' }}>
             ✦ THIÊN BÀN TỬ VI ĐẨU SỐ ✦
           </span>
           <span className="w-8 h-[1px] bg-gradient-to-l from-transparent to-[#d4a843]" />
         </div>
-        <h2 className="text-base font-serif tracking-[0.15em] font-bold" style={{ color: 'var(--t-gold)', textShadow: '0 0 12px rgba(212,168,67,0.3)' }}>
+        <h2 className="text-lg font-mystic tracking-[0.2em] font-bold" style={{ color: 'var(--t-gold)', textShadow: '0 0 16px rgba(212,168,67,0.45)' }}>
           {chart.birthInfo.name ? `Lá Số Tử Vi: ${chart.birthInfo.name}` : 'Lá Số Tử Vi Mệnh Bàn'}
         </h2>
       </motion.div>
@@ -191,11 +191,11 @@ export default function ChartBoard({ chart, onStarSelect, onPalaceSelect, onSiHu
           </div>
 
           <div className="relative z-10 space-y-1.5 w-full max-w-[220px]">
-            <div className="text-[10px] tracking-[0.3em] font-serif font-bold uppercase text-amber-200/90 border-b border-[#d4a843]/20 pb-1">
+            <div className="text-[11px] tracking-[0.35em] font-mystic font-bold uppercase text-amber-200/90 border-b border-[#d4a843]/20 pb-1">
               MỆNH BÀN ĐẨU SỐ
             </div>
 
-            <div className="text-[11px] font-serif space-y-1">
+            <div className="text-[11.5px] font-mystic space-y-1">
               <div className="flex items-center justify-center gap-2">
                 <span className="text-white/60 text-[10px]">Mệnh tại:</span>
                 <span className="font-bold text-amber-300 px-1.5 py-0.5 rounded bg-amber-950/60 border border-amber-500/30">
@@ -209,7 +209,7 @@ export default function ChartBoard({ chart, onStarSelect, onPalaceSelect, onSiHu
 
               {/* Ngũ Hành Cục */}
               <div>
-                <span className="inline-block text-[10px] font-semibold px-2 py-0.5 rounded-full border border-amber-400/40 bg-gradient-to-r from-amber-500/10 via-amber-400/20 to-amber-500/10 text-amber-200 shadow-[0_0_8px_rgba(245,158,11,0.2)]">
+                <span className="inline-block text-[10.5px] font-mystic font-bold px-2 py-0.5 rounded-full border border-amber-400/40 bg-gradient-to-r from-amber-500/10 via-amber-400/20 to-amber-500/10 text-amber-200 shadow-[0_0_8px_rgba(245,158,11,0.2)]">
                   ❖ {toVietnameseJu(chart.wuxingJuName)} ❖
                 </span>
               </div>
@@ -220,17 +220,17 @@ export default function ChartBoard({ chart, onStarSelect, onPalaceSelect, onSiHu
           {chart.currentDaXianIndex >= 0 && (() => {
             const dx = chart.daXians[chart.currentDaXianIndex];
             return (
-              <div className="relative z-10 border border-purple-400/40 rounded-lg px-3 py-1 text-center shadow-[0_0_10px_rgba(168,85,247,0.15)]"
+              <div className="relative z-10 border border-purple-400/40 rounded-lg px-3 py-1 text-center shadow-[0_0_10px_rgba(168,85,247,0.15)] font-mystic"
                 style={{ background: 'linear-gradient(135deg, rgba(88,28,135,0.2) 0%, rgba(59,7,100,0.25) 100%)' }}>
-                <div className="text-[8px] text-purple-300/90 tracking-widest font-serif uppercase">ĐẠI HẠN HIỆN TẠI</div>
-                <div className="text-[11px] text-purple-200 font-bold tabular-nums">{dx.startAge}–{dx.endAge} tuổi</div>
-                <div className="text-[9px] text-purple-300/80 font-medium">Tại cung {toVietnamesePalace(dx.palaceName)}</div>
+                <div className="text-[8.5px] text-purple-300/90 tracking-widest uppercase font-semibold">ĐẠI HẠN HIỆN TẠI</div>
+                <div className="text-[12px] text-purple-200 font-bold tabular-nums">{dx.startAge}–{dx.endAge} tuổi</div>
+                <div className="text-[9.5px] text-purple-300/90 font-medium">Tại cung {toVietnamesePalace(dx.palaceName)}</div>
               </div>
             );
           })()}
 
           {/* Lịch Âm */}
-          <div className="relative z-10 text-[9px] text-center leading-relaxed font-serif text-amber-100/60 border-t border-[#d4a843]/15 pt-1">
+          <div className="relative z-10 text-[9.5px] text-center leading-relaxed font-mystic text-amber-100/70 border-t border-[#d4a843]/15 pt-1">
             Âm lịch: {chart.lunarInfo.lunarYear} · {chart.lunarInfo.isLeapMonth ? 'Nhuận ' : ''}Tháng {chart.lunarInfo.lunarMonth} · Ngày {chart.lunarInfo.lunarDay}
           </div>
         </motion.div>

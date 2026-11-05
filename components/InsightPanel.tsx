@@ -150,12 +150,36 @@ const PALACE_ROLES: Record<string, string> = {
   '父母宫': 'Cha mẹ, trưởng bối, di truyền và phúc ấm',
 };
 
+function renderInlineMarkdown(text: string) {
+  const boldParts = text.split(/\*\*(.+?)\*\*/);
+  return boldParts.map((bPart, bIdx) => {
+    if (bIdx % 2 === 1) {
+      return (
+        <strong key={bIdx} className="font-bold text-amber-200 drop-shadow-[0_0_4px_rgba(251,191,36,0.3)]">
+          {bPart}
+        </strong>
+      );
+    }
+    const italicParts = bPart.split(/\*(.+?)\*/);
+    return italicParts.map((iPart, iIdx) => {
+      if (iIdx % 2 === 1) {
+        return (
+          <em key={iIdx} className="italic text-amber-100/90 font-serif">
+            {iPart}
+          </em>
+        );
+      }
+      return iPart;
+    });
+  });
+}
+
 function AiContent({ text, streaming }: { text: string; streaming?: boolean }) {
   const lines = text.split('\n');
   let hasRenderedDropCap = false;
 
   return (
-    <div className="space-y-1 font-sans">
+    <div className="space-y-2 font-mystic text-[12px] leading-relaxed">
       {lines.map((line, i) => {
         const trimmed = line.trim();
 
@@ -164,22 +188,23 @@ function AiContent({ text, streaming }: { text: string; streaming?: boolean }) {
           return (
             <div key={i} className="flex items-center justify-center gap-2.5 my-3 opacity-70">
               <span className="w-16 h-[1px] bg-gradient-to-r from-transparent to-amber-500/60" />
-              <span className="text-[10px] text-amber-300 font-serif select-none tracking-widest">✦ ☯ ✦</span>
+              <span className="text-[10px] text-amber-300 font-mystic select-none tracking-widest">✦ ☯ ✦</span>
               <span className="w-16 h-[1px] bg-gradient-to-l from-transparent to-amber-500/60" />
             </div>
           );
         }
 
-        // 2. Tiêu đề mục phong cách Hoàng Gia Cổ Phong (**【...】** hoặc ### ...)
-        const sectionMatch = trimmed.match(/^\*\*【(.+?)】\*\*$/) || trimmed.match(/^###\s*(.+)$/);
+        // 2. Tiêu đề mục phong cách Hoàng Gia Cổ Phong (【...】 hoặc **【...】** hoặc ### ...)
+        const sectionMatch = trimmed.match(/^(?:\*\*)?【(.+?)】(?:\*\*)?$/) || trimmed.match(/^###\s*(.+)$/);
         if (sectionMatch) {
-          const title = sectionMatch[1].replace(/【|】/g, '');
+          const rawTitle = sectionMatch[1].replace(/【|】/g, '');
+          const cleanTitle = rawTitle.replace(/\*\*/g, '').trim();
           return (
             <div key={i} className="pt-3 pb-1 first:pt-0">
-              <div className="flex items-center gap-2 px-2.5 py-1 rounded-r-lg border-l-2 border-amber-400 bg-gradient-to-r from-amber-500/15 via-amber-500/5 to-transparent">
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-amber-500/40 bg-gradient-to-r from-amber-950/60 via-amber-900/30 to-black/80 shadow-[0_2px_12px_rgba(212,168,67,0.18)]">
                 <span className="text-amber-400 text-xs select-none">✦</span>
-                <span className="text-[12px] font-serif font-bold tracking-wider text-amber-200 uppercase drop-shadow-[0_0_8px_rgba(212,168,67,0.3)]">
-                  【{title}】
+                <span className="text-[12.5px] font-mystic font-bold tracking-wider text-amber-200 uppercase drop-shadow-[0_0_8px_rgba(212,168,67,0.4)]">
+                  【{cleanTitle}】
                 </span>
               </div>
             </div>
@@ -190,7 +215,7 @@ function AiContent({ text, streaming }: { text: string; streaming?: boolean }) {
         const subHeaderMatch = trimmed.match(/^####\s*(.+)$/);
         if (subHeaderMatch) {
           return (
-            <div key={i} className="pt-2 pb-0.5 text-[11px] font-serif font-semibold text-amber-300/90 flex items-center gap-1.5">
+            <div key={i} className="pt-2 pb-0.5 text-[11px] font-mystic font-semibold text-amber-300/90 flex items-center gap-1.5">
               <span className="text-[9px] text-amber-400">❖</span>
               <span>{subHeaderMatch[1]}</span>
             </div>
@@ -205,19 +230,14 @@ function AiContent({ text, streaming }: { text: string; streaming?: boolean }) {
         if (numberedMatch) {
           const num = numberedMatch[1];
           const content = numberedMatch[2];
-          const parts = content.split(/\*\*(.+?)\*\*/);
 
           return (
-            <div key={i} className="flex items-start gap-1.5 text-[11.5px] leading-relaxed my-0.5" style={{ color: 'var(--t-text2)' }}>
-              <span className="inline-flex items-center justify-center w-4 h-4 rounded-full border border-amber-500/40 bg-amber-500/15 text-amber-300 text-[8.5px] font-serif font-bold flex-shrink-0 mt-0.5 select-none shadow-sm">
+            <div key={i} className="flex items-start gap-2 text-[12px] leading-relaxed my-1 font-mystic" style={{ color: 'var(--t-text2)' }}>
+              <span className="inline-flex items-center justify-center w-4 h-4 rounded-full border border-amber-500/50 bg-amber-500/20 text-amber-300 text-[9px] font-mystic font-bold flex-shrink-0 mt-0.5 select-none shadow-[0_0_6px_rgba(245,158,11,0.3)]">
                 {num}
               </span>
               <div className="flex-1">
-                {parts.map((part, j) =>
-                  j % 2 === 0
-                    ? part
-                    : <strong key={j} className="font-semibold text-amber-100">{part}</strong>
-                )}
+                {renderInlineMarkdown(content)}
               </div>
             </div>
           );
@@ -227,52 +247,37 @@ function AiContent({ text, streaming }: { text: string; streaming?: boolean }) {
         const bulletMatch = trimmed.match(/^[•\-\*]\s*(.+)$/);
         if (bulletMatch) {
           const content = bulletMatch[1];
-          const parts = content.split(/\*\*(.+?)\*\*/);
 
           return (
-            <div key={i} className="flex items-start gap-1.5 text-[11.5px] leading-relaxed my-0.5 pl-1" style={{ color: 'var(--t-text2)' }}>
-              <span className="text-[9px] text-amber-400/80 flex-shrink-0 mt-1 select-none">✦</span>
+            <div key={i} className="flex items-start gap-2 text-[12px] leading-relaxed my-1 pl-1 font-mystic" style={{ color: 'var(--t-text2)' }}>
+              <span className="text-[10px] text-amber-400 drop-shadow-[0_0_6px_rgba(251,191,36,0.6)] flex-shrink-0 mt-0.5 select-none">◆</span>
               <div className="flex-1">
-                {parts.map((part, j) =>
-                  j % 2 === 0
-                    ? part
-                    : <strong key={j} className="font-semibold text-amber-100">{part}</strong>
-                )}
+                {renderInlineMarkdown(content)}
               </div>
             </div>
           );
         }
 
         // 7. Đoạn văn thường (kèm Drop-Cap chữ hoa khởi đầu cho đoạn đầu tiên)
-        const parts = line.split(/\*\*(.+?)\*\*/);
         const shouldApplyDropCap = !hasRenderedDropCap && trimmed.length > 30 && !streaming;
         if (shouldApplyDropCap) {
           hasRenderedDropCap = true;
           const firstChar = trimmed.charAt(0);
           const restText = trimmed.slice(1);
-          const restParts = restText.split(/\*\*(.+?)\*\*/);
 
           return (
-            <div key={i} className="text-[11.5px] leading-relaxed text-justify" style={{ color: 'var(--t-text2)' }}>
-              <span className="float-left text-2xl font-serif font-black leading-none pr-1.5 pt-0.5 text-amber-300 select-none drop-shadow-[0_0_8px_rgba(212,168,67,0.5)]">
+            <div key={i} className="text-[12px] leading-relaxed text-justify font-mystic" style={{ color: 'var(--t-text2)' }}>
+              <span className="float-left text-3xl font-mystic font-black leading-none pr-2 pt-0.5 text-amber-300 select-none drop-shadow-[0_0_10px_rgba(212,168,67,0.6)]">
                 {firstChar}
               </span>
-              {restParts.map((part, j) =>
-                j % 2 === 0
-                  ? part
-                  : <strong key={j} className="font-semibold text-amber-100">{part}</strong>
-              )}
+              {renderInlineMarkdown(restText)}
             </div>
           );
         }
 
         return (
-          <div key={i} className="text-[11.5px] leading-relaxed" style={{ color: 'var(--t-text2)' }}>
-            {parts.map((part, j) =>
-              j % 2 === 0
-                ? part
-                : <strong key={j} className="font-semibold text-amber-100">{part}</strong>
-            )}
+          <div key={i} className="text-[12px] leading-relaxed font-mystic" style={{ color: 'var(--t-text2)' }}>
+            {renderInlineMarkdown(line)}
           </div>
         );
       })}
@@ -640,13 +645,14 @@ Tia ảnh hưởng đến cung đối chiếu và tam hợp.
                   type="button"
                   onClick={() => handleTopicClick(t.key)}
                   disabled={loading}
-                  className={`w-full py-1.5 px-2 sm:px-1 text-[10px] font-medium rounded-lg transition-all duration-150 whitespace-nowrap ${
-                    loading ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer hover:border-[var(--t-gold)]'
+                  className={`w-full py-1.5 px-2 sm:px-1 text-[11px] font-mystic font-semibold tracking-wider rounded-lg transition-all duration-150 whitespace-nowrap ${
+                    loading ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer hover:border-[var(--t-gold)] hover:scale-105'
                   }`}
                   style={{
-                    background: isActive ? 'rgba(212,168,67,0.12)' : 'transparent',
-                    border: `1px solid ${isActive ? 'rgba(212,168,67,0.3)' : 'var(--t-border)'}`,
+                    background: isActive ? 'linear-gradient(135deg, rgba(212,168,67,0.2) 0%, rgba(180,83,9,0.2) 100%)' : 'transparent',
+                    border: `1px solid ${isActive ? 'rgba(212,168,67,0.5)' : 'var(--t-border)'}`,
                     color: isActive ? 'var(--t-gold)' : 'var(--t-faint)',
+                    boxShadow: isActive ? '0 0 10px rgba(212,168,67,0.25)' : undefined,
                   }}
                 >
                   {t.label}
@@ -855,7 +861,7 @@ Tia ảnh hưởng đến cung đối chiếu và tam hợp.
             onKeyDown={e => e.key === 'Enter' && !e.shiftKey && handleSend()}
             placeholder={loading ? 'Đang luận giải, vui lòng đợi hoàn tất để hỏi tiếp...' : 'Đặt câu hỏi thêm: Năm nay công danh thế nào?...'}
             disabled={loading}
-            className={`flex-1 rounded-lg px-3 py-2 text-[11px] focus:outline-none transition-colors ${
+            className={`flex-1 rounded-lg px-3 py-2 text-[12px] font-mystic focus:outline-none transition-colors ${
               loading ? 'opacity-50 cursor-not-allowed' : ''
             }`}
             style={{
@@ -867,11 +873,12 @@ Tia ảnh hưởng đến cung đối chiếu và tam hợp.
           <button
             onClick={handleSend}
             disabled={loading || !input.trim()}
-            className="px-3 py-2 rounded-lg text-[11px] font-medium transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+            className="px-4 py-2 rounded-lg text-[12px] font-mystic font-bold tracking-wider transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer hover:scale-105 active:scale-95"
             style={{
-              background: 'rgba(212,168,67,0.15)',
-              border: '1px solid rgba(212,168,67,0.25)',
+              background: 'linear-gradient(135deg, rgba(212,168,67,0.25) 0%, rgba(180,83,9,0.3) 100%)',
+              border: '1px solid rgba(212,168,67,0.4)',
               color: 'var(--t-gold)',
+              boxShadow: '0 2px 8px rgba(212,168,67,0.15)',
             }}
           >
             {loading ? '…' : 'Hỏi'}

@@ -142,7 +142,7 @@ export default function PalaceCell({
         style={{ borderColor: isMingGong ? 'rgba(239,68,68,0.4)' : 'rgba(212,168,67,0.15)' }}>
         <div className="flex items-center gap-1.5 flex-wrap">
           <span className={clsx(
-            'text-[11px] font-serif font-bold tracking-wide transition-colors',
+            'text-[12px] font-mystic font-bold tracking-wider uppercase transition-colors',
             isMingGong ? 'text-amber-200 drop-shadow-[0_0_8px_rgba(245,158,11,0.6)]' :
             isShenGong ? 'text-sky-300 drop-shadow-[0_0_8px_rgba(56,189,248,0.6)]' :
             'text-[var(--t-gold)]'
@@ -152,24 +152,24 @@ export default function PalaceCell({
 
           {/* Dấu Ấn Triện Hoàng Cung: Mệnh Thân Đồng Cung */}
           {isMingGong && isShenGong ? (
-            <span className="inline-flex items-center text-[7.5px] font-serif font-black px-1.5 py-0.5 rounded border border-amber-300/80 text-amber-100 bg-gradient-to-r from-red-800 via-purple-900 to-blue-900 shadow-[0_0_10px_rgba(239,68,68,0.6),inset_0_0_4px_rgba(254,240,138,0.4)] tracking-widest select-none">
+            <span className="inline-flex items-center text-[7.5px] font-mystic font-black px-1.5 py-0.5 rounded border border-amber-300/80 text-amber-100 bg-gradient-to-r from-red-800 via-purple-900 to-blue-900 shadow-[0_0_10px_rgba(239,68,68,0.6),inset_0_0_4px_rgba(254,240,138,0.4)] tracking-widest select-none">
               【MỆNH · THÂN】
             </span>
           ) : isMingGong ? (
             /* Dấu Ấn Chu Sa Cung Mệnh */
-            <span className="inline-flex items-center text-[7.5px] font-serif font-black px-1.5 py-0.5 rounded border border-amber-300/80 text-amber-100 bg-gradient-to-r from-red-800 via-rose-700 to-red-900 shadow-[0_0_10px_rgba(239,68,68,0.7),inset_0_0_4px_rgba(254,240,138,0.4)] tracking-widest select-none">
+            <span className="inline-flex items-center text-[7.5px] font-mystic font-black px-1.5 py-0.5 rounded border border-amber-300/80 text-amber-100 bg-gradient-to-r from-red-800 via-rose-700 to-red-900 shadow-[0_0_10px_rgba(239,68,68,0.7),inset_0_0_4px_rgba(254,240,138,0.4)] tracking-widest select-none">
               【MỆNH】
             </span>
           ) : isShenGong ? (
             /* Dấu Ấn Lam Bích Cung Thân */
-            <span className="inline-flex items-center text-[7.5px] font-serif font-black px-1.5 py-0.5 rounded border border-cyan-300/80 text-cyan-100 bg-gradient-to-r from-sky-800 via-blue-700 to-indigo-900 shadow-[0_0_10px_rgba(14,165,233,0.7),inset_0_0_4px_rgba(186,230,253,0.4)] tracking-widest select-none">
+            <span className="inline-flex items-center text-[7.5px] font-mystic font-black px-1.5 py-0.5 rounded border border-cyan-300/80 text-cyan-100 bg-gradient-to-r from-sky-800 via-blue-700 to-indigo-900 shadow-[0_0_10px_rgba(14,165,233,0.7),inset_0_0_4px_rgba(186,230,253,0.4)] tracking-widest select-none">
               【THÂN】
             </span>
           ) : null}
         </div>
 
         {/* Can Chi cung vị */}
-        <span className="text-[9px] font-serif font-medium" style={{ color: 'var(--t-faint)', opacity: 0.85 }}>
+        <span className="text-[10px] font-mystic font-semibold tracking-wide" style={{ color: 'var(--t-faint)', opacity: 0.9 }}>
           {ganzhi}
         </span>
       </div>
@@ -177,7 +177,7 @@ export default function PalaceCell({
       {/* ── Danh sách Chính Tinh (Màu sắc Ngũ Hành Kim-Mộc-Thủy-Hỏa-Thổ) ── */}
       <div className="flex flex-col gap-0.5 flex-1 my-0.5">
         {majorStars.length === 0 && (
-          <span className="text-[9.5px] font-serif italic py-1" style={{ color: 'var(--t-faint)', opacity: 0.55 }}>
+          <span className="text-[10px] font-mystic italic py-1" style={{ color: 'var(--t-faint)', opacity: 0.6 }}>
             Vô Chính Diệu
           </span>
         )}
@@ -197,11 +197,11 @@ export default function PalaceCell({
               onClick={e => { e.stopPropagation(); onStarClick?.(star); }}
             >
               <span
-                className="text-[12px] leading-tight font-bold tracking-tight cursor-pointer hover:scale-105 transition-all"
+                className="text-[13px] font-mystic leading-tight font-bold tracking-wide cursor-pointer hover:scale-105 transition-all"
                 style={{
                   color: isDim ? style.colorDim : style.color,
                   textShadow: isBright ? style.glow : undefined,
-                  filter: isBright ? 'drop-shadow(0 0 3px rgba(255,255,255,0.25))' : undefined,
+                  filter: isBright ? 'drop-shadow(0 0 4px rgba(255,255,255,0.3))' : undefined,
                 }}
               >
                 {starNameVi}
@@ -211,7 +211,7 @@ export default function PalaceCell({
               {brightnessVi && (
                 <span
                   className={clsx(
-                    'text-[8px] ml-1 font-semibold',
+                    'text-[9px] font-mystic ml-1 font-semibold',
                     brightnessVi === 'Miếu' || brightnessVi === 'Vượng'
                       ? 'text-amber-300 drop-shadow-[0_0_4px_rgba(251,191,36,0.6)]'
                       : brightnessVi === 'Hãm'
@@ -255,7 +255,7 @@ export default function PalaceCell({
             return (
               <span
                 key={s.name}
-                className="inline-flex items-center text-[9px] font-medium leading-tight hover:brightness-125 transition-all"
+                className="inline-flex items-center text-[9.5px] font-mystic font-medium leading-tight hover:brightness-125 transition-all"
                 style={{ color: style.color, opacity: 0.88 }}
               >
                 {starNameVi}
@@ -283,7 +283,7 @@ export default function PalaceCell({
           {shaStars.map(s => (
             <span
               key={s.name}
-              className="text-[9px] font-semibold text-rose-400 leading-tight drop-shadow-[0_0_3px_rgba(244,63,94,0.3)] hover:brightness-125 transition-all"
+              className="text-[9.5px] font-mystic font-semibold text-rose-400 leading-tight drop-shadow-[0_0_4px_rgba(244,63,94,0.4)] hover:brightness-125 transition-all"
             >
               {toVietnameseStar(s.name)}{s.siHua && <SiHuaBadge siHua={s.siHua} />}
             </span>

@@ -68,7 +68,7 @@ export default function ShareCardCanvas({ chart }: ShareCardProps) {
         border: '2px solid rgba(212, 168, 67, 0.45)',
         boxShadow: '0 16px 40px rgba(0,0,0,0.8), inset 0 0 25px rgba(212,168,67,0.06)',
         padding: '20px 24px',
-        fontFamily: 'serif',
+        fontFamily: 'var(--font-mystic)',
         position: 'relative',
         boxSizing: 'border-box',
         borderRadius: '16px',
