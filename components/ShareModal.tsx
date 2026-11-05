@@ -67,7 +67,7 @@ export default function ShareModal({ open, onClose, shareUrl, chart }: ShareModa
             className="rounded-2xl overflow-hidden border border-amber-500/30 flex flex-col"
             style={{
               background: '#0c0a06',
-              maxWidth: '780px',
+              maxWidth: '850px',
               width: '100%',
               maxHeight: '92vh',
               boxShadow: '0 24px 70px rgba(0,0,0,0.8), 0 0 30px rgba(212,168,67,0.15)',
@@ -98,7 +98,7 @@ export default function ShareModal({ open, onClose, shareUrl, chart }: ShareModa
             </div>
 
             <div className="px-6 py-1.5 text-center text-[10px] text-amber-300/60 font-serif italic">
-              Thiệp mệnh chuẩn tỷ lệ vàng 740 × 470 px · Tương thích Zalo, Facebook, Story, In ấn
+              Thiệp mệnh chuẩn tỷ lệ vàng 780 × 495 px · Tương thích Zalo, Facebook, Story, In ấn
             </div>
 
             {/* Vùng thao tác */}
