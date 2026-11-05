@@ -11,6 +11,7 @@ import {
   BRANCHES_VI,
 } from '@/lib/ziwei/vietnamese';
 import { detectPatterns, getMingGongSummary } from '@/lib/ziwei/patterns';
+import { getYearStemIndex, getYearBranchIndex, getSiHuaByStem } from '@/lib/ziwei/sihua';
 import { streamOpenAiResponse, type AiMessage } from '@/lib/ai/client';
 import { aiQueue } from '@/lib/ai/queue';
 
@@ -45,6 +46,29 @@ function buildChartContext(chart: ZiweiChart): string {
       `Đại Hạn hiện tại: ${currentDx.startAge}–${currentDx.endAge} tuổi, ngự tại ${toVietnamesePalace(currentDx.palaceName)} (Cung vị: ${BRANCHES_VI[currentDx.palaceBranch]})`
     );
   }
+
+  // ─── THỜI ĐIỂM HIỆN TẠI (MỐC THAM CHIẾU LUẬN GIẢI THỰC TẾ) ───
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth() + 1;
+  const currentDay = now.getDate();
+
+  const curStemIdx = getYearStemIndex(currentYear);
+  const curBranchIdx = getYearBranchIndex(currentYear);
+  const curStemName = STEMS_VI[curStemIdx];
+  const curBranchName = BRANCHES_VI[curBranchIdx];
+  const nominalAge = currentYear - birthInfo.year + 1;
+
+  const curSiHua = getSiHuaByStem(curStemIdx);
+  const curSiHuaStr = `Hóa Lộc: ${toVietnameseStar(curSiHua['禄'])}; Hóa Quyền: ${toVietnameseStar(curSiHua['权'])}; Hóa Khoa: ${toVietnameseStar(curSiHua['科'])}; Hóa Kỵ: ${toVietnameseStar(curSiHua['忌'])}`;
+
+  lines.push('\n=== MỐC THỜI GIAN HIỆN TẠI & LƯU NIÊN (ĐẶC BIỆT QUAN TRỌNG) ===');
+  lines.push(`• Thời điểm tra cứu hôm nay: Ngày ${currentDay} tháng ${currentMonth} năm ${currentYear}`);
+  lines.push(`• Năm hiện tại (Lưu Niên): Năm ${currentYear} (${curStemName} ${curBranchName})`);
+  lines.push(`• Tuổi mụ (Âm lịch) năm ${currentYear} của đương số: ${nominalAge} tuổi`);
+  lines.push(`• Cung vị Lưu Thái Tuế năm ${currentYear}: Cung ${curBranchName}`);
+  lines.push(`• Lưu Tứ Hóa năm ${currentYear} (${curStemName} ${curBranchName}): ${curSiHuaStr}`);
+  lines.push(`* BẮT BUỘC: Khi đương số hỏi về "năm nay", "vận trình hiện tại", "sự nghiệp năm nay", "năm nay ra sao", bạn BẮT BUỘC PHẢI LUẬN THEO NĂM ${currentYear} (${curStemName} ${curBranchName}, ${nominalAge} TUỔI ÂM LỊCH), TUYỆT ĐỐI KHÔNG LUẬN THEO NĂM CŨ 2024 HAY 2025.`);
 
   // Khái quát cung Mệnh
   const mingStars = mingSummary.stars.map(s => toVietnameseStar(s));
@@ -136,7 +160,27 @@ export async function POST(req: NextRequest) {
     const isVip = aiQueue.checkIsVip(req, vipKey, vipExp);
     const chartContext = buildChartContext(chart);
 
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const curStemIdx = getYearStemIndex(currentYear);
+    const curBranchIdx = getYearBranchIndex(currentYear);
+    const curStemName = STEMS_VI[curStemIdx];
+    const curBranchName = BRANCHES_VI[curBranchIdx];
+    const nominalAge = currentYear - chart.birthInfo.year + 1;
+    const curSiHua = getSiHuaByStem(curStemIdx);
+    const curSiHuaStr = `Thiên Can ${curStemName} biến hóa: ${toVietnameseStar(curSiHua['禄'])} Hóa Lộc, ${toVietnameseStar(curSiHua['权'])} Hóa Quyền, ${toVietnameseStar(curSiHua['科'])} Hóa Khoa, ${toVietnameseStar(curSiHua['忌'])} Hóa Kỵ`;
+
     const systemPrompt = `Bạn là bậc thầy Tử Vi Đẩu Số thông tuệ, điềm tĩnh, thấu tình đạt lý, am tường sâu sắc trường phái Thiên Kỷ của cụ Nghê Hải Hà (倪海厦) kết hợp với Dịch lý và học thuật Tử Vi Đẩu Số chính thống Việt Nam.
+
+QUY TẮC MỐC THỜI GIAN HIỆN TẠI (TUYỆT ĐỐI TUÂN THỦ):
+- MỐC THỜI GIAN THỰC TẾ HÔM NAY: Năm ${currentYear} (${curStemName} ${curBranchName}).
+- Đương số trong năm nay (${currentYear}) bước sang tuổi ${nominalAge} âm lịch.
+- Cung Lưu Thái Tuế năm nay đóng tại cung: ${curBranchName}.
+- Lưu Tứ Hóa năm ${currentYear} (${curStemName} ${curBranchName}): ${curSiHuaStr}.
+- Khi người dùng hỏi các câu hỏi liên quan đến thời điểm như "năm nay", "năm nay thế nào", "sự nghiệp năm nay", "vận trình hiện tại":
+  * BẮT BUỘC PHẢI LUẬN GIẢI CHO NĂM ${currentYear} (${curStemName} ${curBranchName}), tương ứng tuổi ${nominalAge} âm lịch của đương số.
+  * TUYỆT ĐỐI KHÔNG LUẬN THEO NĂM CŨ 2024 HAY 2025.
+  * Phân tích rõ sự tương tác giữa Lưu Thái Tuế tại cung ${curBranchName}, Đại Hạn 10 năm và Lưu Tứ Hóa năm ${currentYear}.
 
 NGUYÊN TẮC LUẬN GIẢI:
 1. Triết lý chỉ đạo: "Tri mệnh để tạo vận" (Biết mệnh để tạo dựng vận số, hiểu mình để làm chủ cuộc đời). Tuyệt đối KHÔNG phán xét mê tín dị đoan, không dọa dẫm tiêu cực. Mọi thách thức hay sát tinh đều được nhìn nhận như môi trường trui rèn bản lĩnh và có giải pháp hóa giải bằng nhận thức và hành động thực tế.
