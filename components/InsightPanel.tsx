@@ -709,54 +709,33 @@ Tia ảnh hưởng đến cung đối chiếu và tam hợp.
             </span>
           </div>
         )}
-        <div className="relative">
-          <div className="flex sm:grid sm:grid-cols-6 gap-1.5 overflow-x-auto pb-1 no-scrollbar">
-            {TOPICS.map((t) => {
-              const isActive = activeTopic === t.key;
+        <div className="flex sm:grid sm:grid-cols-6 gap-1.5 overflow-x-auto pb-1 no-scrollbar">
+          {TOPICS.map((t) => {
+            const isActive = activeTopic === t.key;
 
-              return (
-                <button
-                  key={t.key}
-                  type="button"
-                  onClick={() => handleTopicClick(t.key)}
-                  disabled={loading}
-                  className={`w-full py-1.5 px-2 sm:px-1 text-[11px] font-mystic font-semibold tracking-wider rounded-lg transition-all duration-150 whitespace-nowrap ${
-                    loading ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer hover:border-[var(--t-gold)] hover:scale-105'
-                  }`}
-                  style={{
-                    background: isActive
-                      ? (isDark ? 'linear-gradient(135deg, rgba(212,168,67,0.2) 0%, rgba(180,83,9,0.2) 100%)' : '#FEF3C7')
-                      : (isDark ? 'transparent' : '#FAF6ED'),
-                    border: `1px solid ${isActive ? (isDark ? 'rgba(212,168,67,0.5)' : '#D97706') : (isDark ? 'var(--t-border)' : 'rgba(184, 146, 42, 0.35)')}`,
-                    color: isActive ? (isDark ? 'var(--t-gold)' : '#78350F') : (isDark ? 'var(--t-faint)' : '#44403C'),
-                    boxShadow: isActive ? (isDark ? '0 0 10px rgba(212,168,67,0.25)' : '0 1px 4px rgba(217,119,6,0.18)') : (isDark ? undefined : '0 1px 2px rgba(120,53,15,0.04)'),
-                  }}
-                >
-                  {t.label}
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Lớp phủ thông báo màu trắng hiện chồng lên thanh nút khi đang luận giải (không che khuất nội dung bên dưới) */}
-          {loading && (
-            <div
-              className="absolute inset-0 z-20 flex items-center justify-center rounded-lg backdrop-blur-sm shadow-md transition-all select-none"
-              style={{
-                background: isDark
-                  ? 'linear-gradient(135deg, rgba(12, 16, 28, 0.88) 0%, rgba(20, 24, 38, 0.92) 100%)'
-                  : 'linear-gradient(135deg, rgba(120, 53, 15, 0.90) 0%, rgba(146, 64, 14, 0.92) 100%)',
-                border: isDark ? '1px solid rgba(212, 168, 67, 0.45)' : '1px solid rgba(180, 83, 9, 0.5)',
-              }}
-            >
-              <div className="flex items-center gap-2 text-white text-[11px] font-mystic font-semibold tracking-wider px-3 py-1">
-                <span className="w-2 h-2 rounded-full bg-amber-300 animate-ping" />
-                <span className="text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]">
-                  Đang luận giải, vui lòng đợi hoàn tất...
-                </span>
-              </div>
-            </div>
-          )}
+            return (
+              <button
+                key={t.key}
+                type="button"
+                onClick={() => handleTopicClick(t.key)}
+                disabled={loading}
+                title={loading ? 'Đang luận giải, vui lòng đợi hoàn tất...' : undefined}
+                className={`w-full py-1.5 px-2 sm:px-1 text-[11px] font-mystic font-semibold tracking-wider rounded-lg transition-all duration-150 whitespace-nowrap ${
+                  loading ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer hover:border-[var(--t-gold)] hover:scale-105'
+                }`}
+                style={{
+                  background: isActive
+                    ? (isDark ? 'linear-gradient(135deg, rgba(212,168,67,0.2) 0%, rgba(180,83,9,0.2) 100%)' : '#FEF3C7')
+                    : (isDark ? 'transparent' : '#FAF6ED'),
+                  border: `1px solid ${isActive ? (isDark ? 'rgba(212,168,67,0.5)' : '#D97706') : (isDark ? 'var(--t-border)' : 'rgba(184, 146, 42, 0.35)')}`,
+                  color: isActive ? (isDark ? 'var(--t-gold)' : '#78350F') : (isDark ? 'var(--t-faint)' : '#44403C'),
+                  boxShadow: isActive ? (isDark ? '0 0 10px rgba(212,168,67,0.25)' : '0 1px 4px rgba(217,119,6,0.18)') : (isDark ? undefined : '0 1px 2px rgba(120,53,15,0.04)'),
+                }}
+              >
+                {t.label}
+              </button>
+            );
+          })}
         </div>
       </div>
 
