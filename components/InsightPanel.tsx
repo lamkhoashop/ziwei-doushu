@@ -3,6 +3,7 @@ import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import clsx from 'clsx';
 import { useTheme } from '@/components/ThemeProvider';
+import { copyToClipboard } from '@/lib/clipboard';
 import type { ZiweiChart, Palace } from '@/lib/ziwei/types';
 import type { TimeView } from './TimeNav';
 import {
@@ -191,11 +192,82 @@ function renderInlineMarkdown(text: string, isDark: boolean = true) {
   });
 }
 
+
+// ─── Nút Sao Chép Văn Bản (Tối ưu đặc biệt cho Điện thoại & Web) ───
+function CopyButton({
+  text,
+  label = 'Sao chép',
+  copiedLabel = 'Đã chép ✓',
+  className,
+  isDark = true,
+  variant = 'compact',
+}: {
+  text: string;
+  label?: string;
+  copiedLabel?: string;
+  className?: string;
+  isDark?: boolean;
+  variant?: 'compact' | 'pill' | 'mini';
+}) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const success = await copyToClipboard(text);
+    if (success) {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  if (variant === 'mini') {
+    return (
+      <button
+        type="button"
+        onClick={handleCopy}
+        title={copied ? 'Đã sao chép vào bộ nhớ tạm' : 'Sao chép riêng đoạn này'}
+        className={clsx(
+          "inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mystic font-semibold tracking-wider transition-all select-none cursor-pointer active:scale-95",
+          copied
+            ? "border border-emerald-500/70 bg-emerald-500/25 text-emerald-300 shadow-[0_0_8px_rgba(16,185,129,0.3)]"
+            : (isDark
+                ? "border border-amber-500/35 bg-amber-500/15 text-amber-200 hover:bg-amber-500/30"
+                : "border border-amber-500/40 bg-white/90 text-[#78350F] hover:bg-amber-100 shadow-sm"),
+          className
+        )}
+      >
+        <span>{copied ? '✓' : '📋'}</span>
+        <span>{copied ? copiedLabel : label}</span>
+      </button>
+    );
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={handleCopy}
+      title={copied ? 'Đã sao chép vào bộ nhớ tạm' : 'Sao chép toàn bộ lời giải'}
+      className={clsx(
+        "inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-full text-[10.5px] sm:text-[11px] font-mystic font-semibold tracking-wider transition-all select-none cursor-pointer active:scale-95",
+        copied
+          ? "border border-emerald-500/80 bg-emerald-500/25 text-emerald-300 shadow-[0_0_10px_rgba(16,185,129,0.35)]"
+          : (isDark
+              ? "border border-amber-500/40 bg-gradient-to-r from-amber-500/20 to-amber-500/10 text-amber-200 hover:from-amber-500/30 hover:to-amber-500/20 shadow-[0_2px_8px_rgba(212,168,67,0.15)]"
+              : "border border-amber-500/50 bg-gradient-to-r from-amber-100 to-amber-50 text-[#78350F] hover:from-amber-200 hover:to-amber-100 shadow-sm"),
+        className
+      )}
+    >
+      <span>{copied ? '✓' : '📋'}</span>
+      <span>{copied ? copiedLabel : label}</span>
+    </button>
+  );
+}
+
 function AiContent({ text, streaming }: { text: string; streaming?: boolean }) {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
 
-  // Chuẩn hóa và làm sạch toàn bộ thẻ HTML thô (<br>, <br/>, <br />, <p>, ...) thành dấu xuống dòng chuẩn (\n)
+  // Chuẩn hóa và làm sạch toàn bộ thẻ HTML thô thành dấu xuống dòng chuẩn (\n)
   const normalizedText = (text || '')
     .replace(/<br\s*\/?>/gi, '\n')
     .replace(/<\/p>/gi, '\n')
@@ -205,17 +277,42 @@ function AiContent({ text, streaming }: { text: string; streaming?: boolean }) {
   const lines = normalizedText.split('\n');
   let hasRenderedDropCap = false;
 
+  // Tính toán trước nội dung từng phân đoạn (để nút 'Chép đoạn' sao chép đúng đoạn đó)
+  const sectionTexts: Record<number, string> = {};
+  let currentSectionIdx: number | null = null;
+  let currentSectionLines: string[] = [];
+
+  lines.forEach((line, idx) => {
+    const trimmed = line.trim();
+    const isSection = trimmed.match(/^(?:\*\*)?【(.+?)】(?:\*\*)?$/) || trimmed.match(/^###\s*(.+)$/);
+    if (isSection) {
+      if (currentSectionIdx !== null) {
+        sectionTexts[currentSectionIdx] = currentSectionLines.join('\n').trim();
+      }
+      currentSectionIdx = idx;
+      currentSectionLines = [line];
+    } else if (currentSectionIdx !== null) {
+      currentSectionLines.push(line);
+    }
+  });
+  if (currentSectionIdx !== null) {
+    sectionTexts[currentSectionIdx] = currentSectionLines.join('\n').trim();
+  }
+
   return (
-    <div className="space-y-2 font-mystic text-[12px] leading-relaxed">
+    <div
+      className="space-y-2 font-mystic text-[12px] leading-relaxed select-text"
+      style={{ WebkitUserSelect: 'text', userSelect: 'text' }}
+    >
       {lines.map((line, i) => {
         const trimmed = line.trim();
 
         // 1. Phân cách Thiên Cơ (---)
         if (trimmed.match(/^---+$/)) {
           return (
-            <div key={i} className="flex items-center justify-center gap-2.5 my-3 opacity-70">
+            <div key={i} className="flex items-center justify-center gap-2.5 my-3 opacity-70 select-none">
               <span className={clsx("w-16 h-[1px] bg-gradient-to-r from-transparent", isDark ? "to-amber-500/60" : "to-amber-700/40")} />
-              <span className={clsx("text-[10px] font-mystic select-none tracking-widest", isDark ? "text-amber-300" : "text-amber-800")}>✦ ☯ ✦</span>
+              <span className={clsx("text-[10px] font-mystic tracking-widest", isDark ? "text-amber-300" : "text-amber-800")}>✦ ☯ ✦</span>
               <span className={clsx("w-16 h-[1px] bg-gradient-to-l from-transparent", isDark ? "to-amber-500/60" : "to-amber-700/40")} />
             </div>
           );
@@ -226,25 +323,41 @@ function AiContent({ text, streaming }: { text: string; streaming?: boolean }) {
         if (sectionMatch) {
           const rawTitle = sectionMatch[1].replace(/【|】/g, '');
           const cleanTitle = rawTitle.replace(/\*\*/g, '').trim();
+          const thisSectionText = sectionTexts[i] || line;
+
           return (
             <div key={i} className="pt-3 pb-1 first:pt-0">
               <div
                 className={clsx(
-                  "flex items-center gap-2 px-3 py-1.5 rounded-lg border",
+                  "flex items-center justify-between gap-2 px-3 py-1.5 rounded-lg border",
                   isDark
                     ? "border-amber-500/40 bg-gradient-to-r from-amber-950/60 via-amber-900/30 to-black/80 shadow-[0_2px_12px_rgba(212,168,67,0.18)]"
                     : "border-amber-400/60 bg-gradient-to-r from-amber-100/90 via-amber-50 to-orange-50 shadow-[0_2px_8px_rgba(180,83,9,0.1)]"
                 )}
               >
-                <span className={clsx("text-xs select-none", isDark ? "text-amber-400" : "text-amber-700")}>✦</span>
-                <span
-                  className={clsx(
-                    "text-[12.5px] font-mystic font-bold tracking-wider uppercase",
-                    isDark ? "text-amber-200 drop-shadow-[0_0_8px_rgba(212,168,67,0.4)]" : "text-[#78350F]"
-                  )}
-                >
-                  【{cleanTitle}】
-                </span>
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className={clsx("text-xs shrink-0 select-text", isDark ? "text-amber-400" : "text-amber-700")}>✦</span>
+                  <span
+                    className={clsx(
+                      "text-[12px] sm:text-[12.5px] font-mystic font-bold tracking-wider uppercase select-text truncate",
+                      isDark ? "text-amber-200 drop-shadow-[0_0_8px_rgba(212,168,67,0.4)]" : "text-[#78350F]"
+                    )}
+                  >
+                    【{cleanTitle}】
+                  </span>
+                </div>
+
+                {/* Nút sao chép riêng phân đoạn này */}
+                {!streaming && thisSectionText && (
+                  <CopyButton
+                    text={thisSectionText}
+                    label="Chép đoạn"
+                    copiedLabel="Đã chép"
+                    variant="mini"
+                    isDark={isDark}
+                    className="shrink-0"
+                  />
+                )}
               </div>
             </div>
           );
@@ -257,7 +370,7 @@ function AiContent({ text, streaming }: { text: string; streaming?: boolean }) {
             <div
               key={i}
               className={clsx(
-                "pt-2 pb-0.5 text-[11px] font-mystic font-bold flex items-center gap-1.5",
+                "pt-2 pb-0.5 text-[11px] font-mystic font-bold flex items-center gap-1.5 select-text",
                 isDark ? "text-amber-300/90" : "text-[#78350F]"
               )}
             >
@@ -274,7 +387,7 @@ function AiContent({ text, streaming }: { text: string; streaming?: boolean }) {
             <div
               key={i}
               className={clsx(
-                "pl-3.5 pr-2.5 py-1.5 my-1.5 rounded-r text-[12px] leading-relaxed border-l-2 font-mystic",
+                "pl-3.5 pr-2.5 py-1.5 my-1.5 rounded-r text-[12px] leading-relaxed border-l-2 font-mystic select-text",
                 isDark
                   ? "border-amber-500 bg-amber-950/25 text-amber-100/95"
                   : "border-amber-600 bg-[#FAF6EE] text-[#1C1917] shadow-sm"
@@ -295,10 +408,10 @@ function AiContent({ text, streaming }: { text: string; streaming?: boolean }) {
           const content = numberedMatch[2];
 
           return (
-            <div key={i} className="flex items-start gap-2 text-[12px] leading-relaxed my-1 font-mystic" style={{ color: isDark ? 'var(--t-text2)' : '#292524' }}>
+            <div key={i} className="flex items-start gap-2 text-[12px] leading-relaxed my-1 font-mystic select-text" style={{ color: isDark ? 'var(--t-text2)' : '#292524' }}>
               <span
                 className={clsx(
-                  "inline-flex items-center justify-center w-4 h-4 rounded-full border text-[9px] font-mystic font-bold flex-shrink-0 mt-0.5 select-none",
+                  "inline-flex items-center justify-center w-4 h-4 rounded-full border text-[9px] font-mystic font-bold flex-shrink-0 mt-0.5 select-text",
                   isDark
                     ? "border-amber-500/50 bg-amber-500/20 text-amber-300 shadow-[0_0_6px_rgba(245,158,11,0.3)]"
                     : "border-amber-500/50 bg-amber-100 text-[#78350F] shadow-sm"
@@ -306,7 +419,7 @@ function AiContent({ text, streaming }: { text: string; streaming?: boolean }) {
               >
                 {num}
               </span>
-              <div className="flex-1">
+              <div className="flex-1 select-text">
                 {renderInlineMarkdown(content, isDark)}
               </div>
             </div>
@@ -319,16 +432,16 @@ function AiContent({ text, streaming }: { text: string; streaming?: boolean }) {
           const content = bulletMatch[1];
 
           return (
-            <div key={i} className="flex items-start gap-2 text-[12px] leading-relaxed my-1 pl-1 font-mystic" style={{ color: isDark ? 'var(--t-text2)' : '#292524' }}>
+            <div key={i} className="flex items-start gap-2 text-[12px] leading-relaxed my-1 pl-1 font-mystic select-text" style={{ color: isDark ? 'var(--t-text2)' : '#292524' }}>
               <span
                 className={clsx(
-                  "text-[10px] flex-shrink-0 mt-0.5 select-none",
+                  "text-[10px] flex-shrink-0 mt-0.5 select-text",
                   isDark ? "text-amber-400 drop-shadow-[0_0_6px_rgba(251,191,36,0.6)]" : "text-amber-700"
                 )}
               >
                 ◆
               </span>
-              <div className="flex-1">
+              <div className="flex-1 select-text">
                 {renderInlineMarkdown(content, isDark)}
               </div>
             </div>
@@ -343,10 +456,10 @@ function AiContent({ text, streaming }: { text: string; streaming?: boolean }) {
           const restText = trimmed.slice(1);
 
           return (
-            <div key={i} className="text-[12px] leading-relaxed text-justify font-mystic" style={{ color: isDark ? 'var(--t-text2)' : '#292524' }}>
+            <div key={i} className="text-[12px] leading-relaxed text-justify font-mystic select-text" style={{ color: isDark ? 'var(--t-text2)' : '#292524' }}>
               <span
                 className={clsx(
-                  "float-left text-3xl font-mystic font-black leading-none pr-2 pt-0.5 select-none",
+                  "float-left text-3xl font-mystic font-black leading-none pr-2 pt-0.5 select-text",
                   isDark ? "text-amber-300 drop-shadow-[0_0_10px_rgba(212,168,67,0.6)]" : "text-[#78350F]"
                 )}
               >
@@ -358,7 +471,7 @@ function AiContent({ text, streaming }: { text: string; streaming?: boolean }) {
         }
 
         return (
-          <div key={i} className="text-[12px] leading-relaxed font-mystic" style={{ color: isDark ? 'var(--t-text2)' : '#292524' }}>
+          <div key={i} className="text-[12px] leading-relaxed font-mystic select-text" style={{ color: isDark ? 'var(--t-text2)' : '#292524' }}>
             {renderInlineMarkdown(line, isDark)}
           </div>
         );
@@ -813,11 +926,23 @@ Tia ảnh hưởng đến cung đối chiếu và tam hợp.
                   animate={{ opacity: 1, y: 0 }}
                 >
                   <div
-                    className="text-[9px] tracking-widest mb-2 flex items-center gap-1.5"
+                    className="text-[9px] tracking-widest mb-2 flex items-center justify-between gap-2 select-none"
                     style={{ color: 'var(--t-faint)' }}
                   >
-                    <span style={{ color: 'var(--t-gold)', opacity: 0.4 }}>✦</span>
-                    LUẬN GIẢI MỆNH LÝ
+                    <div className="flex items-center gap-1.5">
+                      <span style={{ color: 'var(--t-gold)', opacity: 0.4 }}>✦</span>
+                      <span>LUẬN GIẢI MỆNH LÝ</span>
+                    </div>
+
+                    {!isWaitingFirstToken && msg.content && (
+                      <CopyButton
+                        text={msg.content}
+                        label="Sao chép toàn bộ"
+                        copiedLabel="Đã chép toàn bộ ✓"
+                        variant="pill"
+                        isDark={isDark}
+                      />
+                    )}
                   </div>
 
                   {isWaitingFirstToken ? (
@@ -958,7 +1083,27 @@ Tia ảnh hưởng đến cung đối chiếu và tam hợp.
                       </div>
                     )
                   ) : (
-                    <AiContent text={msg.content} streaming={loading && isLastMsg} />
+                    <>
+                      <AiContent text={msg.content} streaming={loading && isLastMsg} />
+                      {!isWaitingFirstToken && !loading && msg.content && (
+                        <div
+                          className="mt-3.5 pt-2.5 border-t flex flex-wrap items-center justify-between gap-2 select-none"
+                          style={{ borderColor: isDark ? 'rgba(212,168,67,0.18)' : 'rgba(184,146,42,0.25)' }}
+                        >
+                          <div className="text-[10.5px] font-sans flex items-center gap-1.5" style={{ color: isDark ? 'rgba(254,240,138,0.7)' : '#78350F' }}>
+                            <span>💡</span>
+                            <span>Chạm nút để sao chép trọn vẹn bài luận giải</span>
+                          </div>
+                          <CopyButton
+                            text={msg.content}
+                            label="Sao Chép Toàn Bộ"
+                            copiedLabel="Đã Sao Chép Thành Công ✓"
+                            variant="pill"
+                            isDark={isDark}
+                          />
+                        </div>
+                      )}
+                    </>
                   )}
                 </motion.div>
               );

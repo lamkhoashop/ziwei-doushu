@@ -142,10 +142,20 @@ body {
 ::-webkit-scrollbar-track { background: var(--bg-1); }
 ::-webkit-scrollbar-thumb { background: var(--bdr-heavy); border-radius: 3px; }
 
-/* ─── 选中文字 ───────────────────────────────────────────── */
+/* ─── 选中文字 (Tối ưu quét chọn & Copy trên Mobile) ─────── */
 ::selection {
-  background: rgba(184,146,42,0.15);
-  color: var(--ac-dim);
+  background: rgba(212,168,67,0.35);
+  color: inherit;
+}
+::-moz-selection {
+  background: rgba(212,168,67,0.35);
+  color: inherit;
+}
+
+.select-text, .selectable-text {
+  -webkit-user-select: text !important;
+  user-select: text !important;
+  -webkit-touch-callout: default !important;
 }
 
 /* ─── 工具类 ─────────────────────────────────────────────── */

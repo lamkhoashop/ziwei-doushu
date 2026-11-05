@@ -6,12 +6,13 @@ import { formToBirthInfo } from '@/lib/ziwei/share';
 import { generateChart as buildChart } from '@/lib/ziwei/algorithm';
 import type { BirthInfo, ZiweiChart } from '@/lib/ziwei/types';
 import { useTheme } from '@/components/ThemeProvider';
+import { copyToClipboard } from '@/lib/clipboard';
 
 // ─── AiContent Renderer ────────────────────────────────────
 function AiContent({ text, streaming }: { text: string; streaming?: boolean }) {
   const lines = text.split('\n');
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+    <div className="select-text" style={{ display: 'flex', flexDirection: 'column', gap: '4px', WebkitUserSelect: 'text', userSelect: 'text' }}>
       {lines.map((line, i) => {
         const sectionMatch = line.match(/^\*\*【(.+?)】\*\*$/);
         if (sectionMatch) {
@@ -65,6 +66,7 @@ export default function HemingPage() {
   const [analysisError, setAnalysisError] = useState(false);
   const [apiMissing, setApiMissing] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+  const [copiedHeming, setCopiedHeming] = useState(false);
   const analysisRef = useRef<HTMLDivElement>(null);
 
   // ─── An sao nội bộ ───────────────────────────────────────
@@ -278,7 +280,32 @@ export default function HemingPage() {
             </div>
           )}
 
-          {analysis && <AiContent text={analysis} streaming={analyzing} />}
+          {analysis && (
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '10px' }}>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    const success = await copyToClipboard(analysis);
+                    if (success) {
+                      setCopiedHeming(true);
+                      setTimeout(() => setCopiedHeming(false), 2000);
+                    }
+                  }}
+                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mystic font-semibold tracking-wider cursor-pointer border select-none transition-all"
+                  style={{
+                    borderColor: copiedHeming ? 'rgba(16,185,129,0.6)' : 'var(--ac-bdr)',
+                    background: copiedHeming ? 'rgba(16,185,129,0.15)' : 'var(--ac-bg)',
+                    color: copiedHeming ? '#10B981' : 'var(--ac)',
+                  }}
+                >
+                  <span>{copiedHeming ? '✓' : '📋'}</span>
+                  <span>{copiedHeming ? 'Đã sao chép' : 'Sao chép luận giải'}</span>
+                </button>
+              </div>
+              <AiContent text={analysis} streaming={analyzing} />
+            </div>
+          )}
 
           {analysisError && !apiMissing && (
             <div style={{ padding: '14px 18px', borderRadius: '10px', border: '1px solid #f87171', background: 'rgba(248,113,113,0.08)', fontSize: '13px', color: '#f87171', marginTop: '12px' }}>
