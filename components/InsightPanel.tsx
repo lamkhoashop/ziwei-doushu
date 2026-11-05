@@ -10,7 +10,7 @@ import {
   toVietnameseStar,
   toVietnameseSiHua,
 } from '@/lib/ziwei/vietnamese';
-import SpeechPlayer from './SpeechPlayer';
+// import SpeechPlayer from './SpeechPlayer'; // Tạm thời ẩn phần đọc, sẽ tối ưu và bật lại sau
 
 interface Message {
   role: 'user' | 'assistant';
@@ -813,16 +813,11 @@ Tia ảnh hưởng đến cung đối chiếu và tam hợp.
                   animate={{ opacity: 1, y: 0 }}
                 >
                   <div
-                    className="text-[9px] tracking-widest mb-2 flex items-center justify-between"
+                    className="text-[9px] tracking-widest mb-2 flex items-center gap-1.5"
                     style={{ color: 'var(--t-faint)' }}
                   >
-                    <div className="flex items-center gap-1.5">
-                      <span style={{ color: 'var(--t-gold)', opacity: 0.4 }}>✦</span>
-                      <span>LUẬN GIẢI MỆNH LÝ</span>
-                    </div>
-                    {!isWaitingFirstToken && msg.content && msg.content.trim().length > 0 && (
-                      <SpeechPlayer text={msg.content} disabled={loading && isLastMsg} />
-                    )}
+                    <span style={{ color: 'var(--t-gold)', opacity: 0.4 }}>✦</span>
+                    LUẬN GIẢI MỆNH LÝ
                   </div>
 
                   {isWaitingFirstToken ? (
