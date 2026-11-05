@@ -300,35 +300,31 @@ export default function ChartBoard({ chart, onStarSelect, onPalaceSelect, onSiHu
 
                   return (
                     <>
-                      {/* 1. Mặt Đa Giác Tam Giác Tam Hợp (Vùng hào quang bao phủ) */}
+                      {/* 1. Mặt Đa Giác Tam Giác Tam Hợp (Vùng hào quang vàng mờ nhẹ thanh tao) */}
                       <polygon
                         points={`${p0x},${p0y} ${p2x},${p2y} ${p3x},${p3y}`}
-                        fill="rgba(212, 168, 67, 0.14)"
-                        stroke="url(#goldRayGrad)"
-                        strokeWidth="3.5"
-                        strokeDasharray="10,6"
-                        filter="url(#sfGlow)"
+                        fill="rgba(212, 168, 67, 0.035)"
                       />
 
                       {/* 2. Ba Cạnh Phát Sáng Của Tam Giác Tam Hợp (Đảm bảo luôn hiện rõ nét) */}
                       <line
                         x1={p0x} y1={p0y} x2={p2x} y2={p2y}
                         stroke="url(#goldRayGrad)"
-                        strokeWidth="2.8"
+                        strokeWidth="2.6"
                         strokeDasharray="10,6"
                         filter="url(#sfGlow)"
                       />
                       <line
                         x1={p2x} y1={p2y} x2={p3x} y2={p3y}
                         stroke="url(#goldRayGrad)"
-                        strokeWidth="2.8"
+                        strokeWidth="2.6"
                         strokeDasharray="10,6"
                         filter="url(#sfGlow)"
                       />
                       <line
                         x1={p3x} y1={p3y} x2={p0x} y2={p0y}
                         stroke="url(#goldRayGrad)"
-                        strokeWidth="2.8"
+                        strokeWidth="2.6"
                         strokeDasharray="10,6"
                         filter="url(#sfGlow)"
                       />
