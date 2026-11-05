@@ -7,8 +7,10 @@ import ChartBoard from '@/components/ChartBoard';
 import InsightPanel from '@/components/InsightPanel';
 import StarField from '@/components/StarField';
 import ShareModal from '@/components/ShareModal';
+import ProfileBookModal from '@/components/ProfileBookModal';
 import { useTheme } from '@/components/ThemeProvider';
 import { generateChart } from '@/lib/ziwei/algorithm';
+import { getSavedProfiles, saveProfile } from '@/lib/ziwei/profiles';
 import type { BirthInfo, ZiweiChart, Palace } from '@/lib/ziwei/types';
 
 // ─── Nút chuyển đổi giao diện Sáng / Tối ───────────────────
@@ -79,9 +81,16 @@ export default function ChartPage() {
   const [boardHeight, setBoardHeight] = useState<number | undefined>(undefined);
   const [lastSavedInfo, setLastSavedInfo] = useState<BirthInfo | null>(null);
   const [shareOpen, setShareOpen] = useState(false);
+  const [profileBookOpen, setProfileBookOpen] = useState(false);
+  const [savedProfileCount, setSavedProfileCount] = useState(0);
   const boardRef = useRef<HTMLDivElement>(null);
   const { theme } = useTheme();
   const isDark = theme === 'dark';
+
+  // Đếm số lượng hồ sơ đã lưu trong sổ tay
+  useEffect(() => {
+    setSavedProfileCount(getSavedProfiles().length);
+  }, [profileBookOpen]);
 
   // Khôi phục lá số: CHỈ tự động nạp lại khi người dùng thực hiện F5 (Reload trang)
   useEffect(() => {
@@ -173,6 +182,26 @@ export default function ChartPage() {
         </Link>
         <div className="flex items-center gap-3">
           <ThemeToggle />
+          <motion.button
+            onClick={() => setProfileBookOpen(true)}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="relative inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border cursor-pointer select-none text-xs font-mystic font-semibold tracking-wider transition-all"
+            style={{
+              borderColor: 'rgba(212,168,67,0.4)',
+              background: isDark ? 'rgba(212,168,67,0.1)' : 'rgba(255,250,235,0.9)',
+              color: 'var(--t-gold)',
+            }}
+            title="Sổ Tay Bản Mệnh: Quản lý danh sách gia đình & người thân"
+          >
+            <span>📖</span>
+            <span>Sổ Tay</span>
+            {savedProfileCount > 0 && (
+              <span className="ml-0.5 px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-amber-500 text-slate-950">
+                {savedProfileCount}
+              </span>
+            )}
+          </motion.button>
           <Link
             href="/heming"
             className="text-xs px-3 py-1.5 rounded-full border transition-all"
@@ -193,6 +222,26 @@ export default function ChartPage() {
             Nhập ngày tháng năm giờ sinh và địa phương để hệ thống tự động hiệu chỉnh giờ mặt trời thực (True Solar Time),
             thiết lập 12 cung vị, an sao chính tinh - phụ tinh và phân tích vận hạn.
           </p>
+
+          {/* Sổ tay bản mệnh nếu đã có hồ sơ */}
+          {savedProfileCount > 0 && (
+            <div className="mb-4 p-3.5 rounded-xl border border-amber-500/35 bg-gradient-to-r from-amber-500/15 via-amber-500/5 to-transparent flex items-center justify-between gap-3 text-xs flex-wrap sm:flex-nowrap">
+              <div className="flex items-center gap-2.5">
+                <span className="text-base text-amber-400">📖</span>
+                <span style={{ color: 'var(--t-gold)' }}>
+                  Sổ Tay Bản Mệnh: <strong>{savedProfileCount} hồ sơ</strong> gia đình & người thân đã lưu.
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setProfileBookOpen(true)}
+                className="px-3 py-1.5 rounded-lg text-xs font-bold font-mystic bg-amber-500/25 hover:bg-amber-500/40 text-amber-200 border border-amber-500/50 cursor-pointer flex-shrink-0 transition-all shadow-[0_2px_8px_rgba(212,168,67,0.15)]"
+              >
+                Mở Danh Bạ Xem Ngay →
+              </button>
+            </div>
+          )}
+
           {lastSavedInfo && (
             <div className="mb-6 p-3.5 rounded-xl border border-amber-500/30 bg-amber-500/10 flex items-center justify-between gap-3 text-xs flex-wrap sm:flex-nowrap">
               <div className="flex items-center gap-2">
@@ -245,6 +294,45 @@ export default function ChartPage() {
               >
                 <span>🎴</span>
                 <span>Xuất Thiệp Lá Số</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setProfileBookOpen(true)}
+                className="hover:scale-[1.02] active:scale-[0.98] transition-all px-3.5 py-2 rounded-lg cursor-pointer inline-flex items-center gap-1.5 text-xs font-mystic font-semibold tracking-wider border border-amber-500/30"
+                style={{
+                  background: isDark ? 'rgba(212,168,67,0.1)' : 'rgba(255,250,235,0.9)',
+                  color: 'var(--t-gold)',
+                }}
+              >
+                <span>📖</span>
+                <span>Sổ Tay Gia Đình</span>
+                {savedProfileCount > 0 && (
+                  <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-amber-500 text-slate-950">
+                    {savedProfileCount}
+                  </span>
+                )}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (chart) {
+                    saveProfile({
+                      name: chart.birthInfo.name || 'Bản Mệnh',
+                      relationship: 'self',
+                      birthInfo: chart.birthInfo,
+                    });
+                    setSavedProfileCount(getSavedProfiles().length);
+                    setProfileBookOpen(true);
+                  }
+                }}
+                className="hover:scale-[1.02] active:scale-[0.98] transition-all px-3 py-2 rounded-lg cursor-pointer inline-flex items-center gap-1.5 text-xs font-medium border border-amber-500/25 text-amber-300/90 hover:text-amber-100 hover:border-amber-500/50"
+                style={{
+                  background: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.7)',
+                }}
+                title="Lưu lá số hiện tại vào Sổ Tay Bản Mệnh"
+              >
+                <span>🔖</span>
+                <span className="hidden sm:inline">Lưu Lá Số Này</span>
               </button>
             </div>
             <div className="text-[11px]" style={{ color: 'var(--t-faint)' }}>
@@ -307,6 +395,17 @@ export default function ChartPage() {
           `}</style>
         </main>
       )}
+
+      {/* Modal Sổ Tay Bản Mệnh (Gia Đình & Người Thân) */}
+      <ProfileBookModal
+        open={profileBookOpen}
+        onClose={() => setProfileBookOpen(false)}
+        onSelectProfile={(info) => {
+          handleGenerateChart(info);
+          setProfileBookOpen(false);
+        }}
+        currentBirthInfo={chart ? chart.birthInfo : lastSavedInfo}
+      />
     </div>
   );
 }
