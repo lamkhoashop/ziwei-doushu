@@ -1,54 +1,8 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import clsx from 'clsx';
 import { useTheme } from '@/components/ThemeProvider';
-
-export function prepareTextForSpeech(raw: string): string {
-  if (!raw) return '';
-  let s = raw;
-  s = s.replace(/<br\s*\/?>/gi, '\n').replace(/<\/?[^>]+(>|$)/g, '');
-  s = s.replace(/【(.+?)】/g, '$1. ');
-  s = s.replace(/\[(.+?)\]/g, '$1. ');
-  s = s.replace(/\*{1,3}/g, '');
-  s = s.replace(/\s*->\s*|\s*=>\s*/g, ' dẫn tới ');
-  s = s.replace(/\s*\+\s*/g, ' cùng ');
-  s = s.replace(/\s*=\s*/g, ' là ');
-  s = s.replace(/~/g, ' khoảng ');
-  s = s.replace(/([a-zA-ZÀ-ỹ0-9])\/([a-zA-ZÀ-ỹ0-9])/g, '$1 hoặc $2');
-  s = s.replace(/^[-•*|]\s*/gm, '');
-  s = s.replace(/[✦☯✨🍵◆❖꧁꧂]/g, '');
-  s = s.replace(/["“”]/g, '');
-  s = s.replace(/&/g, ' và ');
-  s = s.replace(/\s+/g, ' ').trim();
-  return s;
-}
-
-export function splitIntoSentences(text: string): string[] {
-  const cleaned = prepareTextForSpeech(text);
-  if (!cleaned) return [];
-
-  // Tách câu dựa trên dấu chấm, chấm than, hỏi, hai chấm hoặc xuống dòng
-  const rawParts = cleaned.split(/(?<=[.?!;:\n])\s+/);
-  const chunks: string[] = [];
-  let current = '';
-
-  for (const part of rawParts) {
-    const trimmed = part.trim();
-    if (!trimmed) continue;
-    if ((current + ' ' + trimmed).length > 160 && current.length > 0) {
-      chunks.push(current.trim());
-      current = trimmed;
-    } else {
-      current = current ? current + ' ' + trimmed : trimmed;
-    }
-  }
-  if (current.trim()) {
-    chunks.push(current.trim());
-  }
-
-  return chunks;
-}
 
 interface SpeechPlayerProps {
   text: string;
@@ -56,151 +10,153 @@ interface SpeechPlayerProps {
   className?: string;
 }
 
+// Biến toàn cục để đảm bảo chỉ có duy nhất 1 giọng đọc phát tại 1 thời điểm trên toàn trang
+declare global {
+  interface Window {
+    __ziweiActiveAudio?: HTMLAudioElement | null;
+    __ziweiStopActiveAudio?: (() => void) | null;
+  }
+}
+
 export default function SpeechPlayer({ text, disabled = false, className }: SpeechPlayerProps) {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
 
-  const [isSupported, setIsSupported] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
-  const [currentChunkIndex, setCurrentChunkIndex] = useState(0);
-  const [totalChunks, setTotalChunks] = useState(0);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const blobUrlRef = useRef<string | null>(null);
 
-  const chunksRef = useRef<string[]>([]);
-  const currentIndexRef = useRef(0);
-  const isCancelledRef = useRef(false);
-  const synthRef = useRef<SpeechSynthesis | null>(null);
-
+  // Dọn dẹp âm thanh khi component unmount
   useEffect(() => {
-    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-      setIsSupported(true);
-      synthRef.current = window.speechSynthesis;
-    }
     return () => {
-      if (typeof window !== 'undefined' && window.speechSynthesis) {
-        window.speechSynthesis.cancel();
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.src = '';
+        audioRef.current = null;
+      }
+      if (blobUrlRef.current) {
+        URL.revokeObjectURL(blobUrlRef.current);
+        blobUrlRef.current = null;
       }
     };
   }, []);
 
-  // Tìm giọng đọc tiếng Việt tối ưu nhất
-  const getVietnameseVoice = useCallback((): SpeechSynthesisVoice | null => {
-    if (!synthRef.current) return null;
-    const voices = synthRef.current.getVoices();
-    // Ưu tiên giọng tự nhiên (Natural / Neural) tiếng Việt của Edge/Chrome
-    const naturalVi = voices.find(v =>
-      (v.lang.toLowerCase().startsWith('vi') || v.lang.toLowerCase().includes('vie')) &&
-      (v.name.includes('Natural') || v.name.includes('Online') || v.name.includes('NamMinh') || v.name.includes('HoaiMy'))
-    );
-    if (naturalVi) return naturalVi;
+  const handleStart = async () => {
+    if (!text || isLoading) return;
 
-    // Giọng tiếng Việt tiêu chuẩn bất kỳ
-    const standardVi = voices.find(v =>
-      v.lang.toLowerCase().startsWith('vi') || v.lang.toLowerCase().includes('vie') || v.name.toLowerCase().includes('vietnam')
-    );
-    return standardVi || null;
-  }, []);
+    // Dừng bất kỳ âm thanh nào đang phát trên toàn trang
+    if (typeof window !== 'undefined' && window.__ziweiStopActiveAudio) {
+      window.__ziweiStopActiveAudio();
+    }
 
-  const speakChunk = useCallback((index: number) => {
-    if (!synthRef.current || isCancelledRef.current) return;
-    const chunks = chunksRef.current;
-    if (index >= chunks.length) {
-      // Đã đọc xong toàn bộ luận giải
-      setIsPlaying(false);
+    // Nếu đã nạp audio trước đó và đang tạm dừng, phát tiếp
+    if (audioRef.current && isPaused) {
+      audioRef.current.play().catch(console.error);
       setIsPaused(false);
-      setCurrentChunkIndex(0);
+      setIsPlaying(true);
       return;
     }
 
-    const chunkText = chunks[index];
-    const utterance = new SpeechSynthesisUtterance(chunkText);
-    const voice = getVietnameseVoice();
-    if (voice) {
-      utterance.voice = voice;
-      utterance.lang = voice.lang || 'vi-VN';
-    } else {
-      utterance.lang = 'vi-VN';
-    }
+    try {
+      setIsLoading(true);
 
-    // Tinh chỉnh âm điệu: chậm rãi, trầm ấm, trang nghiêm như Đạo trưởng đàm đạo
-    utterance.rate = 0.95;
-    utterance.pitch = 0.95;
+      const res = await fetch('/api/tts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text }),
+      });
 
-    utterance.onend = () => {
-      if (!isCancelledRef.current) {
-        const nextIdx = index + 1;
-        currentIndexRef.current = nextIdx;
-        setCurrentChunkIndex(nextIdx);
-        speakChunk(nextIdx);
+      if (!res.ok) {
+        throw new Error('Lỗi từ máy chủ tạo giọng đọc');
       }
-    };
 
-    utterance.onerror = (e) => {
-      // Bỏ qua lỗi do người dùng chủ động cancel
-      if (e.error === 'canceled' || e.error === 'interrupted') return;
-      console.warn('SpeechSynthesis error:', e.error);
+      const blob = await res.blob();
+      if (blobUrlRef.current) {
+        URL.revokeObjectURL(blobUrlRef.current);
+      }
+      const url = URL.createObjectURL(blob);
+      blobUrlRef.current = url;
+
+      const audio = new Audio(url);
+      audioRef.current = audio;
+
+      // Đăng ký tiến trình toàn cục
+      if (typeof window !== 'undefined') {
+        window.__ziweiActiveAudio = audio;
+        window.__ziweiStopActiveAudio = () => {
+          handleStop();
+        };
+      }
+
+      audio.onplay = () => {
+        setIsPlaying(true);
+        setIsPaused(false);
+        setIsLoading(false);
+      };
+
+      audio.onpause = () => {
+        if (!audio.ended) {
+          setIsPaused(true);
+        }
+      };
+
+      audio.onended = () => {
+        setIsPlaying(false);
+        setIsPaused(false);
+      };
+
+      audio.onerror = () => {
+        setIsPlaying(false);
+        setIsPaused(false);
+        setIsLoading(false);
+      };
+
+      await audio.play();
+    } catch (err) {
+      console.error('Không thể phát âm thanh giọng đọc:', err);
       setIsPlaying(false);
       setIsPaused(false);
-    };
-
-    synthRef.current.speak(utterance);
-  }, [getVietnameseVoice]);
-
-  const handleStart = () => {
-    if (!synthRef.current || !text) return;
-
-    // Dừng tiến trình đọc cũ nếu đang chạy
-    synthRef.current.cancel();
-    isCancelledRef.current = false;
-
-    const chunks = splitIntoSentences(text);
-    if (chunks.length === 0) return;
-
-    chunksRef.current = chunks;
-    setTotalChunks(chunks.length);
-    currentIndexRef.current = 0;
-    setCurrentChunkIndex(0);
-    setIsPlaying(true);
-    setIsPaused(false);
-
-    speakChunk(0);
-  };
-
-  const handleStop = () => {
-    if (!synthRef.current) return;
-    isCancelledRef.current = true;
-    synthRef.current.cancel();
-    setIsPlaying(false);
-    setIsPaused(false);
-    setCurrentChunkIndex(0);
+      setIsLoading(false);
+    }
   };
 
   const handleTogglePause = () => {
-    if (!synthRef.current) return;
+    if (!audioRef.current) return;
     if (isPaused) {
-      synthRef.current.resume();
+      audioRef.current.play().catch(console.error);
       setIsPaused(false);
     } else {
-      synthRef.current.pause();
+      audioRef.current.pause();
       setIsPaused(true);
     }
   };
 
-  if (!isSupported || !text || text.trim().length === 0) {
+  const handleStop = () => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+    }
+    setIsPlaying(false);
+    setIsPaused(false);
+  };
+
+  if (!text || text.trim().length === 0) {
     return null;
   }
 
   return (
     <div className={clsx("inline-flex items-center gap-1.5 select-none", className)}>
-      {!isPlaying ? (
+      {!isPlaying && !isPaused ? (
         <button
           type="button"
           onClick={handleStart}
-          disabled={disabled}
-          title="Nghe Đạo Trưởng đọc luận giải quẻ này"
+          disabled={disabled || isLoading}
+          title="Nghe Đạo Trưởng đọc luận giải quẻ này (tiếng Việt chuẩn)"
           className={clsx(
             "group relative px-2.5 py-1 rounded-md text-[10.5px] font-mystic font-semibold tracking-wider flex items-center gap-1.5 transition-all duration-150 cursor-pointer active:scale-95",
-            disabled ? "opacity-40 cursor-not-allowed" : "hover:scale-105"
+            (disabled || isLoading) ? "opacity-40 cursor-not-allowed" : "hover:scale-105"
           )}
           style={{
             background: isDark
@@ -214,8 +170,17 @@ export default function SpeechPlayer({ text, disabled = false, className }: Spee
               : 'inset 0 1px 1.5px rgba(255,255,255,0.9), inset 0 -1.5px 2px rgba(140,100,20,0.15), 0 2px 5px rgba(120,53,15,0.1)',
           }}
         >
-          <span className="text-[12px] group-hover:scale-110 transition-transform text-amber-400">🔊</span>
-          <span>Nghe Đạo Trưởng Đọc</span>
+          {isLoading ? (
+            <>
+              <span className="w-2.5 h-2.5 border-2 border-amber-400 border-t-transparent rounded-full animate-spin" />
+              <span>Đang nạp âm...</span>
+            </>
+          ) : (
+            <>
+              <span className="text-[12px] group-hover:scale-110 transition-transform text-amber-400">🔊</span>
+              <span>Nghe Đạo Trưởng Đọc</span>
+            </>
+          )}
         </button>
       ) : (
         <div className="flex items-center gap-1">
@@ -263,11 +228,6 @@ export default function SpeechPlayer({ text, disabled = false, className }: Spee
               <span className={clsx("w-0.5 bg-current rounded-full transition-all", !isPaused && "animate-[pulse_0.9s_ease-in-out_0.4s_infinite] h-2")} />
             </span>
             <span>⏹ Dừng</span>
-            {totalChunks > 1 && (
-              <span className="text-[8.5px] opacity-75 font-sans">
-                ({currentChunkIndex + 1}/{totalChunks})
-              </span>
-            )}
           </button>
         </div>
       )}
