@@ -228,9 +228,14 @@ export default function ChartPage() {
             <div className="mb-4 p-3.5 rounded-xl border border-amber-500/35 bg-gradient-to-r from-amber-500/15 via-amber-500/5 to-transparent flex items-center justify-between gap-3 text-xs flex-wrap sm:flex-nowrap">
               <div className="flex items-center gap-2.5">
                 <span className="text-base text-amber-400">📖</span>
-                <span style={{ color: 'var(--t-gold)' }}>
-                  Sổ Tay Bản Mệnh: <strong>{savedProfileCount} hồ sơ</strong> gia đình & người thân đã lưu.
-                </span>
+                <div>
+                  <div style={{ color: 'var(--t-gold)' }}>
+                    Sổ Tay Bản Mệnh: <strong>{savedProfileCount} hồ sơ</strong> gia đình & người thân.
+                  </div>
+                  <div className="text-[11px] text-emerald-400/90 flex items-center gap-1 mt-0.5 font-sans">
+                    <span>🔒</span> Dữ liệu lưu riêng tư trên máy của bạn (không lưu trên máy chủ)
+                  </div>
+                </div>
               </div>
               <button
                 type="button"
@@ -303,6 +308,7 @@ export default function ChartPage() {
                   background: isDark ? 'rgba(212,168,67,0.1)' : 'rgba(255,250,235,0.9)',
                   color: 'var(--t-gold)',
                 }}
+                title="Xem danh bạ lá số đã lưu riêng tư trên máy của bạn"
               >
                 <span>📖</span>
                 <span>Sổ Tay Gia Đình</span>
@@ -325,18 +331,23 @@ export default function ChartPage() {
                     setProfileBookOpen(true);
                   }
                 }}
-                className="hover:scale-[1.02] active:scale-[0.98] transition-all px-3 py-2 rounded-lg cursor-pointer inline-flex items-center gap-1.5 text-xs font-medium border border-amber-500/25 text-amber-300/90 hover:text-amber-100 hover:border-amber-500/50"
+                className="hover:scale-[1.02] active:scale-[0.98] transition-all px-3 py-2 rounded-lg cursor-pointer inline-flex items-center gap-1.5 text-xs font-medium border border-emerald-500/30 text-emerald-300 hover:text-emerald-100 hover:border-emerald-500/50"
                 style={{
-                  background: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.7)',
+                  background: isDark ? 'rgba(16,185,129,0.06)' : 'rgba(236,253,245,0.8)',
                 }}
-                title="Lưu lá số hiện tại vào Sổ Tay Bản Mệnh"
+                title="Lưu lá số này trực tiếp vào máy của bạn (tuyệt đối không gửi lên máy chủ)"
               >
-                <span>🔖</span>
-                <span className="hidden sm:inline">Lưu Lá Số Này</span>
+                <span>🔒</span>
+                <span className="hidden sm:inline">Lưu Vào Máy</span>
+                <span className="sm:hidden">Lưu</span>
               </button>
             </div>
-            <div className="text-[11px]" style={{ color: 'var(--t-faint)' }}>
-              Trường phái Thiên Kỷ Nghê Hải Hà · Tự động hiệu chỉnh giờ mặt trời thực (v1.0.0)
+            <div className="flex items-center gap-2.5 text-[11px]" style={{ color: 'var(--t-faint)' }}>
+              <span className="inline-flex items-center gap-1 text-emerald-400/90 font-sans">
+                <span>🔒</span> Lưu trữ riêng trên máy
+              </span>
+              <span>·</span>
+              <span>Trường phái Thiên Kỷ Nghê Hải Hà · Tự động hiệu chỉnh giờ mặt trời thực (v1.0.0)</span>
             </div>
           </div>
 

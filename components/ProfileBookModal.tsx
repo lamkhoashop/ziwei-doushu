@@ -158,8 +158,12 @@ export default function ProfileBookModal({
                       {profiles.length} hồ sơ
                     </span>
                   </div>
-                  <div className="text-[10.5px] text-amber-200/70 font-mystic">
-                    Danh bạ gia đình & người thân · 1 click chuyển đổi xem lá số ngay
+                  <div className="text-[10.5px] text-amber-200/80 flex items-center gap-1.5 flex-wrap">
+                    <span>Danh bạ gia đình & người thân</span>
+                    <span className="text-amber-500/50">·</span>
+                    <span className="inline-flex items-center gap-1 text-emerald-300 font-sans font-medium px-1.5 py-0.5 rounded bg-emerald-500/15 border border-emerald-500/30 text-[10px]">
+                      <span>🔒</span> Lưu trên máy bạn · Không lưu máy chủ
+                    </span>
                   </div>
                 </div>
               </div>
@@ -218,11 +222,11 @@ export default function ProfileBookModal({
 
             {/* Banner gợi ý lưu lá số đang xem */}
             {currentBirthInfo && !currentAlreadySaved && (
-              <div className="mx-5 mt-4 p-3 rounded-xl border border-amber-500/40 bg-gradient-to-r from-amber-500/15 via-amber-950/30 to-transparent flex items-center justify-between gap-3 text-xs flex-wrap sm:flex-nowrap">
+              <div className="mx-5 mt-4 p-3 rounded-xl border border-emerald-500/40 bg-gradient-to-r from-emerald-950/40 via-amber-950/20 to-transparent flex items-center justify-between gap-3 text-xs flex-wrap sm:flex-nowrap">
                 <div className="flex items-center gap-2">
-                  <span className="text-base text-amber-400">✨</span>
+                  <span className="text-base text-emerald-400">🛡️</span>
                   <span className="text-amber-100">
-                    Bạn đang xem lá số của <strong>{currentBirthInfo.name || 'Bản Mệnh'}</strong> ({currentBirthInfo.day}/{currentBirthInfo.month}/{currentBirthInfo.year}). Lưu vào Sổ Tay để xem lại bất cứ lúc nào?
+                    Lá số của <strong>{currentBirthInfo.name || 'Bản Mệnh'}</strong> sẽ được <strong>lưu trực tiếp trong máy của bạn</strong> (hoàn toàn riêng tư, tuyệt đối không gửi lên máy chủ hay bên thứ ba).
                   </span>
                 </div>
                 <div className="flex items-center gap-1.5 flex-shrink-0">
@@ -431,15 +435,18 @@ export default function ProfileBookModal({
               )}
             </div>
 
-            {/* Footer Modal: Trợ giúp */}
-            <div className="px-5 py-2.5 border-t border-amber-500/20 bg-black/40 flex items-center justify-between text-[11px] text-amber-200/60 flex-shrink-0">
-              <span className="font-mystic italic">
-                ✦ Dữ liệu lưu an toàn 100% trong bộ nhớ trình duyệt của bạn.
-              </span>
+            {/* Footer Modal: Cam kết bảo mật & Quyền riêng tư */}
+            <div className="px-5 py-2.5 border-t border-amber-500/20 bg-emerald-950/20 flex items-center justify-between text-xs flex-shrink-0 flex-wrap gap-2">
+              <div className="flex items-center gap-2 text-emerald-300 text-[11px]">
+                <span className="text-sm">🛡️</span>
+                <span>
+                  <strong>Cam kết bảo mật:</strong> Dữ liệu lưu 100% trong bộ nhớ máy của bạn (Local Storage). Không lưu trên máy chủ, không gửi đi bất kỳ đâu.
+                </span>
+              </div>
               <button
                 type="button"
                 onClick={onClose}
-                className="px-3 py-1 rounded border border-white/10 hover:bg-white/10 text-amber-200 text-xs cursor-pointer"
+                className="px-3.5 py-1 rounded-lg border border-white/15 hover:bg-white/10 text-amber-200 text-xs cursor-pointer transition-all"
               >
                 Đóng
               </button>

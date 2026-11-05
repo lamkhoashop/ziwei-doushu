@@ -515,6 +515,14 @@ export default function BirthForm({ onSubmit, loading, initialData, onFormSave, 
           ) : 'LẬP LÁ SỐ TỬ VI · KHÁM PHÁ MỆNH CÁCH'}
         </motion.button>
       )}
+
+      {/* Cam kết bảo mật & Quyền riêng tư */}
+      <div className="flex items-center justify-center gap-1.5 text-[11px] pt-3 opacity-80" style={{ color: isDark ? 'rgba(212,168,67,0.75)' : 'rgba(120,80,10,0.75)' }}>
+        <span className="text-emerald-400">🔒</span>
+        <span>
+          Bảo mật tuyệt đối: Mọi thông tin ngày giờ sinh chỉ lưu trên máy bạn, không gửi lên máy chủ.
+        </span>
+      </div>
     </motion.form>
   );
 }
