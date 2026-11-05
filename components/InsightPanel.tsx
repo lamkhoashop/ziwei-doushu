@@ -709,23 +709,14 @@ Tia ảnh hưởng đến cung đối chiếu và tam hợp.
             </span>
           </div>
         )}
-        <div className="flex sm:grid sm:grid-cols-6 gap-1.5 overflow-x-auto pb-1 no-scrollbar">
-          {TOPICS.map((t, idx) => {
-            const isActive = activeTopic === t.key;
-            const isFirst = idx === 0;
-            const isLast = idx === TOPICS.length - 1;
-            const tooltipPos = isFirst
-              ? 'left-0'
-              : isLast
-              ? 'right-0'
-              : 'left-1/2 -translate-x-1/2';
+        <div className="relative">
+          <div className="flex sm:grid sm:grid-cols-6 gap-1.5 overflow-x-auto pb-1 no-scrollbar">
+            {TOPICS.map((t) => {
+              const isActive = activeTopic === t.key;
 
-            return (
-              <div
-                key={t.key}
-                className="relative group flex-shrink-0 min-w-[76px] sm:min-w-0 sm:w-full"
-              >
+              return (
                 <button
+                  key={t.key}
                   type="button"
                   onClick={() => handleTopicClick(t.key)}
                   disabled={loading}
@@ -743,30 +734,29 @@ Tia ảnh hưởng đến cung đối chiếu và tam hợp.
                 >
                   {t.label}
                 </button>
+              );
+            })}
+          </div>
 
-                {/* Badge thông báo hiển thị phía dưới nút khi rê chuột vào trong lúc đang luận giải (không bị khuất mép trên) */}
-                {loading && (
-                  <div className={`absolute ${tooltipPos} top-full mt-1.5 hidden group-hover:flex flex-col items-center z-50 pointer-events-none`}>
-                    <div
-                      className="w-0 h-0 border-x-4 border-x-transparent border-b-4 mb-[1px]"
-                      style={{ borderBottomColor: 'rgba(212, 168, 67, 0.9)' }}
-                    />
-                    <div
-                      className="px-2.5 py-1.5 rounded-lg text-[10px] font-medium whitespace-nowrap shadow-2xl backdrop-blur-md"
-                      style={{
-                        background: 'rgba(12, 15, 24, 0.98)',
-                        border: '1px solid rgba(212, 168, 67, 0.6)',
-                        color: 'var(--t-gold)',
-                        boxShadow: '0 8px 24px rgba(0, 0, 0, 0.7)',
-                      }}
-                    >
-                      Đang luận giải, vui lòng đợi hoàn tất...
-                    </div>
-                  </div>
-                )}
+          {/* Lớp phủ thông báo màu trắng hiện chồng lên thanh nút khi đang luận giải (không che khuất nội dung bên dưới) */}
+          {loading && (
+            <div
+              className="absolute inset-0 z-20 flex items-center justify-center rounded-lg backdrop-blur-sm shadow-md transition-all select-none"
+              style={{
+                background: isDark
+                  ? 'linear-gradient(135deg, rgba(12, 16, 28, 0.88) 0%, rgba(20, 24, 38, 0.92) 100%)'
+                  : 'linear-gradient(135deg, rgba(120, 53, 15, 0.90) 0%, rgba(146, 64, 14, 0.92) 100%)',
+                border: isDark ? '1px solid rgba(212, 168, 67, 0.45)' : '1px solid rgba(180, 83, 9, 0.5)',
+              }}
+            >
+              <div className="flex items-center gap-2 text-white text-[11px] font-mystic font-semibold tracking-wider px-3 py-1">
+                <span className="w-2 h-2 rounded-full bg-amber-300 animate-ping" />
+                <span className="text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]">
+                  Đang luận giải, vui lòng đợi hoàn tất...
+                </span>
               </div>
-            );
-          })}
+            </div>
+          )}
         </div>
       </div>
 
