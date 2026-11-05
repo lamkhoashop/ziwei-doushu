@@ -232,7 +232,7 @@ export default function ChartPage() {
               ← Nhập lại thông tin khác
             </button>
             <div className="text-[11px]" style={{ color: 'var(--t-faint)' }}>
-              Trường phái Thiên Kỷ Nghê Hải Hà · Tự động hiệu chỉnh giờ mặt trời thực
+              Trường phái Thiên Kỷ Nghê Hải Hà · Tự động hiệu chỉnh giờ mặt trời thực (v1.0.0)
             </div>
           </div>
 
