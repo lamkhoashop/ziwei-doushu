@@ -5,6 +5,7 @@ import type { BirthInfo } from '@/lib/ziwei/types';
 import { SHICHEN_VI, BRANCHES_VI } from '@/lib/ziwei/vietnamese';
 import { useTheme } from '@/components/ThemeProvider';
 import { PROVINCES } from '@/lib/ziwei/cities';
+import { formToBirthInfo, calcTrueSolarBranch } from '@/lib/ziwei/share';
 
 export interface BirthFormState {
   name: string;
@@ -27,18 +28,6 @@ interface BirthFormProps {
   onFormSave?: (data: BirthFormState) => void;
   /** Ẩn nút submit nội bộ khi dùng ở trang hợp số */
   hideSubmit?: boolean;
-}
-
-/** Tính chi giờ mặt trời thực (0-11) dựa vào giờ đồng hồ và kinh độ */
-function calcTrueSolarBranch(clockHour: number, clockMinute: number, longitude: number): number {
-  const clockMins = clockHour * 60 + clockMinute;
-  // Chuẩn hóa theo múi giờ GMT+7 (kinh tuyến trung tâm 105°E) hoặc GMT+8 (120°E)
-  // Nếu kinh độ thuộc vùng Việt Nam (< 112°E) lấy chuẩn 105°E (GMT+7)
-  const baseMeridian = longitude < 112 ? 105 : 120;
-  const offset = (longitude - baseMeridian) * 4;
-  const solar = ((clockMins + offset) % 1440 + 1440) % 1440;
-  if (solar >= 1380 || solar < 60) return 0;
-  return Math.floor((solar - 60) / 120) + 1;
 }
 
 /** Kiểm tra tính hợp lệ của ngày tháng */
@@ -148,17 +137,7 @@ export default function BirthForm({ onSubmit, loading, initialData, onFormSave, 
     setTouched({ year: true, month: true, day: true });
     if (hasError) return;
     onFormSave?.({ ...form });
-    onSubmit({
-      year: y,
-      month: m,
-      day: d,
-      hour: branch,
-      gender: form.gender,
-      name: form.name || undefined,
-      province: form.province || undefined,
-      city: form.city || undefined,
-      longitude: form.province ? form.longitude : undefined,
-    });
+    onSubmit(formToBirthInfo(form));
   };
 
   // ─── Style Variables ─────────────────────────────────────

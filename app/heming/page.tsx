@@ -63,7 +63,7 @@ export default function HemingPage() {
   const [analyzing, setAnalyzing] = useState(false);
   const [question, setQuestion] = useState('');
   const [analysisError, setAnalysisError] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
+  const [apiMissing, setApiMissing] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const analysisRef = useRef<HTMLDivElement>(null);
 
@@ -76,6 +76,7 @@ export default function HemingPage() {
     }
   }, []);
 
+  // 表单是否填齐
   const isFormReady = (f: BirthFormState | null): boolean =>
     !!(f && f.year && f.month && f.day && f.gender && (f.unknownTime || (f.clockHour !== '' && f.clockMinute !== '')));
 
@@ -89,64 +90,62 @@ export default function HemingPage() {
     setAnalyzing(true);
     setAnalysis('');
     setAnalysisError(false);
-    setErrorMessage('');
+    setApiMissing(false);
 
     try {
-      let cA = chartA;
-      let cB = chartB;
-      const [newA, newB] = await Promise.all([
-        cA ? Promise.resolve(cA) : generateChart(formToBirthInfo(formA!)),
-        cB ? Promise.resolve(cB) : generateChart(formToBirthInfo(formB!)),
+      // 每次按当前表单起盘，避免编辑出生信息后复用旧盘。
+      const [cA, cB] = await Promise.all([
+        generateChart(formToBirthInfo(formA!)),
+        generateChart(formToBirthInfo(formB!)),
       ]);
-      cA = newA;
-      cB = newB;
       if (!cA || !cB) {
         setAnalysisError(true);
-        setErrorMessage('Không thể an sao lá số cho một trong hai bên, vui lòng kiểm tra lại ngày sinh.');
         setAnalyzing(false);
         return;
       }
-      if (!chartA) setChartA(cA);
-      if (!chartB) setChartB(cB);
+      setChartA(cA);
+      setChartB(cB);
 
       const res = await fetch('/api/heming', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ chartA: cA, chartB: cB, question: q ?? undefined }),
       });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.error || 'Yêu cầu không thành công');
-      }
-      if (!res.body) throw new Error('Không nhận được luồng dữ liệu');
+      if (res.status === 404) { setApiMissing(true); throw new Error('api-missing'); }
+      if (!res.ok || !res.body) throw new Error();
 
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
       let text = '';
+      let pendingLine = '';
 
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
-        const chunk = decoder.decode(value, { stream: true });
-        for (const line of chunk.split('\n')) {
+        pendingLine += decoder.decode(value, { stream: true });
+        const lines = pendingLine.split('\n');
+        pendingLine = lines.pop() ?? '';
+        for (const rawLine of lines) {
+          const line = rawLine.endsWith('\r') ? rawLine.slice(0, -1) : rawLine;
           if (!line.startsWith('data: ')) continue;
           const data = line.slice(6);
           if (data === '[DONE]') break;
           try {
-            const delta = JSON.parse(data).delta?.text ?? JSON.parse(data).choices?.[0]?.delta?.content ?? '';
+            const parsed = JSON.parse(data);
+            const delta = parsed.delta?.text ?? parsed.text ?? parsed.choices?.[0]?.delta?.content ?? '';
             text += delta;
             setAnalysis(text);
           } catch { /* skip */ }
         }
       }
+      // scroll to analysis
       setTimeout(() => analysisRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
-    } catch (e: any) {
+    } catch {
       setAnalysisError(true);
-      setErrorMessage(e?.message || 'Chưa thể hoàn thành luận giải. Vui lòng kiểm tra AI_API_KEY trong .env.local và thử lại.');
     } finally {
       setAnalyzing(false);
     }
-  }, [chartA, chartB, formA, formB, generateChart]);
+  }, [formA, formB, generateChart]);
 
   const cardStyle = {
     background: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.9)',
@@ -281,9 +280,14 @@ export default function HemingPage() {
 
           {analysis && <AiContent text={analysis} streaming={analyzing} />}
 
-          {analysisError && (
+          {analysisError && !apiMissing && (
             <div style={{ padding: '14px 18px', borderRadius: '10px', border: '1px solid #f87171', background: 'rgba(248,113,113,0.08)', fontSize: '13px', color: '#f87171', marginTop: '12px' }}>
-              {errorMessage || 'Phân tích tạm thời chưa khả dụng, vui lòng kiểm tra API Key và thử lại.'}
+              Phân tích tạm thời chưa khả dụng, vui lòng kiểm tra API Key và thử lại.
+            </div>
+          )}
+          {apiMissing && (
+            <div style={{ padding: '14px 18px', borderRadius: '10px', border: '1px solid #f87171', background: 'rgba(248,113,113,0.08)', fontSize: '13px', color: '#f87171', marginTop: '12px' }}>
+              Tính năng Luận giải Hợp hôn đang được bảo trì hoặc chưa cấu hình API.
             </div>
           )}
         </div>

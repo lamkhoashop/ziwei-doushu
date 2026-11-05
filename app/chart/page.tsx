@@ -429,13 +429,11 @@ export default function ChartPage() {
 
           <div
             style={{
-              display: 'grid',
-              gridTemplateColumns: 'minmax(0, 1.35fr) minmax(0, 0.95fr)',
               gap: 20,
               marginTop: 16,
               alignItems: 'start',
             }}
-            className="chart-main-grid"
+            className="grid grid-cols-1 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,0.95fr)]"
           >
             <div ref={boardRef} className="w-full overflow-x-auto pb-2">
               <div className="flex items-center justify-between text-[10px] text-amber-400/80 lg:hidden mb-1.5 px-1 font-serif">
