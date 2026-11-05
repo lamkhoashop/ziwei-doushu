@@ -192,7 +192,7 @@ export default function ChartBoard({ chart, onStarSelect, onPalaceSelect, onSiHu
           </span>
 
           <span
-            className="font-calligraphy text-2xl sm:text-3xl font-bold tracking-wide px-1 select-text"
+            className="font-calligraphy text-xl sm:text-3xl font-bold tracking-wide px-1 select-text max-w-[85vw] truncate"
             style={{
               color: isDark ? '#FEF08A' : '#78350F',
               textShadow: isDark
@@ -235,10 +235,19 @@ export default function ChartBoard({ chart, onStarSelect, onPalaceSelect, onSiHu
         </div>
       </motion.div>
 
-      {/* Lưới 4x4 Mệnh Bàn (kèm viền cổ phong & tia nối SVG) */}
-      <div
-        className="grid rounded-xl overflow-hidden relative"
-        style={{
+      {/* ── Gợi ý vuốt ngang cho màn hình hẹp (mobile) ── */}
+      <div className="flex items-center justify-between text-[10px] text-amber-400/80 lg:hidden mb-1.5 px-1 font-serif">
+        <span>✦ Mệnh Bàn 12 Cung Vị</span>
+        <span className="inline-flex items-center gap-1 text-[9px] px-2 py-0.5 rounded-full border border-amber-500/30 bg-amber-500/10 text-amber-300 animate-pulse">
+          <span>↔</span> Vuốt ngang xem trọn lá số
+        </span>
+      </div>
+
+      {/* Lưới 4x4 Mệnh Bàn: Cuộn ngang độc lập trên mobile */}
+      <div className="w-full overflow-x-auto pb-2 -mx-1 px-1 sm:mx-0 sm:px-0">
+        <div
+          className="grid rounded-xl overflow-hidden relative min-w-[540px] lg:min-w-0"
+          style={{
           gridTemplateColumns: 'repeat(4, 1fr)',
           gridTemplateRows: 'repeat(4, minmax(135px, 1fr))',
           gap: '1px',
@@ -529,6 +538,7 @@ export default function ChartBoard({ chart, onStarSelect, onPalaceSelect, onSiHu
             </motion.div>
           )}
         </AnimatePresence>
+        </div>
       </div>
     </div>
   );

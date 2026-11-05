@@ -321,12 +321,12 @@ export default function ChartPage() {
       ) : (
         /* ── Đã an sao: Hiển thị lá số + AI Luận giải ── */
         <main className="relative z-10 max-w-[1360px] mx-auto px-4 sm:px-6 py-6">
-          <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
-            <div className="flex items-center gap-2.5 flex-wrap">
+          <div className="mb-4">
+            <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 sm:gap-2.5 w-full sm:w-auto">
               <button
                 type="button"
                 onClick={handleReset}
-                className="hover:scale-[1.02] active:scale-[0.98] transition-all px-3.5 py-2 rounded-lg cursor-pointer inline-flex items-center gap-1.5 text-xs font-mystic font-semibold tracking-wider border select-none"
+                className="col-span-1 hover:scale-[1.02] active:scale-[0.98] transition-all px-2.5 sm:px-3.5 py-2.5 rounded-lg cursor-pointer inline-flex items-center justify-center gap-1.5 text-xs font-mystic font-semibold tracking-wider border select-none w-full sm:w-auto text-center"
                 style={{
                   borderColor: isDark ? 'rgba(254,240,138,0.3)' : 'rgba(184,146,42,0.45)',
                   background: isDark
@@ -341,12 +341,13 @@ export default function ChartPage() {
                 title="Quay lại màn hình nhập thông tin ngày giờ sinh khác"
               >
                 <span className={clsx("font-sans text-sm leading-none", isDark ? "text-amber-400" : "text-[#78350F]")}>←</span>
-                <span>Nhập Lại Thông Tin Khác</span>
+                <span className="hidden sm:inline">Nhập Lại Thông Tin Khác</span>
+                <span className="sm:hidden">Nhập Lại Khác</span>
               </button>
               <button
                 type="button"
                 onClick={() => setShareOpen(true)}
-                className="hover:scale-[1.02] active:scale-[0.98] transition-all px-3.5 py-2 rounded-lg cursor-pointer inline-flex items-center gap-1.5 text-xs font-mystic font-bold tracking-wider border select-none"
+                className="col-span-1 hover:scale-[1.02] active:scale-[0.98] transition-all px-2.5 sm:px-3.5 py-2.5 rounded-lg cursor-pointer inline-flex items-center justify-center gap-1.5 text-xs font-mystic font-bold tracking-wider border select-none w-full sm:w-auto text-center shadow-sm"
                 style={{
                   borderColor: isDark ? 'rgba(254, 240, 138, 0.9)' : '#B45309',
                   background: isDark
@@ -358,14 +359,16 @@ export default function ChartPage() {
                     ? 'inset 0 1px 2px rgba(255,255,255,0.8), inset 0 -2px 4px rgba(0,0,0,0.6), 0 4px 16px rgba(212,168,67,0.45), 0 2px 6px rgba(0,0,0,0.5)'
                     : 'inset 0 1px 2px rgba(255,255,255,0.85), inset 0 -2px 3px rgba(146,64,14,0.4), 0 4px 14px rgba(217,119,6,0.35)',
                 }}
+                title="Xuất thiệp ảnh lá số cổ phong lưu trữ hoặc chia sẻ"
               >
                 <span>🎴</span>
-                <span>Xuất Thiệp Lá Số</span>
+                <span className="hidden sm:inline">Xuất Thiệp Lá Số</span>
+                <span className="sm:hidden">Xuất Thiệp Lá Số</span>
               </button>
               <button
                 type="button"
                 onClick={() => setProfileBookOpen(true)}
-                className="hover:scale-[1.02] active:scale-[0.98] transition-all px-3.5 py-2 rounded-lg cursor-pointer inline-flex items-center gap-1.5 text-xs font-mystic font-semibold tracking-wider border select-none"
+                className="col-span-1 hover:scale-[1.02] active:scale-[0.98] transition-all px-2.5 sm:px-3.5 py-2.5 rounded-lg cursor-pointer inline-flex items-center justify-center gap-1.5 text-xs font-mystic font-semibold tracking-wider border select-none w-full sm:w-auto text-center"
                 style={{
                   borderColor: isDark ? 'rgba(254,240,138,0.3)' : 'rgba(184,146,42,0.45)',
                   background: isDark
@@ -380,9 +383,10 @@ export default function ChartPage() {
                 title="Xem danh bạ lá số đã lưu riêng tư trên máy của bạn"
               >
                 <span>📖</span>
-                <span>Sổ Tay Gia Đình</span>
+                <span className="hidden sm:inline">Sổ Tay Gia Đình</span>
+                <span className="sm:hidden">Sổ Tay Gia Đình</span>
                 {savedProfileCount > 0 && (
-                  <span className={clsx("px-1.5 py-0.2 rounded-full text-[10px] font-bold shadow-sm", isDark ? "bg-amber-500 text-slate-950" : "bg-amber-600 text-white")}>
+                  <span className={clsx("px-1.5 py-0.2 rounded-full text-[10px] font-bold shadow-sm ml-0.5", isDark ? "bg-amber-500 text-slate-950" : "bg-amber-600 text-white")}>
                     {savedProfileCount}
                   </span>
                 )}
@@ -400,7 +404,7 @@ export default function ChartPage() {
                     setProfileBookOpen(true);
                   }
                 }}
-                className="hover:scale-[1.02] active:scale-[0.98] transition-all px-3.5 py-2 rounded-lg cursor-pointer inline-flex items-center gap-1.5 text-xs font-mystic font-semibold tracking-wider border select-none"
+                className="col-span-1 hover:scale-[1.02] active:scale-[0.98] transition-all px-2.5 sm:px-3.5 py-2.5 rounded-lg cursor-pointer inline-flex items-center justify-center gap-1.5 text-xs font-mystic font-semibold tracking-wider border select-none w-full sm:w-auto text-center"
                 style={{
                   borderColor: isDark ? 'rgba(254,240,138,0.3)' : 'rgba(184,146,42,0.45)',
                   background: isDark
@@ -415,15 +419,17 @@ export default function ChartPage() {
                 title="Lưu lá số này trực tiếp vào máy của bạn (tuyệt đối không gửi lên máy chủ)"
               >
                 <span>🔖</span>
-                <span>Lưu Lá Số Này</span>
+                <span className="hidden sm:inline">Lưu Lá Số Này</span>
+                <span className="sm:hidden">Lưu Lá Số Này</span>
               </button>
             </div>
-            <div className="flex items-center gap-2.5 text-[11px]" style={{ color: isDark ? 'var(--t-faint)' : '#57534E' }}>
-              <span className={clsx("inline-flex items-center gap-1 font-sans", isDark ? "text-emerald-400/90" : "text-emerald-700 font-semibold")}>
+            <div className="flex items-center justify-between gap-2 text-[10.5px] sm:text-[11px] mt-2.5 px-0.5" style={{ color: isDark ? 'var(--t-faint)' : '#57534E' }}>
+              <span className={clsx("inline-flex items-center gap-1 font-sans shrink-0", isDark ? "text-emerald-400/90" : "text-emerald-700 font-semibold")}>
                 <span>🔒</span> Lưu trữ riêng trên máy
               </span>
-              <span>·</span>
-              <span>Trường phái Thiên Kỷ Nghê Hải Hà · Tự động hiệu chỉnh giờ mặt trời thực (v1.1.0)</span>
+              <span className="truncate text-right opacity-80 font-sans">
+                Trường phái Thiên Kỷ Nghê Hải Hà · Giờ mặt trời thực (v1.1.0)
+              </span>
             </div>
           </div>
 
@@ -435,16 +441,8 @@ export default function ChartPage() {
             }}
             className="grid grid-cols-1 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,0.95fr)]"
           >
-            <div ref={boardRef} className="w-full overflow-x-auto pb-2">
-              <div className="flex items-center justify-between text-[10px] text-amber-400/80 lg:hidden mb-1.5 px-1 font-serif">
-                <span>✦ Mệnh Bàn 12 Cung Vị</span>
-                <span className="inline-flex items-center gap-1 text-[9px] px-2 py-0.5 rounded-full border border-amber-500/30 bg-amber-500/10 text-amber-300 animate-pulse">
-                  <span>↔</span> Vuốt ngang xem trọn lá số
-                </span>
-              </div>
-              <div className="min-w-[560px] lg:min-w-0">
-                <ChartBoard chart={chart} onPalaceSelect={setSelectedPalace} />
-              </div>
+            <div ref={boardRef} className="w-full">
+              <ChartBoard chart={chart} onPalaceSelect={setSelectedPalace} />
             </div>
             <div
               className="insight-panel-container w-full"
