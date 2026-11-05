@@ -1,6 +1,8 @@
 'use client';
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import clsx from 'clsx';
+import { useTheme } from '@/components/ThemeProvider';
 import type { ZiweiChart, Palace } from '@/lib/ziwei/types';
 import type { TimeView } from './TimeNav';
 import {
@@ -150,12 +152,18 @@ const PALACE_ROLES: Record<string, string> = {
   '父母宫': 'Cha mẹ, trưởng bối, di truyền và phúc ấm',
 };
 
-function renderInlineMarkdown(text: string) {
+function renderInlineMarkdown(text: string, isDark: boolean = true) {
   const boldParts = text.split(/\*\*(.+?)\*\*/);
   return boldParts.map((bPart, bIdx) => {
     if (bIdx % 2 === 1) {
       return (
-        <strong key={bIdx} className="font-bold text-amber-200 drop-shadow-[0_0_4px_rgba(251,191,36,0.3)]">
+        <strong
+          key={bIdx}
+          className={clsx(
+            "font-bold",
+            isDark ? "text-amber-200 drop-shadow-[0_0_4px_rgba(251,191,36,0.3)]" : "text-[#1C1917]"
+          )}
+        >
           {bPart}
         </strong>
       );
@@ -164,7 +172,13 @@ function renderInlineMarkdown(text: string) {
     return italicParts.map((iPart, iIdx) => {
       if (iIdx % 2 === 1) {
         return (
-          <em key={iIdx} className="italic text-amber-100/90 font-serif">
+          <em
+            key={iIdx}
+            className={clsx(
+              "italic font-serif",
+              isDark ? "text-amber-100/90" : "text-[#78350F] font-medium"
+            )}
+          >
             {iPart}
           </em>
         );
@@ -175,6 +189,8 @@ function renderInlineMarkdown(text: string) {
 }
 
 function AiContent({ text, streaming }: { text: string; streaming?: boolean }) {
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
   const lines = text.split('\n');
   let hasRenderedDropCap = false;
 
@@ -187,9 +203,9 @@ function AiContent({ text, streaming }: { text: string; streaming?: boolean }) {
         if (trimmed.match(/^---+$/)) {
           return (
             <div key={i} className="flex items-center justify-center gap-2.5 my-3 opacity-70">
-              <span className="w-16 h-[1px] bg-gradient-to-r from-transparent to-amber-500/60" />
-              <span className="text-[10px] text-amber-300 font-mystic select-none tracking-widest">✦ ☯ ✦</span>
-              <span className="w-16 h-[1px] bg-gradient-to-l from-transparent to-amber-500/60" />
+              <span className={clsx("w-16 h-[1px] bg-gradient-to-r from-transparent", isDark ? "to-amber-500/60" : "to-amber-700/40")} />
+              <span className={clsx("text-[10px] font-mystic select-none tracking-widest", isDark ? "text-amber-300" : "text-amber-800")}>✦ ☯ ✦</span>
+              <span className={clsx("w-16 h-[1px] bg-gradient-to-l from-transparent", isDark ? "to-amber-500/60" : "to-amber-700/40")} />
             </div>
           );
         }
@@ -201,9 +217,21 @@ function AiContent({ text, streaming }: { text: string; streaming?: boolean }) {
           const cleanTitle = rawTitle.replace(/\*\*/g, '').trim();
           return (
             <div key={i} className="pt-3 pb-1 first:pt-0">
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-amber-500/40 bg-gradient-to-r from-amber-950/60 via-amber-900/30 to-black/80 shadow-[0_2px_12px_rgba(212,168,67,0.18)]">
-                <span className="text-amber-400 text-xs select-none">✦</span>
-                <span className="text-[12.5px] font-mystic font-bold tracking-wider text-amber-200 uppercase drop-shadow-[0_0_8px_rgba(212,168,67,0.4)]">
+              <div
+                className={clsx(
+                  "flex items-center gap-2 px-3 py-1.5 rounded-lg border",
+                  isDark
+                    ? "border-amber-500/40 bg-gradient-to-r from-amber-950/60 via-amber-900/30 to-black/80 shadow-[0_2px_12px_rgba(212,168,67,0.18)]"
+                    : "border-amber-400/60 bg-gradient-to-r from-amber-100/90 via-amber-50 to-orange-50 shadow-[0_2px_8px_rgba(180,83,9,0.1)]"
+                )}
+              >
+                <span className={clsx("text-xs select-none", isDark ? "text-amber-400" : "text-amber-700")}>✦</span>
+                <span
+                  className={clsx(
+                    "text-[12.5px] font-mystic font-bold tracking-wider uppercase",
+                    isDark ? "text-amber-200 drop-shadow-[0_0_8px_rgba(212,168,67,0.4)]" : "text-[#78350F]"
+                  )}
+                >
                   【{cleanTitle}】
                 </span>
               </div>
@@ -215,50 +243,88 @@ function AiContent({ text, streaming }: { text: string; streaming?: boolean }) {
         const subHeaderMatch = trimmed.match(/^####\s*(.+)$/);
         if (subHeaderMatch) {
           return (
-            <div key={i} className="pt-2 pb-0.5 text-[11px] font-mystic font-semibold text-amber-300/90 flex items-center gap-1.5">
-              <span className="text-[9px] text-amber-400">❖</span>
+            <div
+              key={i}
+              className={clsx(
+                "pt-2 pb-0.5 text-[11px] font-mystic font-bold flex items-center gap-1.5",
+                isDark ? "text-amber-300/90" : "text-[#78350F]"
+              )}
+            >
+              <span className={clsx("text-[9px]", isDark ? "text-amber-400" : "text-amber-700")}>❖</span>
               <span>{subHeaderMatch[1]}</span>
             </div>
           );
         }
 
-        // 4. Dòng trống
+        // 4. Blockquote trích dẫn (>)
+        if (trimmed.startsWith('>')) {
+          const quoteContent = trimmed.replace(/^>\s*/, '');
+          return (
+            <div
+              key={i}
+              className={clsx(
+                "pl-3.5 pr-2.5 py-1.5 my-1.5 rounded-r text-[12px] leading-relaxed border-l-2 font-mystic",
+                isDark
+                  ? "border-amber-500 bg-amber-950/25 text-amber-100/95"
+                  : "border-amber-600 bg-[#FAF6EE] text-[#1C1917] shadow-sm"
+              )}
+            >
+              {renderInlineMarkdown(quoteContent, isDark)}
+            </div>
+          );
+        }
+
+        // 5. Dòng trống
         if (trimmed === '') return <div key={i} className="h-1.5" />;
 
-        // 5. Mục danh sách đánh số (1. 2. 3...)
+        // 6. Mục danh sách đánh số (1. 2. 3...)
         const numberedMatch = trimmed.match(/^([0-9]+)\.\s*(.+)$/);
         if (numberedMatch) {
           const num = numberedMatch[1];
           const content = numberedMatch[2];
 
           return (
-            <div key={i} className="flex items-start gap-2 text-[12px] leading-relaxed my-1 font-mystic" style={{ color: 'var(--t-text2)' }}>
-              <span className="inline-flex items-center justify-center w-4 h-4 rounded-full border border-amber-500/50 bg-amber-500/20 text-amber-300 text-[9px] font-mystic font-bold flex-shrink-0 mt-0.5 select-none shadow-[0_0_6px_rgba(245,158,11,0.3)]">
+            <div key={i} className="flex items-start gap-2 text-[12px] leading-relaxed my-1 font-mystic" style={{ color: isDark ? 'var(--t-text2)' : '#292524' }}>
+              <span
+                className={clsx(
+                  "inline-flex items-center justify-center w-4 h-4 rounded-full border text-[9px] font-mystic font-bold flex-shrink-0 mt-0.5 select-none",
+                  isDark
+                    ? "border-amber-500/50 bg-amber-500/20 text-amber-300 shadow-[0_0_6px_rgba(245,158,11,0.3)]"
+                    : "border-amber-500/50 bg-amber-100 text-[#78350F] shadow-sm"
+                )}
+              >
                 {num}
               </span>
               <div className="flex-1">
-                {renderInlineMarkdown(content)}
+                {renderInlineMarkdown(content, isDark)}
               </div>
             </div>
           );
         }
 
-        // 6. Mục danh sách gạch đầu dòng (•, -, *)
+        // 7. Mục danh sách gạch đầu dòng (•, -, *)
         const bulletMatch = trimmed.match(/^[•\-\*]\s*(.+)$/);
         if (bulletMatch) {
           const content = bulletMatch[1];
 
           return (
-            <div key={i} className="flex items-start gap-2 text-[12px] leading-relaxed my-1 pl-1 font-mystic" style={{ color: 'var(--t-text2)' }}>
-              <span className="text-[10px] text-amber-400 drop-shadow-[0_0_6px_rgba(251,191,36,0.6)] flex-shrink-0 mt-0.5 select-none">◆</span>
+            <div key={i} className="flex items-start gap-2 text-[12px] leading-relaxed my-1 pl-1 font-mystic" style={{ color: isDark ? 'var(--t-text2)' : '#292524' }}>
+              <span
+                className={clsx(
+                  "text-[10px] flex-shrink-0 mt-0.5 select-none",
+                  isDark ? "text-amber-400 drop-shadow-[0_0_6px_rgba(251,191,36,0.6)]" : "text-amber-700"
+                )}
+              >
+                ◆
+              </span>
               <div className="flex-1">
-                {renderInlineMarkdown(content)}
+                {renderInlineMarkdown(content, isDark)}
               </div>
             </div>
           );
         }
 
-        // 7. Đoạn văn thường (kèm Drop-Cap chữ hoa khởi đầu cho đoạn đầu tiên)
+        // 8. Đoạn văn thường (kèm Drop-Cap chữ hoa khởi đầu cho đoạn đầu tiên)
         const shouldApplyDropCap = !hasRenderedDropCap && trimmed.length > 30 && !streaming;
         if (shouldApplyDropCap) {
           hasRenderedDropCap = true;
@@ -266,25 +332,30 @@ function AiContent({ text, streaming }: { text: string; streaming?: boolean }) {
           const restText = trimmed.slice(1);
 
           return (
-            <div key={i} className="text-[12px] leading-relaxed text-justify font-mystic" style={{ color: 'var(--t-text2)' }}>
-              <span className="float-left text-3xl font-mystic font-black leading-none pr-2 pt-0.5 text-amber-300 select-none drop-shadow-[0_0_10px_rgba(212,168,67,0.6)]">
+            <div key={i} className="text-[12px] leading-relaxed text-justify font-mystic" style={{ color: isDark ? 'var(--t-text2)' : '#292524' }}>
+              <span
+                className={clsx(
+                  "float-left text-3xl font-mystic font-black leading-none pr-2 pt-0.5 select-none",
+                  isDark ? "text-amber-300 drop-shadow-[0_0_10px_rgba(212,168,67,0.6)]" : "text-[#78350F]"
+                )}
+              >
                 {firstChar}
               </span>
-              {renderInlineMarkdown(restText)}
+              {renderInlineMarkdown(restText, isDark)}
             </div>
           );
         }
 
         return (
-          <div key={i} className="text-[12px] leading-relaxed font-mystic" style={{ color: 'var(--t-text2)' }}>
-            {renderInlineMarkdown(line)}
+          <div key={i} className="text-[12px] leading-relaxed font-mystic" style={{ color: isDark ? 'var(--t-text2)' : '#292524' }}>
+            {renderInlineMarkdown(line, isDark)}
           </div>
         );
       })}
       {streaming && (
         <span
           className="inline-block w-1.5 h-3.5 ml-0.5 animate-pulse rounded-sm align-middle"
-          style={{ background: 'var(--t-gold)', opacity: 0.8, boxShadow: '0 0 8px rgba(212,168,67,0.8)' }}
+          style={{ background: isDark ? 'var(--t-gold)' : '#78350F', opacity: 0.8, boxShadow: isDark ? '0 0 8px rgba(212,168,67,0.8)' : 'none' }}
         />
       )}
     </div>
@@ -292,6 +363,9 @@ function AiContent({ text, streaming }: { text: string; streaming?: boolean }) {
 }
 
 export default function InsightPanel({ chart, selectedPalace, selectedSiHua }: InsightPanelProps) {
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
+
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -649,10 +723,12 @@ Tia ảnh hưởng đến cung đối chiếu và tam hợp.
                     loading ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer hover:border-[var(--t-gold)] hover:scale-105'
                   }`}
                   style={{
-                    background: isActive ? 'linear-gradient(135deg, rgba(212,168,67,0.2) 0%, rgba(180,83,9,0.2) 100%)' : 'transparent',
-                    border: `1px solid ${isActive ? 'rgba(212,168,67,0.5)' : 'var(--t-border)'}`,
-                    color: isActive ? 'var(--t-gold)' : 'var(--t-faint)',
-                    boxShadow: isActive ? '0 0 10px rgba(212,168,67,0.25)' : undefined,
+                    background: isActive
+                      ? (isDark ? 'linear-gradient(135deg, rgba(212,168,67,0.2) 0%, rgba(180,83,9,0.2) 100%)' : '#FEF3C7')
+                      : (isDark ? 'transparent' : '#FAF6ED'),
+                    border: `1px solid ${isActive ? (isDark ? 'rgba(212,168,67,0.5)' : '#D97706') : (isDark ? 'var(--t-border)' : 'rgba(184, 146, 42, 0.35)')}`,
+                    color: isActive ? (isDark ? 'var(--t-gold)' : '#78350F') : (isDark ? 'var(--t-faint)' : '#44403C'),
+                    boxShadow: isActive ? (isDark ? '0 0 10px rgba(212,168,67,0.25)' : '0 1px 4px rgba(217,119,6,0.18)') : (isDark ? undefined : '0 1px 2px rgba(120,53,15,0.04)'),
                   }}
                 >
                   {t.label}
@@ -713,11 +789,12 @@ Tia ảnh hưởng đến cung đối chiếu và tam hợp.
                     className="flex justify-end"
                   >
                     <div
-                      className="max-w-[85%] rounded-xl px-3 py-2 text-[11px]"
+                      className="max-w-[85%] rounded-xl px-3.5 py-2 text-[11px] font-mystic"
                       style={{
-                        background: 'rgba(212,168,67,0.08)',
-                        border: '1px solid rgba(212,168,67,0.18)',
-                        color: 'var(--t-gold)',
+                        background: isDark ? 'rgba(212,168,67,0.08)' : '#FEF3C7',
+                        border: isDark ? '1px solid rgba(212,168,67,0.2)' : '1px solid rgba(217,119,6,0.3)',
+                        color: isDark ? 'var(--t-gold)' : '#78350F',
+                        boxShadow: isDark ? 'none' : '0 1px 4px rgba(120,53,15,0.06)',
                       }}
                     >
                       {msg.content}
@@ -752,70 +829,128 @@ Tia ảnh hưởng đến cung đối chiếu và tam hợp.
                         animate={{ opacity: 1, scale: 1 }}
                         className="py-5 px-4 flex flex-col items-center justify-center text-center space-y-3.5 rounded-xl my-2 border relative overflow-hidden"
                         style={{
-                          background: 'linear-gradient(180deg, rgba(28, 20, 10, 0.95) 0%, rgba(14, 11, 7, 0.98) 100%)',
-                          borderColor: 'rgba(212, 168, 67, 0.45)',
-                          boxShadow: '0 8px 30px rgba(0, 0, 0, 0.7), inset 0 0 25px rgba(212, 168, 67, 0.08)',
+                          background: isDark
+                            ? 'linear-gradient(180deg, rgba(28, 20, 10, 0.95) 0%, rgba(14, 11, 7, 0.98) 100%)'
+                            : 'linear-gradient(180deg, #FFFDF8 0%, #FEF3C7 100%)',
+                          borderColor: isDark ? 'rgba(212, 168, 67, 0.45)' : 'rgba(217, 119, 6, 0.45)',
+                          boxShadow: isDark
+                            ? '0 8px 30px rgba(0, 0, 0, 0.7), inset 0 0 25px rgba(212, 168, 67, 0.08)'
+                            : '0 8px 30px rgba(180, 83, 9, 0.12), inset 0 0 20px rgba(217, 119, 6, 0.06)',
                         }}
                       >
                         {/* Họa tiết cổ phong 4 góc */}
-                        <div className="absolute top-1.5 left-2 text-[10px] opacity-35 select-none text-amber-400">╔</div>
-                        <div className="absolute top-1.5 right-2 text-[10px] opacity-35 select-none text-amber-400">╗</div>
-                        <div className="absolute bottom-1.5 left-2 text-[10px] opacity-35 select-none text-amber-400">╚</div>
-                        <div className="absolute bottom-1.5 right-2 text-[10px] opacity-35 select-none text-amber-400">╝</div>
+                        <div className="absolute top-1.5 left-2 text-[10px] opacity-35 select-none" style={{ color: isDark ? '#fbbf24' : '#b45309' }}>╔</div>
+                        <div className="absolute top-1.5 right-2 text-[10px] opacity-35 select-none" style={{ color: isDark ? '#fbbf24' : '#b45309' }}>╗</div>
+                        <div className="absolute bottom-1.5 left-2 text-[10px] opacity-35 select-none" style={{ color: isDark ? '#fbbf24' : '#b45309' }}>╚</div>
+                        <div className="absolute bottom-1.5 right-2 text-[10px] opacity-35 select-none" style={{ color: isDark ? '#fbbf24' : '#b45309' }}>╝</div>
 
                         {/* Chung trà bốc khói & Bát Quái xoay */}
                         <div className="relative flex items-center justify-center mt-1">
-                          <div className="w-13 h-13 rounded-full border border-amber-500/40 flex items-center justify-center bg-amber-500/10 shadow-[0_0_15px_rgba(212,168,67,0.25)]">
+                          <div
+                            className="w-13 h-13 rounded-full border flex items-center justify-center shadow-sm"
+                            style={{
+                              borderColor: isDark ? 'rgba(245, 158, 11, 0.4)' : 'rgba(217, 119, 6, 0.4)',
+                              background: isDark ? 'rgba(245, 158, 11, 0.1)' : 'rgba(254, 243, 199, 0.8)',
+                            }}
+                          >
                             <span className="text-2xl animate-bounce" style={{ animationDuration: '2.5s' }}>🍵</span>
                           </div>
-                          <div className="absolute -inset-1 rounded-full border border-dashed border-amber-400/40 animate-spin" style={{ animationDuration: '20s' }} />
+                          <div className="absolute -inset-1 rounded-full border border-dashed border-amber-500/40 animate-spin" style={{ animationDuration: '20s' }} />
                         </div>
 
                         {/* Tiêu đề Đạo gia */}
                         <div className="space-y-1">
-                          <h4 className="text-[12px] font-bold tracking-wider uppercase text-amber-300 flex items-center justify-center gap-1.5 font-serif">
+                          <h4
+                            className={clsx(
+                              "text-[12px] font-bold tracking-wider uppercase flex items-center justify-center gap-1.5 font-serif",
+                              isDark ? "text-amber-300" : "text-[#78350F]"
+                            )}
+                          >
                             <span>✦</span> BẦN ĐẠO ĐANG NHẬP ĐỊNH THÔI DIỄN THIÊN CƠ <span>✦</span>
                           </h4>
-                          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[9px] font-medium border border-amber-500/30 bg-amber-500/15 text-amber-200">
-                            <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping" />
+                          <div
+                            className={clsx(
+                              "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[9px] font-medium border",
+                              isDark ? "border-amber-500/30 bg-amber-500/15 text-amber-200" : "border-amber-500/40 bg-amber-100 text-[#78350F]"
+                            )}
+                          >
+                            <span className={clsx("w-1.5 h-1.5 rounded-full animate-ping", isDark ? "bg-amber-400" : "bg-amber-600")} />
                             <span>Tĩnh thất đang tiếp 10 đạo hữu đàm đạo</span>
                           </div>
                         </div>
 
                         {/* Thẻ vị trí hàng đợi */}
-                        <div className="px-4 py-2 rounded-lg border border-amber-500/30 bg-black/50 text-center w-full max-w-[280px]">
-                          <div className="text-[9px] tracking-widest text-amber-400/80 uppercase font-sans">Thứ tự tiếp duyên của bạn</div>
-                          <div className="text-2xl font-black text-amber-300 font-serif my-0.5 tracking-wider">
+                        <div
+                          className="px-4 py-2 rounded-lg border text-center w-full max-w-[280px]"
+                          style={{
+                            background: isDark ? 'rgba(0, 0, 0, 0.5)' : '#FFFFFF',
+                            borderColor: isDark ? 'rgba(245, 158, 11, 0.3)' : 'rgba(217, 119, 6, 0.35)',
+                            boxShadow: isDark ? 'none' : '0 2px 6px rgba(120,53,15,0.06)',
+                          }}
+                        >
+                          <div className="text-[9px] tracking-widest uppercase font-sans" style={{ color: isDark ? 'rgba(251, 191, 36, 0.8)' : '#92400e' }}>Thứ tự tiếp duyên của bạn</div>
+                          <div
+                            className="text-2xl font-black font-serif my-0.5 tracking-wider"
+                            style={{ color: isDark ? '#fde68a' : '#78350F' }}
+                          >
                             VỊ TRÍ SỐ {queueStatus.position}
                           </div>
-                          <div className="text-[9px] text-zinc-400 font-sans">
+                          <div className="text-[9px] font-sans" style={{ color: isDark ? '#a1a1aa' : '#57534E' }}>
                             Ước chừng khoảng {queueStatus.position * 15}–{queueStatus.position * 25} giây
                           </div>
                         </div>
 
                         {/* Lời răn dạy của Đạo gia */}
-                        <p className="text-[11px] leading-relaxed max-w-[340px] italic font-serif text-amber-100/90 px-2">
+                        <p
+                          className="text-[11px] leading-relaxed max-w-[340px] italic font-serif px-2"
+                          style={{ color: isDark ? 'rgba(254, 243, 199, 0.9)' : '#44403C' }}
+                        >
                           &ldquo;Thiên cơ huyền ảo, dục tốc bất đạt, không thể phân tâm. Kính mời đạo hữu tĩnh tọa ngưng thần, thưởng một chung trà thanh tâm... Đạo duyên sẽ tự khắc khai mở khi đến lượt!&rdquo;
                         </p>
 
                         {/* Thanh chỉ báo linh lực */}
-                        <div className="w-full max-w-[220px] h-1 bg-amber-950/70 rounded-full overflow-hidden border border-amber-600/30">
+                        <div
+                          className="w-full max-w-[220px] h-1 rounded-full overflow-hidden border"
+                          style={{
+                            background: isDark ? 'rgba(69, 26, 3, 0.7)' : '#FEF3C7',
+                            borderColor: isDark ? 'rgba(217, 119, 6, 0.3)' : 'rgba(217, 119, 6, 0.4)',
+                          }}
+                        >
                           <div className="h-full bg-gradient-to-r from-amber-600 via-yellow-400 to-amber-600 animate-pulse w-full" />
                         </div>
                       </motion.div>
                     ) : (
-                      <div className="py-7 px-4 flex flex-col items-center justify-center text-center space-y-3 rounded-xl my-2 border border-dashed border-amber-500/35 bg-gradient-to-b from-amber-500/10 via-amber-500/5 to-transparent backdrop-blur-md max-w-full overflow-hidden shadow-lg">
+                      <div
+                        className="py-7 px-4 flex flex-col items-center justify-center text-center space-y-3 rounded-xl my-2 border border-dashed backdrop-blur-md max-w-full overflow-hidden shadow-md"
+                        style={{
+                          borderColor: isDark ? 'rgba(212, 168, 67, 0.35)' : 'rgba(217, 119, 6, 0.45)',
+                          background: isDark
+                            ? 'linear-gradient(180deg, rgba(212,168,67,0.1) 0%, rgba(212,168,67,0.03) 100%)'
+                            : 'linear-gradient(180deg, #FEF3C7 0%, #FFFDF8 100%)',
+                          boxShadow: isDark ? '0 4px 20px rgba(0,0,0,0.5)' : '0 4px 16px rgba(180,83,9,0.08)',
+                        }}
+                      >
                         <div className="relative flex items-center justify-center">
                           <div className="w-10 h-10 rounded-full border-2 border-dashed border-[var(--t-gold)] animate-spin opacity-60" style={{ animationDuration: '12s' }} />
                           <span className="absolute text-sm" style={{ color: 'var(--t-gold)' }}>✦</span>
                         </div>
                         <div className="space-y-1.5 w-full max-w-[320px] mx-auto px-1">
-                          <p className="text-[12px] sm:text-[13px] font-serif font-bold tracking-wider text-amber-300 animate-pulse break-words uppercase">
+                          <p
+                            className={clsx(
+                              "text-[12px] sm:text-[13px] font-serif font-bold tracking-wider animate-pulse break-words uppercase",
+                              isDark ? "text-amber-300" : "text-[#78350F]"
+                            )}
+                          >
                             {isVip
                               ? '✨ LỆNH BÀI TRI KỶ: BẦN ĐẠO TRẢI BÀN ĐÀM ĐẠO...'
                               : '✦ BẦN ĐẠO ĐANG KHAI MỞ THIÊN BÀN ✦'}
                           </p>
-                          <p className="text-[10px] sm:text-[11px] leading-relaxed text-amber-100/80 italic font-serif break-words">
+                          <p
+                            className={clsx(
+                              "text-[10px] sm:text-[11px] leading-relaxed italic font-serif break-words",
+                              isDark ? "text-amber-100/80" : "text-[#57534E]"
+                            )}
+                          >
                             {isVip
                               ? 'Thượng khách quang lâm, bần đạo lập tức vận khởi linh cơ soi tỏ vận số, không để đạo hữu chờ đợi.'
                               : 'Bần đạo đang vận chuyển thần thức, điểm chỉ tinh diệu và soi tỏ khí số bản mệnh. Đạo hữu hoan hỉ tĩnh tâm chờ trong giây lát (~10–15s)...'}
@@ -839,10 +974,10 @@ Tia ảnh hưởng đến cung đối chiếu và tam hợp.
             type="button"
             className="absolute bottom-3 right-4 px-2.5 py-1 rounded-full text-[10px] font-medium shadow-2xl backdrop-blur-md flex items-center gap-1 transition-all z-20 hover:scale-105 active:scale-95"
             style={{
-              background: 'rgba(15, 20, 32, 0.94)',
-              border: '1px solid rgba(212, 168, 67, 0.5)',
-              color: 'var(--t-gold)',
-              boxShadow: '0 4px 16px rgba(0,0,0,0.5)',
+              background: isDark ? 'rgba(15, 20, 32, 0.94)' : '#FFFFFF',
+              border: isDark ? '1px solid rgba(212, 168, 67, 0.5)' : '1px solid #D97706',
+              color: isDark ? 'var(--t-gold)' : '#78350F',
+              boxShadow: isDark ? '0 4px 16px rgba(0,0,0,0.5)' : '0 4px 16px rgba(180,83,9,0.15)',
             }}
           >
             <span>Xuống cuối</span>
@@ -866,7 +1001,7 @@ Tia ảnh hưởng đến cung đối chiếu và tam hợp.
             }`}
             style={{
               background: 'var(--t-card)',
-              border: '1px solid var(--t-border)',
+              border: isDark ? '1px solid var(--t-border)' : '1px solid rgba(184, 146, 42, 0.4)',
               color: 'var(--t-text)',
             }}
           />
@@ -875,10 +1010,12 @@ Tia ảnh hưởng đến cung đối chiếu và tam hợp.
             disabled={loading || !input.trim()}
             className="px-4 py-2 rounded-lg text-[12px] font-mystic font-bold tracking-wider transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer hover:scale-105 active:scale-95"
             style={{
-              background: 'linear-gradient(135deg, rgba(212,168,67,0.25) 0%, rgba(180,83,9,0.3) 100%)',
-              border: '1px solid rgba(212,168,67,0.4)',
-              color: 'var(--t-gold)',
-              boxShadow: '0 2px 8px rgba(212,168,67,0.15)',
+              background: isDark
+                ? 'linear-gradient(135deg, rgba(212,168,67,0.25) 0%, rgba(180,83,9,0.3) 100%)'
+                : 'linear-gradient(135deg, #B45309 0%, #D97706 100%)',
+              border: isDark ? '1px solid rgba(212,168,67,0.4)' : '1px solid #B45309',
+              color: isDark ? 'var(--t-gold)' : '#FFFFFF',
+              boxShadow: isDark ? '0 2px 8px rgba(212,168,67,0.15)' : '0 2px 8px rgba(180,83,9,0.25)',
             }}
           >
             {loading ? '…' : 'Hỏi'}

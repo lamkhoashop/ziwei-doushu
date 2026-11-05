@@ -319,6 +319,54 @@ export const ELEMENT_STYLES: Record<WuXingElement, ElementStyle> = {
   },
 };
 
+/** Bảng màu Ngũ Hành Cổ Thư (Dành riêng cho Light Mode: Đậm đà, sắc nét, tương phản cao) */
+export const ELEMENT_STYLES_LIGHT: Record<WuXingElement, ElementStyle> = {
+  kim: {
+    label: 'Kim',
+    color: '#1E293B',        // Mực tàu xám đen sắc sảo
+    colorDim: '#475569',
+    bg: 'rgba(30, 41, 59, 0.08)',
+    border: 'rgba(30, 41, 59, 0.3)',
+    glow: 'none',
+  },
+  moc: {
+    label: 'Mộc',
+    color: '#047857',        // Xanh ngọc lục bảo thẫm quý phái
+    colorDim: '#065F46',
+    bg: 'rgba(4, 120, 87, 0.08)',
+    border: 'rgba(4, 120, 87, 0.3)',
+    glow: 'none',
+  },
+  thuy: {
+    label: 'Thủy',
+    color: '#0369A1',        // Lam chàm đại dương thẫm
+    colorDim: '#075985',
+    bg: 'rgba(3, 105, 161, 0.08)',
+    border: 'rgba(3, 105, 161, 0.3)',
+    glow: 'none',
+  },
+  hoa: {
+    label: 'Hỏa',
+    color: '#B91C1C',        // Đỏ son chu sa thẫm uy nghi
+    colorDim: '#991B1B',
+    bg: 'rgba(185, 28, 28, 0.08)',
+    border: 'rgba(185, 28, 28, 0.3)',
+    glow: 'none',
+  },
+  tho: {
+    label: 'Thổ',
+    color: '#92400E',        // Nâu vàng đồng hổ phách thẫm
+    colorDim: '#78350F',
+    bg: 'rgba(146, 64, 14, 0.08)',
+    border: 'rgba(146, 64, 14, 0.3)',
+    glow: 'none',
+  },
+};
+
+export function getElementStyle(elem: WuXingElement, isDark: boolean = true): ElementStyle {
+  return isDark ? ELEMENT_STYLES[elem] : ELEMENT_STYLES_LIGHT[elem];
+}
+
 export function getStarElement(starName: string): WuXingElement {
   return STAR_ELEMENT_MAP[starName] ?? 'tho';
 }

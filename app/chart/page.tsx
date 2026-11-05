@@ -2,6 +2,7 @@
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
+import clsx from 'clsx';
 import BirthForm from '@/components/BirthForm';
 import ChartBoard from '@/components/ChartBoard';
 import InsightPanel from '@/components/InsightPanel';
@@ -87,21 +88,64 @@ export default function ChartPage() {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
 
+  const handleGenerateChart = (info: BirthInfo) => {
+    try {
+      localStorage.setItem('ziwei_active_birth_info', JSON.stringify(info));
+      sessionStorage.setItem('ziwei_chart_active', 'true');
+    } catch { /* ignore */ }
+    setChart(generateChart(info));
+  };
+
+  const handleReset = () => {
+    try {
+      localStorage.removeItem('ziwei_active_birth_info');
+      sessionStorage.removeItem('ziwei_chart_active');
+    } catch { /* ignore */ }
+    setChart(null);
+    setLastSavedInfo(null);
+    setSelectedPalace(null);
+  };
+
   // Đếm số lượng hồ sơ đã lưu trong sổ tay
   useEffect(() => {
     setSavedProfileCount(getSavedProfiles().length);
   }, [profileBookOpen]);
 
-  // Khôi phục lá số: CHỈ tự động nạp lại khi người dùng thực hiện F5 (Reload trang)
+  // Khôi phục lá số từ URL tham số hoặc từ phiên trước đó
   useEffect(() => {
     try {
+      // 1. Nếu có query parameters đầy đủ trên URL (từ liên kết chia sẻ), tự động hiển thị lá số
+      const params = new URLSearchParams(window.location.search);
+      const year = params.get('year');
+      const month = params.get('month');
+      const day = params.get('day');
+      const hour = params.get('hour');
+      if (year && month && day && hour !== null) {
+        const parsedHour = parseInt(hour, 10);
+        const branchHour = (parsedHour >= 0 && parsedHour <= 11)
+          ? parsedHour
+          : Math.floor(((parsedHour + 1) % 24) / 2);
+
+        const info: BirthInfo = {
+          name: params.get('name') || 'Bản Mệnh',
+          gender: (params.get('gender') as 'male' | 'female') || 'male',
+          year: parseInt(year, 10),
+          month: parseInt(month, 10),
+          day: parseInt(day, 10),
+          hour: branchHour,
+          province: params.get('province') || undefined,
+        };
+        handleGenerateChart(info);
+        return;
+      }
+
+      // 2. Nếu là F5 (Reload trang), khôi phục phiên đang xem
       const saved = localStorage.getItem('ziwei_active_birth_info');
       if (saved) {
         const info: BirthInfo = JSON.parse(saved);
         if (info && info.year && info.month && info.day !== undefined) {
           setLastSavedInfo(info);
 
-          // Nhận diện xem người dùng đang F5/Reload trang hay vừa bấm từ trang chủ vào
           const navEntries = typeof window !== 'undefined' && window.performance?.getEntriesByType?.('navigation');
           const isPageReload = navEntries && navEntries.length > 0 && (navEntries[0] as PerformanceNavigationTiming).type === 'reload';
           const isViewingActive = sessionStorage.getItem('ziwei_chart_active') === 'true';
@@ -133,24 +177,6 @@ export default function ChartPage() {
       window.removeEventListener('resize', updateHeight);
     };
   }, [chart]);
-
-  const handleGenerateChart = (info: BirthInfo) => {
-    try {
-      localStorage.setItem('ziwei_active_birth_info', JSON.stringify(info));
-      sessionStorage.setItem('ziwei_chart_active', 'true');
-    } catch { /* ignore */ }
-    setChart(generateChart(info));
-  };
-
-  const handleReset = () => {
-    try {
-      localStorage.removeItem('ziwei_active_birth_info');
-      sessionStorage.removeItem('ziwei_chart_active');
-    } catch { /* ignore */ }
-    setChart(null);
-    setLastSavedInfo(null);
-    setSelectedPalace(null);
-  };
 
   return (
     <div className="min-h-screen relative overflow-x-hidden" style={{ background: 'var(--bg-0)' }}>
@@ -279,24 +305,28 @@ export default function ChartPage() {
               <button
                 type="button"
                 onClick={handleReset}
-                className="hover:scale-[1.02] active:scale-[0.98] transition-all px-3.5 py-2 rounded-lg cursor-pointer inline-flex items-center gap-1.5 text-xs font-mystic font-semibold tracking-wider border shadow-[0_2px_8px_rgba(0,0,0,0.2)]"
+                className="hover:scale-[1.02] active:scale-[0.98] transition-all px-3.5 py-2 rounded-lg cursor-pointer inline-flex items-center gap-1.5 text-xs font-mystic font-semibold tracking-wider border"
                 style={{
-                  borderColor: 'rgba(212,168,67,0.35)',
-                  background: isDark ? 'rgba(212,168,67,0.08)' : 'rgba(255,250,235,0.9)',
+                  borderColor: isDark ? 'rgba(212,168,67,0.35)' : 'rgba(184,146,42,0.4)',
+                  background: isDark ? 'rgba(212,168,67,0.08)' : '#FFFFFF',
                   color: 'var(--t-gold)',
+                  boxShadow: isDark ? '0 2px 8px rgba(0,0,0,0.2)' : '0 2px 6px rgba(120,53,15,0.06)',
                 }}
                 title="Quay lại màn hình nhập thông tin ngày giờ sinh khác"
               >
-                <span className="text-amber-400 font-sans text-sm leading-none">←</span>
+                <span className={clsx("font-sans text-sm leading-none", isDark ? "text-amber-400" : "text-[#78350F]")}>←</span>
                 <span>Nhập Lại Thông Tin Khác</span>
               </button>
               <button
                 type="button"
                 onClick={() => setShareOpen(true)}
-                className="hover:scale-[1.02] active:scale-[0.98] transition-all px-3.5 py-2 rounded-lg cursor-pointer inline-flex items-center gap-1.5 text-xs font-mystic font-bold tracking-wider border border-amber-500/40 shadow-[0_2px_12px_rgba(212,168,67,0.2)]"
+                className="hover:scale-[1.02] active:scale-[0.98] transition-all px-3.5 py-2 rounded-lg cursor-pointer inline-flex items-center gap-1.5 text-xs font-mystic font-bold tracking-wider border shadow-md"
                 style={{
-                  background: 'linear-gradient(135deg, rgba(212,168,67,0.25) 0%, rgba(184,146,42,0.35) 100%)',
-                  color: 'var(--t-gold)',
+                  borderColor: isDark ? 'rgba(212,168,67,0.5)' : '#D97706',
+                  background: isDark
+                    ? 'linear-gradient(135deg, rgba(212,168,67,0.25) 0%, rgba(184,146,42,0.35) 100%)'
+                    : 'linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%)',
+                  color: isDark ? 'var(--t-gold)' : '#78350F',
                 }}
               >
                 <span>🎴</span>
@@ -305,18 +335,19 @@ export default function ChartPage() {
               <button
                 type="button"
                 onClick={() => setProfileBookOpen(true)}
-                className="hover:scale-[1.02] active:scale-[0.98] transition-all px-3.5 py-2 rounded-lg cursor-pointer inline-flex items-center gap-1.5 text-xs font-mystic font-semibold tracking-wider border border-amber-500/30"
+                className="hover:scale-[1.02] active:scale-[0.98] transition-all px-3.5 py-2 rounded-lg cursor-pointer inline-flex items-center gap-1.5 text-xs font-mystic font-semibold tracking-wider border"
                 style={{
-                  borderColor: 'rgba(212,168,67,0.35)',
-                  background: isDark ? 'rgba(212,168,67,0.1)' : 'rgba(255,250,235,0.9)',
+                  borderColor: isDark ? 'rgba(212,168,67,0.35)' : 'rgba(184,146,42,0.4)',
+                  background: isDark ? 'rgba(212,168,67,0.1)' : '#FFFFFF',
                   color: 'var(--t-gold)',
+                  boxShadow: isDark ? '0 2px 8px rgba(0,0,0,0.2)' : '0 2px 6px rgba(120,53,15,0.06)',
                 }}
                 title="Xem danh bạ lá số đã lưu riêng tư trên máy của bạn"
               >
                 <span>📖</span>
                 <span>Sổ Tay Gia Đình</span>
                 {savedProfileCount > 0 && (
-                  <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-amber-500 text-slate-950">
+                  <span className={clsx("px-1.5 py-0.2 rounded-full text-[10px] font-bold", isDark ? "bg-amber-500 text-slate-950" : "bg-amber-600 text-white")}>
                     {savedProfileCount}
                   </span>
                 )}
@@ -336,9 +367,10 @@ export default function ChartPage() {
                 }}
                 className="hover:scale-[1.02] active:scale-[0.98] transition-all px-3.5 py-2 rounded-lg cursor-pointer inline-flex items-center gap-1.5 text-xs font-mystic font-semibold tracking-wider border"
                 style={{
-                  borderColor: 'rgba(212,168,67,0.35)',
-                  background: isDark ? 'rgba(212,168,67,0.08)' : 'rgba(255,250,235,0.9)',
+                  borderColor: isDark ? 'rgba(212,168,67,0.35)' : 'rgba(184,146,42,0.4)',
+                  background: isDark ? 'rgba(212,168,67,0.08)' : '#FFFFFF',
                   color: 'var(--t-gold)',
+                  boxShadow: isDark ? '0 2px 8px rgba(0,0,0,0.2)' : '0 2px 6px rgba(120,53,15,0.06)',
                 }}
                 title="Lưu lá số này trực tiếp vào máy của bạn (tuyệt đối không gửi lên máy chủ)"
               >
@@ -346,8 +378,8 @@ export default function ChartPage() {
                 <span>Lưu Lá Số Này</span>
               </button>
             </div>
-            <div className="flex items-center gap-2.5 text-[11px]" style={{ color: 'var(--t-faint)' }}>
-              <span className="inline-flex items-center gap-1 text-emerald-400/90 font-sans">
+            <div className="flex items-center gap-2.5 text-[11px]" style={{ color: isDark ? 'var(--t-faint)' : '#57534E' }}>
+              <span className={clsx("inline-flex items-center gap-1 font-sans", isDark ? "text-emerald-400/90" : "text-emerald-700 font-semibold")}>
                 <span>🔒</span> Lưu trữ riêng trên máy
               </span>
               <span>·</span>
@@ -389,7 +421,20 @@ export default function ChartPage() {
             open={shareOpen}
             onClose={() => setShareOpen(false)}
             chart={chart}
-            shareUrl={typeof window !== 'undefined' ? window.location.href : ''}
+            shareUrl={(() => {
+              if (typeof window === 'undefined') return '';
+              if (!chart) return window.location.href;
+              const b = chart.birthInfo;
+              const url = new URL(window.location.origin + '/chart');
+              if (b.name) url.searchParams.set('name', b.name);
+              url.searchParams.set('gender', b.gender);
+              url.searchParams.set('year', String(b.year));
+              url.searchParams.set('month', String(b.month));
+              url.searchParams.set('day', String(b.day));
+              url.searchParams.set('hour', String(b.hour));
+              if (b.province) url.searchParams.set('province', b.province);
+              return url.toString();
+            })()}
           />
 
           <style>{`

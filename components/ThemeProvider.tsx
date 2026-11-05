@@ -22,6 +22,12 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     setMounted(true);
+    const params = new URLSearchParams(window.location.search);
+    const urlTheme = params.get('theme') as Theme | null;
+    if (urlTheme === 'light' || urlTheme === 'dark') {
+      setTheme(urlTheme);
+      return;
+    }
     const saved = localStorage.getItem('ziwei-theme') as Theme | null;
     if (saved === 'light' || saved === 'dark') setTheme(saved);
   }, []);

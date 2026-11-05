@@ -1,6 +1,8 @@
 'use client';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import clsx from 'clsx';
+import { useTheme } from '@/components/ThemeProvider';
 import type { ZiweiChart, Palace, Star } from '@/lib/ziwei/types';
 import {
   toVietnamesePalace,
@@ -56,6 +58,9 @@ function getSanFangSiZheng(branch: number): [number, number, number, number] {
 const ANIMATION_ORDER = [5, 6, 7, 8, 9, 10, 11, 0, 1, 2, 3, 4];
 
 export default function ChartBoard({ chart, onStarSelect, onPalaceSelect, onSiHuaClick }: ChartBoardProps) {
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
+
   const [selectedBranch, setSelectedBranch] = useState<number | null>(null);
   const [timeView, setTimeView] = useState<TimeView>('mingpan');
   const [liunianYear, setLiunianYear] = useState<number>(new Date().getFullYear());
@@ -132,9 +137,11 @@ export default function ChartBoard({ chart, onStarSelect, onPalaceSelect, onSiHu
           gridTemplateColumns: 'repeat(4, 1fr)',
           gridTemplateRows: 'repeat(4, minmax(135px, 1fr))',
           gap: '1px',
-          background: 'rgba(212,168,67,0.25)',
-          border: '1px solid rgba(212,168,67,0.35)',
-          boxShadow: '0 8px 40px rgba(0,0,0,0.35), inset 0 0 0 1px rgba(212,168,67,0.2)',
+          background: isDark ? 'rgba(212,168,67,0.25)' : 'rgba(184,146,42,0.22)',
+          border: isDark ? '1px solid rgba(212,168,67,0.35)' : '1px solid rgba(184,146,42,0.3)',
+          boxShadow: isDark
+            ? '0 8px 40px rgba(0,0,0,0.35), inset 0 0 0 1px rgba(212,168,67,0.2)'
+            : '0 8px 30px rgba(120,53,15,0.08), inset 0 0 0 1px rgba(184,146,42,0.2)',
         }}
       >
         {ANIMATION_ORDER.map((branch, i) => {
@@ -149,7 +156,7 @@ export default function ChartBoard({ chart, onStarSelect, onPalaceSelect, onSiHu
                 onStarClick={(star) => onStarSelect?.(star, palace)}
                 isSelected={selectedBranch === branch}
                 isSanFang={!!(sanFangSet?.has(branch) && selectedBranch !== branch)}
-                delay={i * 0.04}
+                delay={0}
                 overlayStarSiHua={Object.keys(overlayData).length > 0 ? overlayData : undefined}
                 overlayLabel={overlayLabel}
                 onSiHuaClick={(starName, siHua) => onSiHuaClick?.(starName, siHua, timeView)}
@@ -160,14 +167,29 @@ export default function ChartBoard({ chart, onStarSelect, onPalaceSelect, onSiHu
 
         {/* ── Khu vực trung tâm: Bát Quái Trận Đồ & Thiên Bàn ── */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
+          initial={{ opacity: 0, scale: 0.98 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.5 }}
+          transition={{ duration: 0.2 }}
           className="relative flex flex-col items-center justify-center p-4 gap-2 text-center overflow-hidden"
-          style={{ gridRow: '2 / 4', gridColumn: '2 / 4', background: 'radial-gradient(circle at center, rgba(30,22,12,0.95) 0%, rgba(12,14,22,0.98) 100%)' }}
+          style={{
+            gridRow: '2 / 4',
+            gridColumn: '2 / 4',
+            background: isDark
+              ? 'radial-gradient(circle at center, rgba(30,22,12,0.95) 0%, rgba(12,14,22,0.98) 100%)'
+              : 'radial-gradient(circle at center, #FFFDF8 0%, #F5EEDB 100%)',
+            boxShadow: isDark
+              ? 'none'
+              : 'inset 0 0 0 1px rgba(184, 146, 42, 0.35), 0 2px 12px rgba(140, 100, 20, 0.08)',
+          }}
         >
           {/* Vòng Bát Quái Trận Đồ chìm tinh xảo */}
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.12] select-none text-[var(--t-gold)]">
+          <div
+            className="absolute inset-0 flex items-center justify-center pointer-events-none select-none"
+            style={{
+              opacity: isDark ? 0.12 : 0.18,
+              color: isDark ? 'var(--t-gold)' : '#8c6410',
+            }}
+          >
             <svg viewBox="0 0 200 200" className="w-56 h-56 animate-[spin_180s_linear_infinite]">
               <circle cx="100" cy="100" r="95" fill="none" stroke="currentColor" strokeWidth="1" strokeDasharray="3,3" />
               <circle cx="100" cy="100" r="85" fill="none" stroke="currentColor" strokeWidth="0.8" />
@@ -186,30 +208,57 @@ export default function ChartBoard({ chart, onStarSelect, onPalaceSelect, onSiHu
           </div>
 
           {/* Thái Cực Đồ Ánh Kim */}
-          <div className="relative text-4xl select-none leading-none drop-shadow-[0_0_16px_rgba(212,168,67,0.4)]" style={{ color: 'var(--t-gold)' }}>
+          <div
+            className="relative text-4xl select-none leading-none"
+            style={{
+              color: isDark ? 'var(--t-gold)' : '#78350F',
+              filter: isDark ? 'drop-shadow(0 0 16px rgba(212,168,67,0.4))' : 'drop-shadow(0 1px 3px rgba(120,53,15,0.25))',
+            }}
+          >
             ☯
           </div>
 
           <div className="relative z-10 space-y-1.5 w-full max-w-[220px]">
-            <div className="text-[11px] tracking-[0.35em] font-mystic font-bold uppercase text-amber-200/90 border-b border-[#d4a843]/20 pb-1">
+            <div
+              className="text-[11px] tracking-[0.35em] font-mystic font-bold uppercase pb-1"
+              style={{
+                color: isDark ? 'rgba(254, 243, 199, 0.9)' : '#78350F',
+                borderBottom: isDark ? '1px solid rgba(212,168,67,0.2)' : '1px solid rgba(184,146,42,0.35)',
+              }}
+            >
               MỆNH BÀN ĐẨU SỐ
             </div>
 
             <div className="text-[11.5px] font-mystic space-y-1">
               <div className="flex items-center justify-center gap-2">
-                <span className="text-white/60 text-[10px]">Mệnh tại:</span>
-                <span className="font-bold text-amber-300 px-1.5 py-0.5 rounded bg-amber-950/60 border border-amber-500/30">
+                <span className="text-[10px]" style={{ color: isDark ? 'rgba(255,255,255,0.6)' : '#64748B' }}>Mệnh tại:</span>
+                <span className={clsx(
+                  "font-bold px-1.5 py-0.5 rounded border",
+                  isDark
+                    ? "text-amber-300 bg-amber-950/60 border-amber-500/30"
+                    : "text-amber-900 bg-amber-100 border-amber-300 shadow-sm"
+                )}>
                   {BRANCHES_VI[chart.mingGongBranch]}
                 </span>
-                <span className="text-white/60 text-[10px]">Thân tại:</span>
-                <span className="font-bold text-sky-300 px-1.5 py-0.5 rounded bg-sky-950/60 border border-sky-500/30">
+                <span className="text-[10px]" style={{ color: isDark ? 'rgba(255,255,255,0.6)' : '#64748B' }}>Thân tại:</span>
+                <span className={clsx(
+                  "font-bold px-1.5 py-0.5 rounded border",
+                  isDark
+                    ? "text-sky-300 bg-sky-950/60 border-sky-500/30"
+                    : "text-sky-900 bg-sky-100 border-sky-300 shadow-sm"
+                )}>
                   {BRANCHES_VI[chart.shenGongBranch]}
                 </span>
               </div>
 
               {/* Ngũ Hành Cục */}
               <div>
-                <span className="inline-block text-[10.5px] font-mystic font-bold px-2 py-0.5 rounded-full border border-amber-400/40 bg-gradient-to-r from-amber-500/10 via-amber-400/20 to-amber-500/10 text-amber-200 shadow-[0_0_8px_rgba(245,158,11,0.2)]">
+                <span className={clsx(
+                  "inline-block text-[10.5px] font-mystic font-bold px-2.5 py-0.5 rounded-full border",
+                  isDark
+                    ? "border-amber-400/40 bg-gradient-to-r from-amber-500/10 via-amber-400/20 to-amber-500/10 text-amber-200 shadow-[0_0_8px_rgba(245,158,11,0.2)]"
+                    : "border-amber-500/50 bg-amber-100/90 text-amber-950 shadow-sm"
+                )}>
                   ❖ {toVietnameseJu(chart.wuxingJuName)} ❖
                 </span>
               </div>
@@ -220,17 +269,29 @@ export default function ChartBoard({ chart, onStarSelect, onPalaceSelect, onSiHu
           {chart.currentDaXianIndex >= 0 && (() => {
             const dx = chart.daXians[chart.currentDaXianIndex];
             return (
-              <div className="relative z-10 border border-purple-400/40 rounded-lg px-3 py-1 text-center shadow-[0_0_10px_rgba(168,85,247,0.15)] font-mystic"
-                style={{ background: 'linear-gradient(135deg, rgba(88,28,135,0.2) 0%, rgba(59,7,100,0.25) 100%)' }}>
-                <div className="text-[8.5px] text-purple-300/90 tracking-widest uppercase font-semibold">ĐẠI HẠN HIỆN TẠI</div>
-                <div className="text-[12px] text-purple-200 font-bold tabular-nums">{dx.startAge}–{dx.endAge} tuổi</div>
-                <div className="text-[9.5px] text-purple-300/90 font-medium">Tại cung {toVietnamesePalace(dx.palaceName)}</div>
+              <div
+                className="relative z-10 rounded-lg px-3 py-1 text-center font-mystic"
+                style={{
+                  border: isDark ? '1px solid rgba(192, 132, 252, 0.4)' : '1px solid rgba(147, 51, 234, 0.35)',
+                  background: isDark ? 'linear-gradient(135deg, rgba(88,28,135,0.2) 0%, rgba(59,7,100,0.25) 100%)' : '#FAF5FF',
+                  boxShadow: isDark ? '0 0 10px rgba(168,85,247,0.15)' : '0 1px 4px rgba(147,51,234,0.08)',
+                }}
+              >
+                <div className={clsx("text-[8.5px] tracking-widest uppercase font-semibold", isDark ? "text-purple-300/90" : "text-purple-700")}>ĐẠI HẠN HIỆN TẠI</div>
+                <div className={clsx("text-[12px] font-bold tabular-nums", isDark ? "text-purple-200" : "text-purple-900")}>{dx.startAge}–{dx.endAge} tuổi</div>
+                <div className={clsx("text-[9.5px] font-medium", isDark ? "text-purple-300/90" : "text-purple-700")}>Tại cung {toVietnamesePalace(dx.palaceName)}</div>
               </div>
             );
           })()}
 
           {/* Lịch Âm */}
-          <div className="relative z-10 text-[9.5px] text-center leading-relaxed font-mystic text-amber-100/70 border-t border-[#d4a843]/15 pt-1">
+          <div
+            className="relative z-10 text-[9.5px] text-center leading-relaxed font-mystic pt-1"
+            style={{
+              color: isDark ? 'rgba(254, 243, 199, 0.7)' : '#64748B',
+              borderTop: isDark ? '1px solid rgba(212,168,67,0.15)' : '1px solid rgba(184,146,42,0.25)',
+            }}
+          >
             Âm lịch: {chart.lunarInfo.lunarYear} · {chart.lunarInfo.isLeapMonth ? 'Nhuận ' : ''}Tháng {chart.lunarInfo.lunarMonth} · Ngày {chart.lunarInfo.lunarDay}
           </div>
         </motion.div>

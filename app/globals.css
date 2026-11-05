@@ -63,14 +63,14 @@
   --r-pill:999px;
 
   /* ─── Bridge Token cho Lá Số Tử Vi (Sáng) ─── */
-  --t-bg: #fdfaf2;
+  --t-bg: #FAF6ED;
   --t-border: rgba(184, 146, 42, 0.35);
-  --t-surface: #f7f3e8;
-  --t-card: #ffffff;
-  --t-gold: #8b6410;
-  --t-faint: #6a7282;
-  --t-text: #1a1d24;
-  --t-text2: #3a3f4a;
+  --t-surface: #F5EEDB;
+  --t-card: #FFFFFF;
+  --t-gold: #78350F;
+  --t-faint: #475569;
+  --t-text: #1C1917;
+  --t-text2: #292524;
 }
 
 /* ─── 暗色模式 Token 覆盖 ──────────────────────────────── */
