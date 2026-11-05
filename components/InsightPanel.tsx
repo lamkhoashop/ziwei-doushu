@@ -207,7 +207,7 @@ function CopyButton({
   copiedLabel?: string;
   className?: string;
   isDark?: boolean;
-  variant?: 'compact' | 'pill' | 'mini';
+  variant?: 'compact' | 'pill' | 'mini' | 'icon';
 }) {
   const [copied, setCopied] = useState(false);
 
@@ -220,12 +220,35 @@ function CopyButton({
     }
   };
 
+  // Icon-only variant for section headers (chỉ chiếm 28px, KHÔNG lấn chiếm hay che mất tiêu đề)
+  if (variant === 'icon') {
+    return (
+      <button
+        type="button"
+        onClick={handleCopy}
+        title={copied ? 'Đã sao chép phân đoạn này' : 'Sao chép riêng phân đoạn này'}
+        aria-label={copied ? 'Đã sao chép' : 'Sao chép đoạn này'}
+        className={clsx(
+          "shrink-0 inline-flex items-center justify-center w-7 h-7 rounded-md transition-all select-none cursor-pointer active:scale-90",
+          copied
+            ? "border border-emerald-500/80 bg-emerald-500/25 text-emerald-300 shadow-[0_0_8px_rgba(16,185,129,0.35)]"
+            : (isDark
+                ? "border border-amber-500/35 bg-amber-500/15 text-amber-200 hover:bg-amber-500/30 text-xs"
+                : "border border-amber-500/40 bg-white/90 text-[#78350F] hover:bg-amber-100 text-xs shadow-sm"),
+          className
+        )}
+      >
+        <span className="text-xs leading-none">{copied ? '✓' : '📋'}</span>
+      </button>
+    );
+  }
+
   if (variant === 'mini') {
     return (
       <button
         type="button"
         onClick={handleCopy}
-        title={copied ? 'Đã sao chép vào bộ nhớ tạm' : 'Sao chép riêng đoạn này'}
+        title={copied ? 'Đã sao chép vào bộ nhớ tạm' : 'Sao chép đoạn này'}
         className={clsx(
           "inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mystic font-semibold tracking-wider transition-all select-none cursor-pointer active:scale-95",
           copied
@@ -258,7 +281,16 @@ function CopyButton({
       )}
     >
       <span>{copied ? '✓' : '📋'}</span>
-      <span>{copied ? copiedLabel : label}</span>
+      <span>
+        {copied ? (
+          <span>{copiedLabel}</span>
+        ) : (
+          <>
+            <span>Sao chép</span>
+            <span className="hidden sm:inline"> toàn bộ</span>
+          </>
+        )}
+      </span>
     </button>
   );
 }
@@ -322,24 +354,24 @@ function AiContent({ text, streaming }: { text: string; streaming?: boolean }) {
         const sectionMatch = trimmed.match(/^(?:\*\*)?【(.+?)】(?:\*\*)?$/) || trimmed.match(/^###\s*(.+)$/);
         if (sectionMatch) {
           const rawTitle = sectionMatch[1].replace(/【|】/g, '');
-          const cleanTitle = rawTitle.replace(/\*\*/g, '').trim();
+          const cleanTitle = rawTitle.replace(/\*\*/g, '').replace(/^[#\s]+/, '').trim();
           const thisSectionText = sectionTexts[i] || line;
 
           return (
             <div key={i} className="pt-3 pb-1 first:pt-0">
               <div
                 className={clsx(
-                  "flex items-center justify-between gap-2 px-3 py-1.5 rounded-lg border",
+                  "flex items-start justify-between gap-2 px-3 py-1.5 rounded-lg border",
                   isDark
                     ? "border-amber-500/40 bg-gradient-to-r from-amber-950/60 via-amber-900/30 to-black/80 shadow-[0_2px_12px_rgba(212,168,67,0.18)]"
                     : "border-amber-400/60 bg-gradient-to-r from-amber-100/90 via-amber-50 to-orange-50 shadow-[0_2px_8px_rgba(180,83,9,0.1)]"
                 )}
               >
-                <div className="flex items-center gap-2 min-w-0">
-                  <span className={clsx("text-xs shrink-0 select-text", isDark ? "text-amber-400" : "text-amber-700")}>✦</span>
+                <div className="flex items-start gap-1.5 min-w-0 flex-1">
+                  <span className={clsx("text-xs shrink-0 select-text mt-0.5", isDark ? "text-amber-400" : "text-amber-700")}>✦</span>
                   <span
                     className={clsx(
-                      "text-[12px] sm:text-[12.5px] font-mystic font-bold tracking-wider uppercase select-text truncate",
+                      "text-[12px] sm:text-[12.5px] font-mystic font-bold tracking-wider uppercase select-text break-words leading-snug",
                       isDark ? "text-amber-200 drop-shadow-[0_0_8px_rgba(212,168,67,0.4)]" : "text-[#78350F]"
                     )}
                   >
@@ -347,15 +379,13 @@ function AiContent({ text, streaming }: { text: string; streaming?: boolean }) {
                   </span>
                 </div>
 
-                {/* Nút sao chép riêng phân đoạn này */}
+                {/* Nút sao chép phân đoạn dạng Icon gọn gàng 28x28px, KHÔNG lấn chiếm hay che mất tiêu đề */}
                 {!streaming && thisSectionText && (
                   <CopyButton
                     text={thisSectionText}
-                    label="Chép đoạn"
-                    copiedLabel="Đã chép"
-                    variant="mini"
+                    variant="icon"
                     isDark={isDark}
-                    className="shrink-0"
+                    className="mt-0.5"
                   />
                 )}
               </div>
