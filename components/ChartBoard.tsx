@@ -112,22 +112,132 @@ export default function ChartBoard({ chart, onStarSelect, onPalaceSelect, onSiHu
         onYearChange={setLiunianYear}
       />
 
-      {/* Tiêu đề lá số cổ điển Á Đông */}
+      {/* Tiêu đề lá số cổ điển Á Đông - Phong cách Đạo Gia Huyền Bí & Chữ Thư Pháp */}
       <motion.div
         initial={{ opacity: 0, y: -8 }}
         animate={{ opacity: 1, y: 0 }}
-        className="text-center mb-3"
+        className="relative text-center mb-3.5 py-1 px-4 select-none"
       >
-        <div className="flex items-center justify-center gap-2 mb-1">
-          <span className="w-8 h-[1px] bg-gradient-to-r from-transparent to-[#d4a843]" />
-          <span className="text-[11px] tracking-[0.45em] font-mystic uppercase font-bold" style={{ color: 'var(--t-gold)', textShadow: '0 0 10px rgba(212,168,67,0.4)' }}>
+        {/* Vầng hào quang huyền bí mờ ảo phía sau */}
+        <div
+          className="absolute inset-0 pointer-events-none -z-10 opacity-70"
+          style={{
+            background: isDark
+              ? 'radial-gradient(ellipse 60% 70% at 50% 50%, rgba(212, 168, 67, 0.15) 0%, rgba(212, 168, 67, 0.03) 50%, transparent 80%)'
+              : 'radial-gradient(ellipse 60% 70% at 50% 50%, rgba(184, 146, 42, 0.12) 0%, rgba(184, 146, 42, 0.02) 50%, transparent 80%)',
+          }}
+        />
+
+        {/* Trục Thiên Bàn Cổ Phong */}
+        <div className="flex items-center justify-center gap-2.5 sm:gap-3 mb-1.5">
+          <div className="flex items-center gap-1.5">
+            <span
+              className="w-8 sm:w-16 h-[1px]"
+              style={{
+                background: isDark
+                  ? 'linear-gradient(90deg, transparent, rgba(212,168,67,0.7))'
+                  : 'linear-gradient(90deg, transparent, rgba(184,146,42,0.8))',
+              }}
+            />
+            <span className="text-[7px]" style={{ color: isDark ? '#FDE047' : '#B45309' }}>◆</span>
+          </div>
+
+          <span
+            className="text-[10.5px] sm:text-[11.5px] tracking-[0.35em] sm:tracking-[0.45em] font-mystic uppercase font-bold px-2 py-0.5 rounded"
+            style={{
+              color: isDark ? '#FEF08A' : '#78350F',
+              textShadow: isDark
+                ? '0 0 12px rgba(212,168,67,0.5), 0 1px 2px rgba(0,0,0,0.8)'
+                : '0 1px 0 rgba(255,255,255,0.8)',
+            }}
+          >
             ✦ THIÊN BÀN TỬ VI ĐẨU SỐ ✦
           </span>
-          <span className="w-8 h-[1px] bg-gradient-to-l from-transparent to-[#d4a843]" />
+
+          <div className="flex items-center gap-1.5">
+            <span className="text-[7px]" style={{ color: isDark ? '#FDE047' : '#B45309' }}>◆</span>
+            <span
+              className="w-8 sm:w-16 h-[1px]"
+              style={{
+                background: isDark
+                  ? 'linear-gradient(90deg, rgba(212,168,67,0.7), transparent)'
+                  : 'linear-gradient(90deg, rgba(184,146,42,0.8), transparent)',
+              }}
+            />
+          </div>
         </div>
-        <h2 className="text-lg font-mystic tracking-[0.2em] font-bold" style={{ color: 'var(--t-gold)', textShadow: '0 0 16px rgba(212,168,67,0.45)' }}>
-          {chart.birthInfo.name ? `Lá Số Tử Vi: ${chart.birthInfo.name}` : 'Lá Số Tử Vi Mệnh Bàn'}
-        </h2>
+
+        {/* Dòng Tên Mệnh Chủ: Thư Pháp Nổi Bật Kèm Ấn Triện Son Đỏ */}
+        <div className="flex items-center justify-center gap-2 sm:gap-2.5 flex-wrap">
+          {/* Họa tiết mây lành cổ phong bên trái */}
+          <span
+            className="text-base sm:text-lg select-none"
+            style={{
+              color: isDark ? 'rgba(212,168,67,0.6)' : 'rgba(184,146,42,0.7)',
+              filter: isDark ? 'drop-shadow(0 0 6px rgba(212,168,67,0.4))' : undefined,
+            }}
+          >
+            ꧁
+          </span>
+
+          {/* Tiền tố LÁ SỐ TỬ VI */}
+          <span
+            className="text-xs sm:text-sm font-mystic font-bold uppercase tracking-[0.2em]"
+            style={{
+              color: isDark ? 'rgba(226, 232, 240, 0.9)' : '#78350F',
+              textShadow: isDark ? '0 1px 2px rgba(0,0,0,0.9)' : '0 1px 0 rgba(255,255,255,0.9)',
+            }}
+          >
+            Lá Số Tử Vi:
+          </span>
+
+          {/* Tên người được xem: Chữ Thư Pháp Nổi Bật Rực Rỡ */}
+          <span
+            className="font-calligraphy text-2xl sm:text-3xl font-bold tracking-wide px-1.5"
+            style={{
+              background: isDark
+                ? 'linear-gradient(135deg, #FFFFFF 0%, #FEF08A 35%, #F59E0B 75%, #D97706 100%)'
+                : 'linear-gradient(135deg, #78350F 0%, #B45309 60%, #92400E 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              filter: isDark
+                ? 'drop-shadow(0 0 16px rgba(250,204,21,0.65)) drop-shadow(0 2px 4px rgba(0,0,0,0.9))'
+                : 'drop-shadow(0 1px 1px rgba(255,255,255,0.9)) drop-shadow(0 2px 4px rgba(120,53,15,0.15))',
+              lineHeight: 1.15,
+            }}
+          >
+            {chart.birthInfo.name || 'Bản Mệnh'}
+          </span>
+
+          {/* Dấu Triện Son Đỏ (Ấn Triện Chu Sa Cổ Truyền) */}
+          <span
+            className="inline-flex items-center justify-center w-5 h-5 rounded-[3px] text-[9.5px] font-serif font-black select-none transition-transform hover:scale-110"
+            style={{
+              border: isDark ? '1.5px solid rgba(239, 68, 68, 0.85)' : '1.5px solid rgba(185, 28, 28, 0.85)',
+              background: isDark ? 'rgba(220, 38, 38, 0.18)' : 'rgba(185, 28, 28, 0.12)',
+              color: isDark ? '#FCA5A5' : '#991B1B',
+              boxShadow: isDark
+                ? '0 0 8px rgba(239, 68, 68, 0.45), inset 0 0 4px rgba(239, 68, 68, 0.25)'
+                : '0 1px 3px rgba(185, 28, 28, 0.2), inset 0 0 3px rgba(185, 28, 28, 0.15)',
+              transform: 'rotate(-4deg)',
+              letterSpacing: 0,
+            }}
+            title="Ấn Triện Mệnh Chủ"
+          >
+            Mệnh
+          </span>
+
+          {/* Họa tiết mây lành cổ phong bên phải */}
+          <span
+            className="text-base sm:text-lg select-none"
+            style={{
+              color: isDark ? 'rgba(212,168,67,0.6)' : 'rgba(184,146,42,0.7)',
+              filter: isDark ? 'drop-shadow(0 0 6px rgba(212,168,67,0.4))' : undefined,
+            }}
+          >
+            ꧂
+          </span>
+        </div>
       </motion.div>
 
       {/* Lưới 4x4 Mệnh Bàn (kèm viền cổ phong & tia nối SVG) */}

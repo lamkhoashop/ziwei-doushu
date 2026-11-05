@@ -35,6 +35,7 @@ const config: Config = {
       },
       fontFamily: {
         mystic: ["var(--font-mystic)", "serif"],
+        calligraphy: ["var(--font-calligraphy)", "cursive"],
         sans: ["var(--font-sans)", "sans-serif"],
         serif: ["var(--font-serif)", "serif"],
         mono: ["var(--font-mono)", "monospace"],
