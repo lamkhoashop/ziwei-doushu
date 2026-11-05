@@ -709,7 +709,7 @@ Tia ảnh hưởng đến cung đối chiếu và tam hợp.
             </span>
           </div>
         )}
-        <div className="flex sm:grid sm:grid-cols-6 gap-1.5 overflow-x-auto pb-1 no-scrollbar">
+        <div className="flex sm:grid sm:grid-cols-6 gap-1.5 overflow-x-auto pb-1 no-scrollbar select-none">
           {TOPICS.map((t) => {
             const isActive = activeTopic === t.key;
 
@@ -720,16 +720,35 @@ Tia ảnh hưởng đến cung đối chiếu và tam hợp.
                 onClick={() => handleTopicClick(t.key)}
                 disabled={loading}
                 title={loading ? 'Đang luận giải, vui lòng đợi hoàn tất...' : undefined}
-                className={`w-full py-1.5 px-2 sm:px-1 text-[11px] font-mystic font-semibold tracking-wider rounded-lg transition-all duration-150 whitespace-nowrap ${
-                  loading ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer hover:border-[var(--t-gold)] hover:scale-105'
+                className={`w-full py-1.5 px-2 sm:px-1 text-[11px] font-mystic font-semibold tracking-wider rounded-lg transition-all duration-150 whitespace-nowrap select-none ${
+                  loading ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer hover:scale-105 active:scale-95'
                 }`}
                 style={{
                   background: isActive
-                    ? (isDark ? 'linear-gradient(135deg, rgba(212,168,67,0.2) 0%, rgba(180,83,9,0.2) 100%)' : '#FEF3C7')
-                    : (isDark ? 'transparent' : '#FAF6ED'),
-                  border: `1px solid ${isActive ? (isDark ? 'rgba(212,168,67,0.5)' : '#D97706') : (isDark ? 'var(--t-border)' : 'rgba(184, 146, 42, 0.35)')}`,
-                  color: isActive ? (isDark ? 'var(--t-gold)' : '#78350F') : (isDark ? 'var(--t-faint)' : '#44403C'),
-                  boxShadow: isActive ? (isDark ? '0 0 10px rgba(212,168,67,0.25)' : '0 1px 4px rgba(217,119,6,0.18)') : (isDark ? undefined : '0 1px 2px rgba(120,53,15,0.04)'),
+                    ? (isDark
+                        ? 'linear-gradient(145deg, rgba(50, 42, 22, 0.95) 0%, rgba(32, 24, 12, 0.98) 60%, rgba(18, 14, 8, 1) 100%)'
+                        : 'linear-gradient(145deg, #FFFBEB 0%, #FEF3C7 60%, #FDE68A 100%)')
+                    : (isDark
+                        ? 'linear-gradient(145deg, rgba(28, 35, 50, 0.8) 0%, rgba(14, 18, 28, 0.9) 100%)'
+                        : 'linear-gradient(145deg, #FFFFFF 0%, #FAF6EE 100%)'),
+                  border: `1px solid ${
+                    isActive
+                      ? (isDark ? 'rgba(254, 240, 138, 0.55)' : 'rgba(184, 146, 42, 0.75)')
+                      : (isDark ? 'rgba(212, 168, 67, 0.2)' : 'rgba(184, 146, 42, 0.35)')
+                  }`,
+                  color: isActive
+                    ? (isDark ? '#FEF08A' : '#78350F')
+                    : (isDark ? 'var(--t-faint)' : '#57534E'),
+                  textShadow: isActive
+                    ? (isDark ? '0 1px 2px rgba(0,0,0,0.9), 0 0 6px rgba(212,168,67,0.45)' : '0 1px 0 rgba(255,255,255,0.9)')
+                    : undefined,
+                  boxShadow: isActive
+                    ? (isDark
+                        ? 'inset 0 1px 1.5px rgba(255,255,255,0.25), inset 0 -2px 3px rgba(0,0,0,0.8), 0 4px 12px rgba(0,0,0,0.45), 0 0 10px rgba(212,168,67,0.25)'
+                        : 'inset 0 1px 1.5px rgba(255,255,255,0.95), inset 0 -2px 3px rgba(140,100,20,0.2), 0 3px 8px rgba(120,53,15,0.12)')
+                    : (isDark
+                        ? 'inset 0 1px 1px rgba(255,255,255,0.08), inset 0 -1.5px 2px rgba(0,0,0,0.5), 0 2px 4px rgba(0,0,0,0.25)'
+                        : 'inset 0 1px 1px rgba(255,255,255,0.8), inset 0 -1px 2px rgba(140,100,20,0.08), 0 1px 3px rgba(120,53,15,0.05)'),
                 }}
               >
                 {t.label}
@@ -951,12 +970,17 @@ Tia ảnh hưởng đến cung đối chiếu và tam hợp.
           <button
             onClick={scrollToBottom}
             type="button"
-            className="absolute bottom-3 right-4 px-2.5 py-1 rounded-full text-[10px] font-medium shadow-2xl backdrop-blur-md flex items-center gap-1 transition-all z-20 hover:scale-105 active:scale-95"
+            className="absolute bottom-3 right-4 px-3 py-1.5 rounded-full text-[10.5px] font-mystic font-bold shadow-2xl backdrop-blur-md flex items-center gap-1.5 transition-all z-20 hover:scale-105 active:scale-95 cursor-pointer select-none"
             style={{
-              background: isDark ? 'rgba(15, 20, 32, 0.94)' : '#FFFFFF',
-              border: isDark ? '1px solid rgba(212, 168, 67, 0.5)' : '1px solid #D97706',
-              color: isDark ? 'var(--t-gold)' : '#78350F',
-              boxShadow: isDark ? '0 4px 16px rgba(0,0,0,0.5)' : '0 4px 16px rgba(180,83,9,0.15)',
+              background: isDark
+                ? 'linear-gradient(145deg, rgba(30, 38, 56, 0.96) 0%, rgba(12, 16, 26, 0.98) 100%)'
+                : 'linear-gradient(145deg, #FFFFFF 0%, #FAF5EA 100%)',
+              border: isDark ? '1px solid rgba(254, 240, 138, 0.4)' : '1px solid rgba(184, 146, 42, 0.55)',
+              color: isDark ? '#FEF08A' : '#78350F',
+              textShadow: isDark ? '0 1px 2px rgba(0,0,0,0.8)' : '0 1px 0 rgba(255,255,255,0.8)',
+              boxShadow: isDark
+                ? 'inset 0 1px 1.5px rgba(255,255,255,0.25), inset 0 -2px 3px rgba(0,0,0,0.7), 0 6px 20px rgba(0,0,0,0.6), 0 0 10px rgba(212,168,67,0.2)'
+                : 'inset 0 1px 1.5px rgba(255,255,255,0.95), inset 0 -2px 3px rgba(140,100,20,0.15), 0 6px 16px rgba(120,53,15,0.15)',
             }}
           >
             <span>Xuống cuối</span>
@@ -987,14 +1011,17 @@ Tia ảnh hưởng đến cung đối chiếu và tam hợp.
           <button
             onClick={handleSend}
             disabled={loading || !input.trim()}
-            className="px-4 py-2 rounded-lg text-[12px] font-mystic font-bold tracking-wider transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer hover:scale-105 active:scale-95"
+            className="px-4 py-2 rounded-lg text-[12px] font-mystic font-bold tracking-wider transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer hover:scale-105 active:scale-95 select-none"
             style={{
               background: isDark
-                ? 'linear-gradient(135deg, rgba(212,168,67,0.25) 0%, rgba(180,83,9,0.3) 100%)'
-                : 'linear-gradient(135deg, #B45309 0%, #D97706 100%)',
-              border: isDark ? '1px solid rgba(212,168,67,0.4)' : '1px solid #B45309',
-              color: isDark ? 'var(--t-gold)' : '#FFFFFF',
-              boxShadow: isDark ? '0 2px 8px rgba(212,168,67,0.15)' : '0 2px 8px rgba(180,83,9,0.25)',
+                ? 'linear-gradient(145deg, #FDE68A 0%, #D4A843 45%, #92400E 100%)'
+                : 'linear-gradient(145deg, #F59E0B 0%, #D97706 50%, #B45309 100%)',
+              border: isDark ? '1px solid rgba(254, 240, 138, 0.6)' : '1px solid rgba(146, 64, 14, 0.6)',
+              color: isDark ? '#1C1917' : '#FFFFFF',
+              textShadow: isDark ? '0 1px 0 rgba(255,255,255,0.6)' : '0 1px 1px rgba(0,0,0,0.4)',
+              boxShadow: isDark
+                ? 'inset 0 1px 2px rgba(255,255,255,0.85), inset 0 -2px 4px rgba(0,0,0,0.6), 0 4px 14px rgba(212,168,67,0.4), 0 2px 4px rgba(0,0,0,0.5)'
+                : 'inset 0 1px 2px rgba(255,255,255,0.6), inset 0 -2px 3px rgba(120,53,15,0.5), 0 4px 12px rgba(180,83,9,0.3)',
             }}
           >
             {loading ? '…' : 'Hỏi'}

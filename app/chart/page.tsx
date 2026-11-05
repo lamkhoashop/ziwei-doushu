@@ -26,8 +26,13 @@ function ThemeToggle() {
       aria-label={isDark ? 'Chuyển sang giao diện sáng' : 'Chuyển sang giao diện tối'}
       className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border cursor-pointer select-none"
       style={{
-        borderColor: isDark ? 'rgba(212,168,67,0.35)' : 'rgba(140,100,20,0.35)',
-        background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(255,252,242,0.85)',
+        borderColor: isDark ? 'rgba(254,240,138,0.3)' : 'rgba(184,146,42,0.45)',
+        background: isDark
+          ? 'linear-gradient(145deg, rgba(32, 40, 58, 0.95) 0%, rgba(14, 18, 30, 0.98) 100%)'
+          : 'linear-gradient(145deg, #FFFFFF 0%, #FAF5EA 100%)',
+        boxShadow: isDark
+          ? 'inset 0 1px 1px rgba(255,255,255,0.2), inset 0 -1.5px 2px rgba(0,0,0,0.6), 0 2px 6px rgba(0,0,0,0.35)'
+          : 'inset 0 1px 1px rgba(255,255,255,0.85), inset 0 -1.5px 2px rgba(140,100,20,0.15), 0 2px 5px rgba(120,53,15,0.06)',
         transition: 'background 0.35s ease, border-color 0.35s ease',
       }}
     >
@@ -39,6 +44,7 @@ function ThemeToggle() {
           background: isDark ? 'rgba(12,24,64,0.95)' : 'rgba(230,195,80,0.55)',
           padding: '2px',
           boxSizing: 'border-box',
+          boxShadow: isDark ? 'inset 0 1.5px 3px rgba(0,0,0,0.8)' : 'inset 0 1.5px 3px rgba(120,53,15,0.25)',
           transition: 'background 0.35s ease',
         }}
       >
@@ -59,9 +65,10 @@ function ThemeToggle() {
       <span
         style={{
           fontSize: '11px',
-          fontWeight: 500,
+          fontWeight: 600,
           letterSpacing: '0.04em',
-          color: isDark ? 'rgba(212,180,100,0.9)' : 'rgba(110,72,8,0.85)',
+          color: isDark ? '#FEF08A' : '#78350F',
+          textShadow: isDark ? '0 1px 2px rgba(0,0,0,0.8)' : '0 1px 0 rgba(255,255,255,0.8)',
           transition: 'color 0.35s ease',
         }}
       >
@@ -214,16 +221,21 @@ export default function ChartPage() {
             whileTap={{ scale: 0.95 }}
             className="relative inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border cursor-pointer select-none text-xs font-mystic font-semibold tracking-wider transition-all"
             style={{
-              borderColor: 'rgba(212,168,67,0.4)',
-              background: isDark ? 'rgba(212,168,67,0.1)' : 'rgba(255,250,235,0.9)',
-              color: 'var(--t-gold)',
+              borderColor: isDark ? 'rgba(254,240,138,0.35)' : 'rgba(184,146,42,0.45)',
+              background: isDark
+                ? 'linear-gradient(145deg, rgba(32, 40, 58, 0.95) 0%, rgba(14, 18, 30, 0.98) 100%)'
+                : 'linear-gradient(145deg, #FFFFFF 0%, #FAF5EA 100%)',
+              color: isDark ? '#FEF08A' : '#78350F',
+              boxShadow: isDark
+                ? 'inset 0 1px 1px rgba(255,255,255,0.2), inset 0 -1.5px 2px rgba(0,0,0,0.6), 0 2px 6px rgba(0,0,0,0.35)'
+                : 'inset 0 1px 1px rgba(255,255,255,0.8), inset 0 -1.5px 2px rgba(140,100,20,0.15), 0 2px 5px rgba(120,53,15,0.06)',
             }}
             title="Sổ Tay Bản Mệnh: Quản lý danh sách gia đình & người thân"
           >
             <span>📖</span>
             <span>Sổ Tay</span>
             {savedProfileCount > 0 && (
-              <span className="ml-0.5 px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-amber-500 text-slate-950">
+              <span className="ml-0.5 px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-amber-500 text-slate-950 shadow-sm">
                 {savedProfileCount}
               </span>
             )}
@@ -231,7 +243,16 @@ export default function ChartPage() {
           <Link
             href="/heming"
             className="text-xs px-3 py-1.5 rounded-full border transition-all"
-            style={{ borderColor: 'var(--t-border)', color: 'var(--t-faint)' }}
+            style={{
+              borderColor: isDark ? 'rgba(212,168,67,0.25)' : 'rgba(184,146,42,0.35)',
+              background: isDark
+                ? 'linear-gradient(145deg, rgba(25, 30, 45, 0.8) 0%, rgba(10, 14, 24, 0.9) 100%)'
+                : 'linear-gradient(145deg, #FFFFFF 0%, #F8F3E8 100%)',
+              color: isDark ? 'var(--t-faint)' : '#57534E',
+              boxShadow: isDark
+                ? 'inset 0 1px 1px rgba(255,255,255,0.1), inset 0 -1.5px 2px rgba(0,0,0,0.5)'
+                : 'inset 0 1px 1px rgba(255,255,255,0.8), 0 1px 3px rgba(0,0,0,0.04)',
+            }}
           >
             Hợp Số
           </Link>
@@ -305,12 +326,17 @@ export default function ChartPage() {
               <button
                 type="button"
                 onClick={handleReset}
-                className="hover:scale-[1.02] active:scale-[0.98] transition-all px-3.5 py-2 rounded-lg cursor-pointer inline-flex items-center gap-1.5 text-xs font-mystic font-semibold tracking-wider border"
+                className="hover:scale-[1.02] active:scale-[0.98] transition-all px-3.5 py-2 rounded-lg cursor-pointer inline-flex items-center gap-1.5 text-xs font-mystic font-semibold tracking-wider border select-none"
                 style={{
-                  borderColor: isDark ? 'rgba(212,168,67,0.35)' : 'rgba(184,146,42,0.4)',
-                  background: isDark ? 'rgba(212,168,67,0.08)' : '#FFFFFF',
-                  color: 'var(--t-gold)',
-                  boxShadow: isDark ? '0 2px 8px rgba(0,0,0,0.2)' : '0 2px 6px rgba(120,53,15,0.06)',
+                  borderColor: isDark ? 'rgba(254,240,138,0.3)' : 'rgba(184,146,42,0.45)',
+                  background: isDark
+                    ? 'linear-gradient(145deg, rgba(32, 40, 58, 0.95) 0%, rgba(14, 18, 30, 0.98) 60%, rgba(8, 10, 18, 1) 100%)'
+                    : 'linear-gradient(145deg, #FFFFFF 0%, #FAF5EA 60%, #F4EADA 100%)',
+                  color: isDark ? '#FEF08A' : '#78350F',
+                  textShadow: isDark ? '0 1px 2px rgba(0,0,0,0.8), 0 0 6px rgba(212,168,67,0.3)' : '0 1px 0 rgba(255,255,255,0.8)',
+                  boxShadow: isDark
+                    ? 'inset 0 1px 1.5px rgba(255,255,255,0.2), inset 0 -2px 3px rgba(0,0,0,0.7), 0 4px 12px rgba(0,0,0,0.45)'
+                    : 'inset 0 1px 1.5px rgba(255,255,255,0.9), inset 0 -2px 3px rgba(140,100,20,0.15), 0 3px 8px rgba(120,53,15,0.08)',
                 }}
                 title="Quay lại màn hình nhập thông tin ngày giờ sinh khác"
               >
@@ -320,13 +346,17 @@ export default function ChartPage() {
               <button
                 type="button"
                 onClick={() => setShareOpen(true)}
-                className="hover:scale-[1.02] active:scale-[0.98] transition-all px-3.5 py-2 rounded-lg cursor-pointer inline-flex items-center gap-1.5 text-xs font-mystic font-bold tracking-wider border shadow-md"
+                className="hover:scale-[1.02] active:scale-[0.98] transition-all px-3.5 py-2 rounded-lg cursor-pointer inline-flex items-center gap-1.5 text-xs font-mystic font-bold tracking-wider border select-none"
                 style={{
-                  borderColor: isDark ? 'rgba(212,168,67,0.5)' : '#D97706',
+                  borderColor: isDark ? 'rgba(254, 240, 138, 0.9)' : '#B45309',
                   background: isDark
-                    ? 'linear-gradient(135deg, rgba(212,168,67,0.25) 0%, rgba(184,146,42,0.35) 100%)'
-                    : 'linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%)',
-                  color: isDark ? 'var(--t-gold)' : '#78350F',
+                    ? 'linear-gradient(145deg, #FDE68A 0%, #D4A843 50%, #92400E 100%)'
+                    : 'linear-gradient(145deg, #FFFBEB 0%, #FBBF24 50%, #D97706 100%)',
+                  color: isDark ? '#1C1917' : '#451A03',
+                  textShadow: '0 1px 0 rgba(255,255,255,0.65)',
+                  boxShadow: isDark
+                    ? 'inset 0 1px 2px rgba(255,255,255,0.8), inset 0 -2px 4px rgba(0,0,0,0.6), 0 4px 16px rgba(212,168,67,0.45), 0 2px 6px rgba(0,0,0,0.5)'
+                    : 'inset 0 1px 2px rgba(255,255,255,0.85), inset 0 -2px 3px rgba(146,64,14,0.4), 0 4px 14px rgba(217,119,6,0.35)',
                 }}
               >
                 <span>🎴</span>
@@ -335,19 +365,24 @@ export default function ChartPage() {
               <button
                 type="button"
                 onClick={() => setProfileBookOpen(true)}
-                className="hover:scale-[1.02] active:scale-[0.98] transition-all px-3.5 py-2 rounded-lg cursor-pointer inline-flex items-center gap-1.5 text-xs font-mystic font-semibold tracking-wider border"
+                className="hover:scale-[1.02] active:scale-[0.98] transition-all px-3.5 py-2 rounded-lg cursor-pointer inline-flex items-center gap-1.5 text-xs font-mystic font-semibold tracking-wider border select-none"
                 style={{
-                  borderColor: isDark ? 'rgba(212,168,67,0.35)' : 'rgba(184,146,42,0.4)',
-                  background: isDark ? 'rgba(212,168,67,0.1)' : '#FFFFFF',
-                  color: 'var(--t-gold)',
-                  boxShadow: isDark ? '0 2px 8px rgba(0,0,0,0.2)' : '0 2px 6px rgba(120,53,15,0.06)',
+                  borderColor: isDark ? 'rgba(254,240,138,0.3)' : 'rgba(184,146,42,0.45)',
+                  background: isDark
+                    ? 'linear-gradient(145deg, rgba(32, 40, 58, 0.95) 0%, rgba(14, 18, 30, 0.98) 60%, rgba(8, 10, 18, 1) 100%)'
+                    : 'linear-gradient(145deg, #FFFFFF 0%, #FAF5EA 60%, #F4EADA 100%)',
+                  color: isDark ? '#FEF08A' : '#78350F',
+                  textShadow: isDark ? '0 1px 2px rgba(0,0,0,0.8), 0 0 6px rgba(212,168,67,0.3)' : '0 1px 0 rgba(255,255,255,0.8)',
+                  boxShadow: isDark
+                    ? 'inset 0 1px 1.5px rgba(255,255,255,0.2), inset 0 -2px 3px rgba(0,0,0,0.7), 0 4px 12px rgba(0,0,0,0.45)'
+                    : 'inset 0 1px 1.5px rgba(255,255,255,0.9), inset 0 -2px 3px rgba(140,100,20,0.15), 0 3px 8px rgba(120,53,15,0.08)',
                 }}
                 title="Xem danh bạ lá số đã lưu riêng tư trên máy của bạn"
               >
                 <span>📖</span>
                 <span>Sổ Tay Gia Đình</span>
                 {savedProfileCount > 0 && (
-                  <span className={clsx("px-1.5 py-0.2 rounded-full text-[10px] font-bold", isDark ? "bg-amber-500 text-slate-950" : "bg-amber-600 text-white")}>
+                  <span className={clsx("px-1.5 py-0.2 rounded-full text-[10px] font-bold shadow-sm", isDark ? "bg-amber-500 text-slate-950" : "bg-amber-600 text-white")}>
                     {savedProfileCount}
                   </span>
                 )}
@@ -365,12 +400,17 @@ export default function ChartPage() {
                     setProfileBookOpen(true);
                   }
                 }}
-                className="hover:scale-[1.02] active:scale-[0.98] transition-all px-3.5 py-2 rounded-lg cursor-pointer inline-flex items-center gap-1.5 text-xs font-mystic font-semibold tracking-wider border"
+                className="hover:scale-[1.02] active:scale-[0.98] transition-all px-3.5 py-2 rounded-lg cursor-pointer inline-flex items-center gap-1.5 text-xs font-mystic font-semibold tracking-wider border select-none"
                 style={{
-                  borderColor: isDark ? 'rgba(212,168,67,0.35)' : 'rgba(184,146,42,0.4)',
-                  background: isDark ? 'rgba(212,168,67,0.08)' : '#FFFFFF',
-                  color: 'var(--t-gold)',
-                  boxShadow: isDark ? '0 2px 8px rgba(0,0,0,0.2)' : '0 2px 6px rgba(120,53,15,0.06)',
+                  borderColor: isDark ? 'rgba(254,240,138,0.3)' : 'rgba(184,146,42,0.45)',
+                  background: isDark
+                    ? 'linear-gradient(145deg, rgba(32, 40, 58, 0.95) 0%, rgba(14, 18, 30, 0.98) 60%, rgba(8, 10, 18, 1) 100%)'
+                    : 'linear-gradient(145deg, #FFFFFF 0%, #FAF5EA 60%, #F4EADA 100%)',
+                  color: isDark ? '#FEF08A' : '#78350F',
+                  textShadow: isDark ? '0 1px 2px rgba(0,0,0,0.8), 0 0 6px rgba(212,168,67,0.3)' : '0 1px 0 rgba(255,255,255,0.8)',
+                  boxShadow: isDark
+                    ? 'inset 0 1px 1.5px rgba(255,255,255,0.2), inset 0 -2px 3px rgba(0,0,0,0.7), 0 4px 12px rgba(0,0,0,0.45)'
+                    : 'inset 0 1px 1.5px rgba(255,255,255,0.9), inset 0 -2px 3px rgba(140,100,20,0.15), 0 3px 8px rgba(120,53,15,0.08)',
                 }}
                 title="Lưu lá số này trực tiếp vào máy của bạn (tuyệt đối không gửi lên máy chủ)"
               >
