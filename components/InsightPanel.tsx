@@ -153,7 +153,9 @@ const PALACE_ROLES: Record<string, string> = {
 };
 
 function renderInlineMarkdown(text: string, isDark: boolean = true) {
-  const boldParts = text.split(/\*\*(.+?)\*\*/);
+  // Loại bỏ hoàn toàn bất kỳ thẻ br hoặc HTML thô còn sót lại trong dòng
+  const cleanText = text.replace(/<br\s*\/?>/gi, ' ');
+  const boldParts = cleanText.split(/\*\*(.+?)\*\*/);
   return boldParts.map((bPart, bIdx) => {
     if (bIdx % 2 === 1) {
       return (
@@ -191,7 +193,15 @@ function renderInlineMarkdown(text: string, isDark: boolean = true) {
 function AiContent({ text, streaming }: { text: string; streaming?: boolean }) {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
-  const lines = text.split('\n');
+
+  // Chuẩn hóa và làm sạch toàn bộ thẻ HTML thô (<br>, <br/>, <br />, <p>, ...) thành dấu xuống dòng chuẩn (\n)
+  const normalizedText = (text || '')
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/p>/gi, '\n')
+    .replace(/<p>/gi, '')
+    .replace(/\\n/g, '\n');
+
+  const lines = normalizedText.split('\n');
   let hasRenderedDropCap = false;
 
   return (
