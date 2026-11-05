@@ -90,6 +90,12 @@ export default function ChartBoard({ chart, onStarSelect, onPalaceSelect, onSiHu
   const sanFangBranches = selectedBranch !== null ? getSanFangSiZheng(selectedBranch) : null;
   const sanFangSet = sanFangBranches ? new Set(sanFangBranches) : null;
 
+  // Tọa độ SVG (%) cho 4 cung vị Tam Phương Tứ Chính
+  const benPos = selectedBranch !== null ? BRANCH_SVG_POS[selectedBranch] : null;
+  const duiPos = selectedBranch !== null ? BRANCH_SVG_POS[(selectedBranch + 6) % 12] : null;
+  const th1Pos = selectedBranch !== null ? BRANCH_SVG_POS[(selectedBranch + 4) % 12] : null;
+  const th2Pos = selectedBranch !== null ? BRANCH_SVG_POS[(selectedBranch + 8) % 12] : null;
+
   return (
     <div className="w-full select-none">
       {/* Thanh điều hướng thời gian */}
@@ -251,42 +257,73 @@ export default function ChartBoard({ chart, onStarSelect, onPalaceSelect, onSiHu
                 xmlns="http://www.w3.org/2000/svg"
                 style={{ display: 'block' }}
               >
+                <defs>
+                  {/* Bộ lọc phát quang hào quang (Golden Aura Glow) */}
+                  <filter id="sfGlow" x="-30%" y="-30%" width="160%" height="160%">
+                    <feGaussianBlur stdDeviation="3" result="blur" />
+                    <feMerge>
+                      <feMergeNode in="blur" />
+                      <feMergeNode in="SourceGraphic" />
+                    </feMerge>
+                  </filter>
+
+                  {/* Gradient tia Tam Hợp Hoàng Kim */}
+                  <linearGradient id="goldRayGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="#fef08a" stopOpacity="0.95" />
+                    <stop offset="50%" stopColor="#f59e0b" stopOpacity="1" />
+                    <stop offset="100%" stopColor="#b45309" stopOpacity="0.9" />
+                  </linearGradient>
+
+                  {/* Gradient tia Đối Cung Xung Chiếu (Chu Sa Hỏa Diễm) */}
+                  <linearGradient id="redRayGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="#f87171" stopOpacity="0.9" />
+                    <stop offset="50%" stopColor="#f59e0b" stopOpacity="1" />
+                    <stop offset="100%" stopColor="#ef4444" stopOpacity="0.9" />
+                  </linearGradient>
+                </defs>
+
                 {(() => {
                   const p0 = BRANCH_SVG_POS[sanFangBranches[0]]; // Bản cung
-                  const p1 = BRANCH_SVG_POS[sanFangBranches[1]]; // Đối cung
+                  const p1 = BRANCH_SVG_POS[sanFangBranches[1]]; // Đối cung (xung chiếu)
                   const p2 = BRANCH_SVG_POS[sanFangBranches[2]]; // Tam hợp 1
                   const p3 = BRANCH_SVG_POS[sanFangBranches[3]]; // Tam hợp 2
-                  const dash = "6,5";
-                  const stroke = "rgba(37,99,235,0.55)";
-                  const sw = "1.5";
+
                   return (
                     <>
-                      {/* Đối cung xuyên tâm */}
+                      {/* Tam Giác Khí Số Tam Hợp (Vùng hào quang bao phủ) */}
+                      <polygon
+                        points={`${p0[0]}%,${p0[1]}% ${p2[0]}%,${p2[1]}% ${p3[0]}%,${p3[1]}%`}
+                        fill="rgba(212, 168, 67, 0.07)"
+                        stroke="url(#goldRayGrad)"
+                        strokeWidth="1.8"
+                        strokeDasharray="5,4"
+                        filter="url(#sfGlow)"
+                      />
+
+                      {/* Tia Xung Chiếu Đối Cung (Tia lửa năng lượng xuyên tâm) */}
                       <line
                         x1={`${p0[0]}%`} y1={`${p0[1]}%`}
                         x2={`${p1[0]}%`} y2={`${p1[1]}%`}
-                        stroke={stroke} strokeWidth={sw}
-                        strokeDasharray={dash} strokeLinecap="round"
+                        stroke="url(#redRayGrad)"
+                        strokeWidth="2.2"
+                        strokeDasharray="7,3"
+                        filter="url(#sfGlow)"
                       />
-                      {/* Tam giác tam hợp */}
-                      <line
-                        x1={`${p0[0]}%`} y1={`${p0[1]}%`}
-                        x2={`${p2[0]}%`} y2={`${p2[1]}%`}
-                        stroke={stroke} strokeWidth={sw}
-                        strokeDasharray={dash} strokeLinecap="round"
-                      />
-                      <line
-                        x1={`${p2[0]}%`} y1={`${p2[1]}%`}
-                        x2={`${p3[0]}%`} y2={`${p3[1]}%`}
-                        stroke={stroke} strokeWidth={sw}
-                        strokeDasharray={dash} strokeLinecap="round"
-                      />
-                      <line
-                        x1={`${p3[0]}%`} y1={`${p3[1]}%`}
-                        x2={`${p0[0]}%`} y2={`${p0[1]}%`}
-                        stroke={stroke} strokeWidth={sw}
-                        strokeDasharray={dash} strokeLinecap="round"
-                      />
+
+                      {/* Tinh Châu tại Đối Cung (Chu Sa) */}
+                      <circle cx={`${p1[0]}%`} cy={`${p1[1]}%`} r="8" fill="rgba(239, 68, 68, 0.25)" className="animate-ping" style={{ animationDuration: '3s' }} />
+                      <circle cx={`${p1[0]}%`} cy={`${p1[1]}%`} r="4.5" fill="#ef4444" stroke="#fecaca" strokeWidth="1.2" filter="url(#sfGlow)" />
+
+                      {/* Tinh Châu tại 2 Cung Tam Hợp (Hoàng Kim) */}
+                      <circle cx={`${p2[0]}%`} cy={`${p2[1]}%`} r="7" fill="rgba(245, 158, 11, 0.25)" className="animate-ping" style={{ animationDuration: '3.5s' }} />
+                      <circle cx={`${p2[0]}%`} cy={`${p2[1]}%`} r="4" fill="#f59e0b" stroke="#fef08a" strokeWidth="1.2" filter="url(#sfGlow)" />
+
+                      <circle cx={`${p3[0]}%`} cy={`${p3[1]}%`} r="7" fill="rgba(245, 158, 11, 0.25)" className="animate-ping" style={{ animationDuration: '3.5s' }} />
+                      <circle cx={`${p3[0]}%`} cy={`${p3[1]}%`} r="4" fill="#f59e0b" stroke="#fef08a" strokeWidth="1.2" filter="url(#sfGlow)" />
+
+                      {/* Tinh Châu Trung Tâm tại Bản Cung (Hoàng Kim Ngọc Tỷ) */}
+                      <circle cx={`${p0[0]}%`} cy={`${p0[1]}%`} r="10" fill="rgba(212, 168, 67, 0.35)" className="animate-ping" style={{ animationDuration: '2s' }} />
+                      <circle cx={`${p0[0]}%`} cy={`${p0[1]}%`} r="6" fill="#fef08a" stroke="#d97706" strokeWidth="1.5" filter="url(#sfGlow)" />
                     </>
                   );
                 })()}

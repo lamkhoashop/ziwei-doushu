@@ -10,11 +10,10 @@ interface ShareModalProps {
   onClose: () => void;
   shareUrl: string;
   chart: ZiweiChart | null;
-  birth: { year: string; month: string; day: string; hour: string; minute: string; gender: 'male' | 'female'; city?: string };
   highlight?: string;
 }
 
-export default function ShareModal({ open, onClose, shareUrl, chart, birth, highlight }: ShareModalProps) {
+export default function ShareModal({ open, onClose, shareUrl, chart }: ShareModalProps) {
   const [copied, setCopied] = useState(false);
   const [downloading, setDownloading] = useState(false);
 
@@ -40,10 +39,10 @@ export default function ShareModal({ open, onClose, shareUrl, chart, birth, high
     try {
       const dataURL = await captureShareCard();
       if (!dataURL) {
-        alert('图片生成失败，请截图保存或刷新重试');
+        alert('Không thể tạo ảnh, vui lòng thử chụp màn hình hoặc tải lại trang.');
         return;
       }
-      downloadDataURL(dataURL, `紫微命盘_${Date.now()}.png`);
+      downloadDataURL(dataURL, `Thiep_La_So_Tu_Vi_${Date.now()}.png`);
     } finally {
       setDownloading(false);
     }
@@ -55,89 +54,96 @@ export default function ShareModal({ open, onClose, shareUrl, chart, birth, high
         <motion.div
           initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
-          className="fixed inset-0 z-[100] flex items-center justify-center p-4"
-          style={{ background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(4px)' }}
+          className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-5"
+          style={{ background: 'rgba(2, 6, 12, 0.85)', backdropFilter: 'blur(8px)' }}
           onClick={onClose}
         >
           <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            initial={{ opacity: 0, scale: 0.95, y: 16 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            exit={{ opacity: 0, scale: 0.95, y: 16 }}
             transition={{ duration: 0.25, ease: [0.25, 0.1, 0.25, 1] }}
             onClick={e => e.stopPropagation()}
-            className="rounded-2xl overflow-hidden"
+            className="rounded-2xl overflow-hidden border border-amber-500/30 flex flex-col"
             style={{
-              background: 'white',
-              maxWidth: '680px',
+              background: '#0c0a06',
+              maxWidth: '780px',
               width: '100%',
               maxHeight: '92vh',
-              overflowY: 'auto',
-              boxShadow: '0 24px 60px rgba(0,0,0,0.3)',
+              boxShadow: '0 24px 70px rgba(0,0,0,0.8), 0 0 30px rgba(212,168,67,0.15)',
             }}
           >
-            {/* 顶部标题 */}
-            <div style={{
-              padding: '14px 18px',
-              borderBottom: '1px solid rgba(184,146,42,0.15)',
-              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            }}>
-              <div style={{ fontSize: '14px', fontWeight: 600, color: '#3d2f10', letterSpacing: '0.12em' }}>
-                ✦ 分享命盘
+            {/* Thanh tiêu đề Modal */}
+            <div className="px-5 py-3.5 border-b border-amber-500/20 flex items-center justify-between bg-gradient-to-r from-amber-950/40 via-black to-amber-950/40">
+              <div className="flex items-center gap-2 text-amber-300 font-serif font-bold text-sm tracking-widest uppercase">
+                <span className="text-amber-400">✦</span>
+                <span>XUẤT THIỆP MỆNH BẢN CỔ PHONG</span>
               </div>
-              <button onClick={onClose}
-                style={{
-                  width: '28px', height: '28px', borderRadius: '50%', border: 'none',
-                  background: 'rgba(0,0,0,0.05)', color: '#666', fontSize: '16px',
-                  cursor: 'pointer', lineHeight: 1,
-                }}
-              >×</button>
+              <button
+                type="button"
+                onClick={onClose}
+                className="w-7 h-7 rounded-full flex items-center justify-center border border-amber-500/30 bg-white/5 text-amber-200/80 hover:text-amber-100 hover:bg-white/10 text-base cursor-pointer transition-all"
+              >
+                ×
+              </button>
             </div>
 
-            {/* 卡片图预览（实际渲染） */}
-            <div style={{ padding: '20px', background: '#fbf6e8', display: 'flex', justifyContent: 'center', overflowX: 'auto' }}>
+            {/* Vùng xem trước thẻ */}
+            <div className="p-4 sm:p-6 bg-black/60 flex items-center justify-center overflow-x-auto">
               {chart && (
-                <ShareCardCanvas chart={chart} birth={birth} highlight={highlight} />
+                <div className="shadow-2xl rounded-lg overflow-hidden border border-amber-500/30">
+                  <ShareCardCanvas chart={chart} />
+                </div>
               )}
             </div>
 
-            <div style={{ padding: '0 20px 12px', textAlign: 'center', fontSize: '11px', color: '#a89b7c', letterSpacing: '0.05em' }}>
-              ↑ 朋友圈 / 微信 / 抖音 / 小红书 都能用
+            <div className="px-6 py-1.5 text-center text-[10px] text-amber-300/60 font-serif italic">
+              Thiệp mệnh chuẩn tỷ lệ vàng 740 × 470 px · Tương thích Zalo, Facebook, Story, In ấn
             </div>
 
-            {/* 操作区 */}
-            <div style={{ padding: '0 20px 20px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <button onClick={downloadImage} disabled={downloading}
-                style={{
-                  padding: '14px', borderRadius: '10px', border: 'none',
-                  background: 'linear-gradient(135deg, #d4a948 0%, #b8922a 100%)',
-                  color: 'white', fontSize: '14px', fontWeight: 600, letterSpacing: '0.15em',
-                  cursor: downloading ? 'not-allowed' : 'pointer',
-                  boxShadow: '0 4px 12px rgba(184,146,42,0.3)',
-                  opacity: downloading ? 0.7 : 1,
-                }}
-              >
-                {downloading ? '生成中…' : '⬇ 下载分享图'}
-              </button>
+            {/* Vùng thao tác */}
+            <div className="p-4 sm:p-6 bg-gradient-to-b from-transparent to-black/80 flex flex-col gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={downloadImage}
+                  disabled={downloading}
+                  className="py-3 px-4 rounded-xl border border-amber-400/40 text-amber-950 font-bold text-xs sm:text-sm tracking-wider uppercase flex items-center justify-center gap-2 shadow-[0_4px_16px_rgba(212,168,67,0.3)] transition-all cursor-pointer hover:scale-[1.01] active:scale-[0.99] disabled:opacity-60 disabled:cursor-not-allowed"
+                  style={{
+                    background: 'linear-gradient(135deg, #f5d77f 0%, #d4a843 50%, #b38321 100%)',
+                  }}
+                >
+                  {downloading ? (
+                    <>
+                      <span className="w-3.5 h-3.5 border-2 border-amber-950 border-t-transparent rounded-full animate-spin" />
+                      <span>Đang Kết Xuất Thiệp...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>⬇</span>
+                      <span>TẢI THIỆP VỀ MÁY (PNG)</span>
+                    </>
+                  )}
+                </button>
 
-              <button onClick={copyLink}
-                style={{
-                  padding: '14px', borderRadius: '10px',
-                  border: '1px solid rgba(184,146,42,0.4)', background: 'white',
-                  color: '#b8922a', fontSize: '14px', fontWeight: 500, letterSpacing: '0.12em',
-                  cursor: 'pointer',
-                }}
-              >
-                {copied ? '✓ 已复制链接' : '🔗 复制命盘链接'}
-              </button>
+                <button
+                  type="button"
+                  onClick={copyLink}
+                  className="py-3 px-4 rounded-xl border border-amber-500/40 bg-amber-500/10 hover:bg-amber-500/20 text-amber-200 font-medium text-xs sm:text-sm tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer hover:scale-[1.01] active:scale-[0.99]"
+                >
+                  {copied ? (
+                    <span className="text-emerald-400 font-bold">✓ Đã Sao Chép Liên Kết!</span>
+                  ) : (
+                    <>
+                      <span>🔗</span>
+                      <span>SAO CHÉP LIÊN KẾT LÁ SỐ</span>
+                    </>
+                  )}
+                </button>
+              </div>
 
-              <div style={{
-                fontSize: '11px', color: '#a89b7c', lineHeight: 1.7,
-                padding: '10px 12px', background: 'rgba(184,146,42,0.05)',
-                borderRadius: '8px', marginTop: '4px',
-              }}>
-                <div style={{ marginBottom: '4px', fontWeight: 600, color: '#8b6a14' }}>使用提示：</div>
-                · 下载图片可发朋友圈 / 抖音 / 小红书<br />
-                · 复制链接发给微信好友，对方点开看自己的盘起点
+              <div className="p-3 rounded-lg bg-amber-500/5 border border-amber-500/15 text-[11px] text-amber-100/70 font-sans leading-relaxed">
+                <strong className="text-amber-300">✦ Hướng dẫn:</strong> Bạn có thể tải thiệp ảnh độ phân giải cao để lưu trữ vào thư viện điện thoại, gửi tặng bạn bè hoặc đăng lên Zalo/Facebook. Người nhận quét mã hoặc bấm liên kết có thể luận giải tương tác trực tiếp.
               </div>
             </div>
           </motion.div>

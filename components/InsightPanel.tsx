@@ -152,35 +152,134 @@ const PALACE_ROLES: Record<string, string> = {
 
 function AiContent({ text, streaming }: { text: string; streaming?: boolean }) {
   const lines = text.split('\n');
+  let hasRenderedDropCap = false;
+
   return (
-    <div className="space-y-0.5">
+    <div className="space-y-1 font-sans">
       {lines.map((line, i) => {
-        const sectionMatch = line.match(/^\*\*【(.+?)】\*\*$/);
-        if (sectionMatch) {
+        const trimmed = line.trim();
+
+        // 1. Phân cách Thiên Cơ (---)
+        if (trimmed.match(/^---+$/)) {
           return (
-            <div key={i} className="pt-3 pb-0.5 first:pt-0">
-              <span className="text-[11px] font-semibold tracking-wide" style={{ color: 'var(--t-gold)' }}>
-                【{sectionMatch[1]}】
-              </span>
+            <div key={i} className="flex items-center justify-center gap-2.5 my-3 opacity-70">
+              <span className="w-16 h-[1px] bg-gradient-to-r from-transparent to-amber-500/60" />
+              <span className="text-[10px] text-amber-300 font-serif select-none tracking-widest">✦ ☯ ✦</span>
+              <span className="w-16 h-[1px] bg-gradient-to-l from-transparent to-amber-500/60" />
             </div>
           );
         }
-        if (line.trim() === '') return <div key={i} className="h-1" />;
+
+        // 2. Tiêu đề mục phong cách Hoàng Gia Cổ Phong (**【...】** hoặc ### ...)
+        const sectionMatch = trimmed.match(/^\*\*【(.+?)】\*\*$/) || trimmed.match(/^###\s*(.+)$/);
+        if (sectionMatch) {
+          const title = sectionMatch[1].replace(/【|】/g, '');
+          return (
+            <div key={i} className="pt-3 pb-1 first:pt-0">
+              <div className="flex items-center gap-2 px-2.5 py-1 rounded-r-lg border-l-2 border-amber-400 bg-gradient-to-r from-amber-500/15 via-amber-500/5 to-transparent">
+                <span className="text-amber-400 text-xs select-none">✦</span>
+                <span className="text-[12px] font-serif font-bold tracking-wider text-amber-200 uppercase drop-shadow-[0_0_8px_rgba(212,168,67,0.3)]">
+                  【{title}】
+                </span>
+              </div>
+            </div>
+          );
+        }
+
+        // 3. Tiêu đề phụ (#### ...)
+        const subHeaderMatch = trimmed.match(/^####\s*(.+)$/);
+        if (subHeaderMatch) {
+          return (
+            <div key={i} className="pt-2 pb-0.5 text-[11px] font-serif font-semibold text-amber-300/90 flex items-center gap-1.5">
+              <span className="text-[9px] text-amber-400">❖</span>
+              <span>{subHeaderMatch[1]}</span>
+            </div>
+          );
+        }
+
+        // 4. Dòng trống
+        if (trimmed === '') return <div key={i} className="h-1.5" />;
+
+        // 5. Mục danh sách đánh số (1. 2. 3...)
+        const numberedMatch = trimmed.match(/^([0-9]+)\.\s*(.+)$/);
+        if (numberedMatch) {
+          const num = numberedMatch[1];
+          const content = numberedMatch[2];
+          const parts = content.split(/\*\*(.+?)\*\*/);
+
+          return (
+            <div key={i} className="flex items-start gap-1.5 text-[11.5px] leading-relaxed my-0.5" style={{ color: 'var(--t-text2)' }}>
+              <span className="inline-flex items-center justify-center w-4 h-4 rounded-full border border-amber-500/40 bg-amber-500/15 text-amber-300 text-[8.5px] font-serif font-bold flex-shrink-0 mt-0.5 select-none shadow-sm">
+                {num}
+              </span>
+              <div className="flex-1">
+                {parts.map((part, j) =>
+                  j % 2 === 0
+                    ? part
+                    : <strong key={j} className="font-semibold text-amber-100">{part}</strong>
+                )}
+              </div>
+            </div>
+          );
+        }
+
+        // 6. Mục danh sách gạch đầu dòng (•, -, *)
+        const bulletMatch = trimmed.match(/^[•\-\*]\s*(.+)$/);
+        if (bulletMatch) {
+          const content = bulletMatch[1];
+          const parts = content.split(/\*\*(.+?)\*\*/);
+
+          return (
+            <div key={i} className="flex items-start gap-1.5 text-[11.5px] leading-relaxed my-0.5 pl-1" style={{ color: 'var(--t-text2)' }}>
+              <span className="text-[9px] text-amber-400/80 flex-shrink-0 mt-1 select-none">✦</span>
+              <div className="flex-1">
+                {parts.map((part, j) =>
+                  j % 2 === 0
+                    ? part
+                    : <strong key={j} className="font-semibold text-amber-100">{part}</strong>
+                )}
+              </div>
+            </div>
+          );
+        }
+
+        // 7. Đoạn văn thường (kèm Drop-Cap chữ hoa khởi đầu cho đoạn đầu tiên)
         const parts = line.split(/\*\*(.+?)\*\*/);
+        const shouldApplyDropCap = !hasRenderedDropCap && trimmed.length > 30 && !streaming;
+        if (shouldApplyDropCap) {
+          hasRenderedDropCap = true;
+          const firstChar = trimmed.charAt(0);
+          const restText = trimmed.slice(1);
+          const restParts = restText.split(/\*\*(.+?)\*\*/);
+
+          return (
+            <div key={i} className="text-[11.5px] leading-relaxed text-justify" style={{ color: 'var(--t-text2)' }}>
+              <span className="float-left text-2xl font-serif font-black leading-none pr-1.5 pt-0.5 text-amber-300 select-none drop-shadow-[0_0_8px_rgba(212,168,67,0.5)]">
+                {firstChar}
+              </span>
+              {restParts.map((part, j) =>
+                j % 2 === 0
+                  ? part
+                  : <strong key={j} className="font-semibold text-amber-100">{part}</strong>
+              )}
+            </div>
+          );
+        }
+
         return (
-          <div key={i} className="text-[11px] leading-relaxed" style={{ color: 'var(--t-text2)' }}>
+          <div key={i} className="text-[11.5px] leading-relaxed" style={{ color: 'var(--t-text2)' }}>
             {parts.map((part, j) =>
               j % 2 === 0
                 ? part
-                : <strong key={j} className="font-medium" style={{ color: 'var(--t-text)' }}>{part}</strong>
+                : <strong key={j} className="font-semibold text-amber-100">{part}</strong>
             )}
           </div>
         );
       })}
       {streaming && (
         <span
-          className="inline-block w-1.5 h-3 ml-0.5 animate-pulse rounded-sm align-middle"
-          style={{ background: 'var(--t-gold)', opacity: 0.6 }}
+          className="inline-block w-1.5 h-3.5 ml-0.5 animate-pulse rounded-sm align-middle"
+          style={{ background: 'var(--t-gold)', opacity: 0.8, boxShadow: '0 0 8px rgba(212,168,67,0.8)' }}
         />
       )}
     </div>

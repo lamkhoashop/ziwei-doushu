@@ -111,11 +111,11 @@ export default function PalaceCell({
         boxShadow: isCurrentDaXian
           ? 'inset 0 0 0 1.5px rgba(168,85,247,0.7), 0 0 16px rgba(168,85,247,0.25)'
           : isSelected
-          ? 'inset 0 0 0 1.5px rgba(56,189,248,0.8), 0 0 16px rgba(56,189,248,0.3)'
+          ? 'inset 0 0 0 1.8px rgba(254,240,138,0.95), 0 0 20px rgba(212,168,67,0.45)'
           : isSanFang
-          ? 'inset 0 0 0 1px rgba(56,189,248,0.45)'
+          ? 'inset 0 0 0 1.2px rgba(245,158,11,0.7), 0 0 12px rgba(245,158,11,0.2)'
           : isMingGong
-          ? 'inset 0 0 0 1px rgba(245,158,11,0.4)'
+          ? 'inset 0 0 0 1.2px rgba(239,68,68,0.55), 0 0 14px rgba(239,68,68,0.2)'
           : 'inset 0 0 0 0.5px rgba(212,168,67,0.15)',
       }}
     >
@@ -139,30 +139,33 @@ export default function PalaceCell({
 
       {/* ── Header Cung vị & Can Chi ── */}
       <div className="flex items-center justify-between gap-1 mb-1 pr-7 border-b pb-1"
-        style={{ borderColor: isMingGong ? 'rgba(245,158,11,0.3)' : 'rgba(212,168,67,0.12)' }}>
-        <div className="flex items-center gap-1.5">
+        style={{ borderColor: isMingGong ? 'rgba(239,68,68,0.4)' : 'rgba(212,168,67,0.15)' }}>
+        <div className="flex items-center gap-1.5 flex-wrap">
           <span className={clsx(
             'text-[11px] font-serif font-bold tracking-wide transition-colors',
-            isMingGong ? 'text-amber-300 drop-shadow-[0_0_8px_rgba(245,158,11,0.5)]' :
-            isShenGong ? 'text-sky-300 drop-shadow-[0_0_8px_rgba(56,189,248,0.5)]' :
+            isMingGong ? 'text-amber-200 drop-shadow-[0_0_8px_rgba(245,158,11,0.6)]' :
+            isShenGong ? 'text-sky-300 drop-shadow-[0_0_8px_rgba(56,189,248,0.6)]' :
             'text-[var(--t-gold)]'
           )}>
             {palaceName}
           </span>
 
-          {/* Dấu ấn Chu Sa Mệnh Cung */}
-          {isMingGong && (
-            <span className="text-[7.5px] font-bold px-1 py-0.2 rounded text-white bg-gradient-to-r from-red-600 to-rose-700 border border-red-300/60 shadow-[0_0_8px_rgba(239,68,68,0.7)] uppercase tracking-wider">
-              Mệnh
+          {/* Dấu Ấn Triện Hoàng Cung: Mệnh Thân Đồng Cung */}
+          {isMingGong && isShenGong ? (
+            <span className="inline-flex items-center text-[7.5px] font-serif font-black px-1.5 py-0.5 rounded border border-amber-300/80 text-amber-100 bg-gradient-to-r from-red-800 via-purple-900 to-blue-900 shadow-[0_0_10px_rgba(239,68,68,0.6),inset_0_0_4px_rgba(254,240,138,0.4)] tracking-widest select-none">
+              【MỆNH · THÂN】
             </span>
-          )}
-
-          {/* Ngọc Bài Lam Bích Thân Cung */}
-          {isShenGong && (
-            <span className="text-[7.5px] font-bold px-1 py-0.2 rounded text-white bg-gradient-to-r from-sky-600 to-blue-700 border border-sky-300/60 shadow-[0_0_8px_rgba(14,165,233,0.7)] uppercase tracking-wider">
-              Thân
+          ) : isMingGong ? (
+            /* Dấu Ấn Chu Sa Cung Mệnh */
+            <span className="inline-flex items-center text-[7.5px] font-serif font-black px-1.5 py-0.5 rounded border border-amber-300/80 text-amber-100 bg-gradient-to-r from-red-800 via-rose-700 to-red-900 shadow-[0_0_10px_rgba(239,68,68,0.7),inset_0_0_4px_rgba(254,240,138,0.4)] tracking-widest select-none">
+              【MỆNH】
             </span>
-          )}
+          ) : isShenGong ? (
+            /* Dấu Ấn Lam Bích Cung Thân */
+            <span className="inline-flex items-center text-[7.5px] font-serif font-black px-1.5 py-0.5 rounded border border-cyan-300/80 text-cyan-100 bg-gradient-to-r from-sky-800 via-blue-700 to-indigo-900 shadow-[0_0_10px_rgba(14,165,233,0.7),inset_0_0_4px_rgba(186,230,253,0.4)] tracking-widest select-none">
+              【THÂN】
+            </span>
+          ) : null}
         </div>
 
         {/* Can Chi cung vị */}

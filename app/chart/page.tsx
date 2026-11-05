@@ -6,6 +6,7 @@ import BirthForm from '@/components/BirthForm';
 import ChartBoard from '@/components/ChartBoard';
 import InsightPanel from '@/components/InsightPanel';
 import StarField from '@/components/StarField';
+import ShareModal from '@/components/ShareModal';
 import { useTheme } from '@/components/ThemeProvider';
 import { generateChart } from '@/lib/ziwei/algorithm';
 import type { BirthInfo, ZiweiChart, Palace } from '@/lib/ziwei/types';
@@ -77,6 +78,7 @@ export default function ChartPage() {
   const [selectedPalace, setSelectedPalace] = useState<Palace | null>(null);
   const [boardHeight, setBoardHeight] = useState<number | undefined>(undefined);
   const [lastSavedInfo, setLastSavedInfo] = useState<BirthInfo | null>(null);
+  const [shareOpen, setShareOpen] = useState(false);
   const boardRef = useRef<HTMLDivElement>(null);
   const { theme } = useTheme();
   const isDark = theme === 'dark';
@@ -219,18 +221,32 @@ export default function ChartPage() {
         /* ── Đã an sao: Hiển thị lá số + AI Luận giải ── */
         <main className="relative z-10 max-w-[1360px] mx-auto px-4 sm:px-6 py-6">
           <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={handleReset}
-              className="hover:bg-white/5 transition-all px-4 py-2 rounded-lg cursor-pointer inline-flex items-center gap-2 text-xs font-medium border"
-              style={{
-                borderColor: 'var(--t-border)',
-                background: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.8)',
-                color: 'var(--t-faint)',
-              }}
-            >
-              ← Nhập lại thông tin khác
-            </button>
+            <div className="flex items-center gap-2.5">
+              <button
+                type="button"
+                onClick={handleReset}
+                className="hover:bg-white/5 transition-all px-4 py-2 rounded-lg cursor-pointer inline-flex items-center gap-2 text-xs font-medium border"
+                style={{
+                  borderColor: 'var(--t-border)',
+                  background: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.8)',
+                  color: 'var(--t-faint)',
+                }}
+              >
+                ← Nhập lại thông tin khác
+              </button>
+              <button
+                type="button"
+                onClick={() => setShareOpen(true)}
+                className="hover:scale-[1.02] active:scale-[0.98] transition-all px-3.5 py-2 rounded-lg cursor-pointer inline-flex items-center gap-1.5 text-xs font-bold border border-amber-500/40 shadow-[0_2px_12px_rgba(212,168,67,0.2)]"
+                style={{
+                  background: 'linear-gradient(135deg, rgba(212,168,67,0.25) 0%, rgba(184,146,42,0.35) 100%)',
+                  color: 'var(--t-gold)',
+                }}
+              >
+                <span>🎴</span>
+                <span>Xuất Thiệp Lá Số</span>
+              </button>
+            </div>
             <div className="text-[11px]" style={{ color: 'var(--t-faint)' }}>
               Trường phái Thiên Kỷ Nghê Hải Hà · Tự động hiệu chỉnh giờ mặt trời thực (v1.0.0)
             </div>
@@ -264,6 +280,14 @@ export default function ChartPage() {
               <InsightPanel chart={chart} selectedPalace={selectedPalace} />
             </div>
           </div>
+
+          {/* Modal Xuất Thiệp Mệnh Bản Cổ Phong */}
+          <ShareModal
+            open={shareOpen}
+            onClose={() => setShareOpen(false)}
+            chart={chart}
+            shareUrl={typeof window !== 'undefined' ? window.location.href : ''}
+          />
 
           <style>{`
             .insight-panel-container {
