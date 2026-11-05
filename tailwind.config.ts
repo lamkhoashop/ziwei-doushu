@@ -34,8 +34,9 @@ const config: Config = {
         ji:   "#A83228",
       },
       fontFamily: {
-        sans: ["var(--font)"],
-        mono: ["var(--font-mono)"],
+        sans: ["var(--font-sans)", "sans-serif"],
+        serif: ["var(--font-serif)", "serif"],
+        mono: ["var(--font-mono)", "monospace"],
       },
       boxShadow: {
         xs: "0 1px 2px rgba(0,0,0,0.05)",

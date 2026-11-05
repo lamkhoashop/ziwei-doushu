@@ -254,13 +254,15 @@ export default function ChartBoard({ chart, onStarSelect, onPalaceSelect, onSiHu
               <svg
                 width="100%"
                 height="100%"
+                viewBox="0 0 1000 1000"
+                preserveAspectRatio="none"
                 xmlns="http://www.w3.org/2000/svg"
                 style={{ display: 'block' }}
               >
                 <defs>
                   {/* Bộ lọc phát quang hào quang (Golden Aura Glow) */}
                   <filter id="sfGlow" x="-30%" y="-30%" width="160%" height="160%">
-                    <feGaussianBlur stdDeviation="3" result="blur" />
+                    <feGaussianBlur stdDeviation="4" result="blur" />
                     <feMerge>
                       <feMergeNode in="blur" />
                       <feMergeNode in="SourceGraphic" />
@@ -283,47 +285,78 @@ export default function ChartBoard({ chart, onStarSelect, onPalaceSelect, onSiHu
                 </defs>
 
                 {(() => {
-                  const p0 = BRANCH_SVG_POS[sanFangBranches[0]]; // Bản cung
-                  const p1 = BRANCH_SVG_POS[sanFangBranches[1]]; // Đối cung (xung chiếu)
-                  const p2 = BRANCH_SVG_POS[sanFangBranches[2]]; // Tam hợp 1
-                  const p3 = BRANCH_SVG_POS[sanFangBranches[3]]; // Tam hợp 2
+                  // Chuyển đổi tọa độ % sang hệ tọa độ số nguyên (0..1000)
+                  const p0x = Math.round(BRANCH_SVG_POS[sanFangBranches[0]][0] * 10);
+                  const p0y = Math.round(BRANCH_SVG_POS[sanFangBranches[0]][1] * 10);
+
+                  const p1x = Math.round(BRANCH_SVG_POS[sanFangBranches[1]][0] * 10);
+                  const p1y = Math.round(BRANCH_SVG_POS[sanFangBranches[1]][1] * 10);
+
+                  const p2x = Math.round(BRANCH_SVG_POS[sanFangBranches[2]][0] * 10);
+                  const p2y = Math.round(BRANCH_SVG_POS[sanFangBranches[2]][1] * 10);
+
+                  const p3x = Math.round(BRANCH_SVG_POS[sanFangBranches[3]][0] * 10);
+                  const p3y = Math.round(BRANCH_SVG_POS[sanFangBranches[3]][1] * 10);
 
                   return (
                     <>
-                      {/* Tam Giác Khí Số Tam Hợp (Vùng hào quang bao phủ) */}
+                      {/* 1. Mặt Đa Giác Tam Giác Tam Hợp (Vùng hào quang bao phủ) */}
                       <polygon
-                        points={`${p0[0]}%,${p0[1]}% ${p2[0]}%,${p2[1]}% ${p3[0]}%,${p3[1]}%`}
-                        fill="rgba(212, 168, 67, 0.07)"
+                        points={`${p0x},${p0y} ${p2x},${p2y} ${p3x},${p3y}`}
+                        fill="rgba(212, 168, 67, 0.14)"
                         stroke="url(#goldRayGrad)"
-                        strokeWidth="1.8"
-                        strokeDasharray="5,4"
+                        strokeWidth="3.5"
+                        strokeDasharray="10,6"
                         filter="url(#sfGlow)"
                       />
 
-                      {/* Tia Xung Chiếu Đối Cung (Tia lửa năng lượng xuyên tâm) */}
+                      {/* 2. Ba Cạnh Phát Sáng Của Tam Giác Tam Hợp (Đảm bảo luôn hiện rõ nét) */}
                       <line
-                        x1={`${p0[0]}%`} y1={`${p0[1]}%`}
-                        x2={`${p1[0]}%`} y2={`${p1[1]}%`}
-                        stroke="url(#redRayGrad)"
-                        strokeWidth="2.2"
-                        strokeDasharray="7,3"
+                        x1={p0x} y1={p0y} x2={p2x} y2={p2y}
+                        stroke="url(#goldRayGrad)"
+                        strokeWidth="2.8"
+                        strokeDasharray="10,6"
+                        filter="url(#sfGlow)"
+                      />
+                      <line
+                        x1={p2x} y1={p2y} x2={p3x} y2={p3y}
+                        stroke="url(#goldRayGrad)"
+                        strokeWidth="2.8"
+                        strokeDasharray="10,6"
+                        filter="url(#sfGlow)"
+                      />
+                      <line
+                        x1={p3x} y1={p3y} x2={p0x} y2={p0y}
+                        stroke="url(#goldRayGrad)"
+                        strokeWidth="2.8"
+                        strokeDasharray="10,6"
                         filter="url(#sfGlow)"
                       />
 
-                      {/* Tinh Châu tại Đối Cung (Chu Sa) */}
-                      <circle cx={`${p1[0]}%`} cy={`${p1[1]}%`} r="8" fill="rgba(239, 68, 68, 0.25)" className="animate-ping" style={{ animationDuration: '3s' }} />
-                      <circle cx={`${p1[0]}%`} cy={`${p1[1]}%`} r="4.5" fill="#ef4444" stroke="#fecaca" strokeWidth="1.2" filter="url(#sfGlow)" />
+                      {/* 3. Tia Xung Chiếu Đối Cung (Tia lửa năng lượng Chu Sa) */}
+                      <line
+                        x1={p0x} y1={p0y}
+                        x2={p1x} y2={p1y}
+                        stroke="url(#redRayGrad)"
+                        strokeWidth="3.2"
+                        strokeDasharray="8,5"
+                        filter="url(#sfGlow)"
+                      />
 
-                      {/* Tinh Châu tại 2 Cung Tam Hợp (Hoàng Kim) */}
-                      <circle cx={`${p2[0]}%`} cy={`${p2[1]}%`} r="7" fill="rgba(245, 158, 11, 0.25)" className="animate-ping" style={{ animationDuration: '3.5s' }} />
-                      <circle cx={`${p2[0]}%`} cy={`${p2[1]}%`} r="4" fill="#f59e0b" stroke="#fef08a" strokeWidth="1.2" filter="url(#sfGlow)" />
+                      {/* 4. Tinh Châu tại Đối Cung (Chu Sa) */}
+                      <circle cx={p1x} cy={p1y} r="16" fill="rgba(239, 68, 68, 0.25)" />
+                      <circle cx={p1x} cy={p1y} r="8.5" fill="#ef4444" stroke="#fecaca" strokeWidth="1.8" filter="url(#sfGlow)" />
 
-                      <circle cx={`${p3[0]}%`} cy={`${p3[1]}%`} r="7" fill="rgba(245, 158, 11, 0.25)" className="animate-ping" style={{ animationDuration: '3.5s' }} />
-                      <circle cx={`${p3[0]}%`} cy={`${p3[1]}%`} r="4" fill="#f59e0b" stroke="#fef08a" strokeWidth="1.2" filter="url(#sfGlow)" />
+                      {/* 5. Tinh Châu tại 2 Cung Tam Hợp (Hoàng Kim) */}
+                      <circle cx={p2x} cy={p2y} r="14" fill="rgba(245, 158, 11, 0.25)" />
+                      <circle cx={p2x} cy={p2y} r="7.5" fill="#f59e0b" stroke="#fef08a" strokeWidth="1.8" filter="url(#sfGlow)" />
 
-                      {/* Tinh Châu Trung Tâm tại Bản Cung (Hoàng Kim Ngọc Tỷ) */}
-                      <circle cx={`${p0[0]}%`} cy={`${p0[1]}%`} r="10" fill="rgba(212, 168, 67, 0.35)" className="animate-ping" style={{ animationDuration: '2s' }} />
-                      <circle cx={`${p0[0]}%`} cy={`${p0[1]}%`} r="6" fill="#fef08a" stroke="#d97706" strokeWidth="1.5" filter="url(#sfGlow)" />
+                      <circle cx={p3x} cy={p3y} r="14" fill="rgba(245, 158, 11, 0.25)" />
+                      <circle cx={p3x} cy={p3y} r="7.5" fill="#f59e0b" stroke="#fef08a" strokeWidth="1.8" filter="url(#sfGlow)" />
+
+                      {/* 6. Tinh Châu Trung Tâm tại Bản Cung (Hoàng Kim Ngọc Tỷ) */}
+                      <circle cx={p0x} cy={p0y} r="18" fill="rgba(212, 168, 67, 0.35)" />
+                      <circle cx={p0x} cy={p0y} r="10.5" fill="#fef08a" stroke="#d97706" strokeWidth="2.2" filter="url(#sfGlow)" />
                     </>
                   );
                 })()}
