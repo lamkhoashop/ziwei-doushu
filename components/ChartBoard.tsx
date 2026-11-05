@@ -112,11 +112,11 @@ export default function ChartBoard({ chart, onStarSelect, onPalaceSelect, onSiHu
         onYearChange={setLiunianYear}
       />
 
-      {/* Tiêu đề lá số cổ điển Á Đông - Phong cách Đạo Gia Huyền Bí & Chữ Thư Pháp */}
+      {/* Tiêu đề lá số cổ điển Á Đông - Phong cách Đạo Gia Huyền Bí & Chữ Thư Pháp Đối Xứng */}
       <motion.div
         initial={{ opacity: 0, y: -8 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative text-center mb-3.5 py-1 px-4 select-none"
+        className="relative text-center mb-3 py-1 px-4 select-none"
       >
         {/* Vầng hào quang huyền bí mờ ảo phía sau */}
         <div
@@ -129,7 +129,7 @@ export default function ChartBoard({ chart, onStarSelect, onPalaceSelect, onSiHu
         />
 
         {/* Trục Thiên Bàn Cổ Phong */}
-        <div className="flex items-center justify-center gap-2.5 sm:gap-3 mb-1.5">
+        <div className="flex items-center justify-center gap-2 mb-0.5">
           <div className="flex items-center gap-1.5">
             <span
               className="w-8 sm:w-16 h-[1px]"
@@ -167,33 +167,31 @@ export default function ChartBoard({ chart, onStarSelect, onPalaceSelect, onSiHu
           </div>
         </div>
 
-        {/* Dòng Tên Mệnh Chủ: Thư Pháp Nổi Bật Kèm Ấn Triện Son Đỏ */}
-        <div className="flex items-center justify-center gap-2 sm:gap-2.5 flex-wrap">
-          {/* Họa tiết mây lành cổ phong bên trái */}
+        {/* Tiêu đề cấp 2: LÁ SỐ TỬ VI BẢN MỆNH */}
+        <div
+          className="text-[10.5px] sm:text-[11px] tracking-[0.25em] sm:tracking-[0.3em] font-mystic uppercase font-bold mb-0.5"
+          style={{
+            color: isDark ? 'rgba(212, 168, 67, 0.75)' : 'rgba(180, 83, 9, 0.85)',
+            textShadow: isDark ? '0 1px 2px rgba(0,0,0,0.8)' : undefined,
+          }}
+        >
+          LÁ SỐ BẢN MỆNH
+        </div>
+
+        {/* Tên Mệnh Chủ: Thư Pháp Đặt Ngay Chính Tâm Cân Xứng Tuyệt Đối */}
+        <div className="flex items-center justify-center gap-2 sm:gap-2.5">
           <span
-            className="text-base sm:text-lg select-none"
+            className="text-[12px] sm:text-[14px] select-none"
             style={{
               color: isDark ? 'rgba(212,168,67,0.6)' : 'rgba(184,146,42,0.7)',
               filter: isDark ? 'drop-shadow(0 0 6px rgba(212,168,67,0.4))' : undefined,
             }}
           >
-            ꧁
+            ❖
           </span>
 
-          {/* Tiền tố LÁ SỐ TỬ VI */}
           <span
-            className="text-xs sm:text-sm font-mystic font-bold uppercase tracking-[0.2em]"
-            style={{
-              color: isDark ? 'rgba(226, 232, 240, 0.9)' : '#78350F',
-              textShadow: isDark ? '0 1px 2px rgba(0,0,0,0.9)' : '0 1px 0 rgba(255,255,255,0.9)',
-            }}
-          >
-            Lá Số Tử Vi:
-          </span>
-
-          {/* Tên người được xem: Chữ Thư Pháp Nổi Bật Rực Rỡ */}
-          <span
-            className="font-calligraphy text-2xl sm:text-3xl font-bold tracking-wide px-1.5"
+            className="font-calligraphy text-2xl sm:text-3xl font-bold tracking-wide px-1"
             style={{
               background: isDark
                 ? 'linear-gradient(135deg, #FFFFFF 0%, #FEF08A 35%, #F59E0B 75%, #D97706 100%)'
@@ -206,12 +204,12 @@ export default function ChartBoard({ chart, onStarSelect, onPalaceSelect, onSiHu
               lineHeight: 1.15,
             }}
           >
-            {chart.birthInfo.name || 'Bản Mệnh'}
+            {chart.birthInfo.name || 'Đương Số'}
           </span>
 
           {/* Dấu Triện Son Đỏ (Ấn Triện Chu Sa Cổ Truyền) */}
           <span
-            className="inline-flex items-center justify-center w-5 h-5 rounded-[3px] text-[9.5px] font-serif font-black select-none transition-transform hover:scale-110"
+            className="inline-flex items-center justify-center w-5 h-5 rounded-[3px] text-[9.5px] font-serif font-black select-none transition-transform hover:scale-110 flex-shrink-0"
             style={{
               border: isDark ? '1.5px solid rgba(239, 68, 68, 0.85)' : '1.5px solid rgba(185, 28, 28, 0.85)',
               background: isDark ? 'rgba(220, 38, 38, 0.18)' : 'rgba(185, 28, 28, 0.12)',
@@ -227,15 +225,14 @@ export default function ChartBoard({ chart, onStarSelect, onPalaceSelect, onSiHu
             Mệnh
           </span>
 
-          {/* Họa tiết mây lành cổ phong bên phải */}
           <span
-            className="text-base sm:text-lg select-none"
+            className="text-[12px] sm:text-[14px] select-none"
             style={{
               color: isDark ? 'rgba(212,168,67,0.6)' : 'rgba(184,146,42,0.7)',
               filter: isDark ? 'drop-shadow(0 0 6px rgba(212,168,67,0.4))' : undefined,
             }}
           >
-            ꧂
+            ❖
           </span>
         </div>
       </motion.div>
