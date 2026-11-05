@@ -275,18 +275,20 @@ export default function ChartPage() {
         /* ── Đã an sao: Hiển thị lá số + AI Luận giải ── */
         <main className="relative z-10 max-w-[1360px] mx-auto px-4 sm:px-6 py-6">
           <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
-            <div className="flex items-center gap-2.5">
+            <div className="flex items-center gap-2.5 flex-wrap">
               <button
                 type="button"
                 onClick={handleReset}
-                className="hover:bg-white/5 transition-all px-4 py-2 rounded-lg cursor-pointer inline-flex items-center gap-2 text-xs font-medium border"
+                className="hover:scale-[1.02] active:scale-[0.98] transition-all px-3.5 py-2 rounded-lg cursor-pointer inline-flex items-center gap-1.5 text-xs font-mystic font-semibold tracking-wider border shadow-[0_2px_8px_rgba(0,0,0,0.2)]"
                 style={{
-                  borderColor: 'var(--t-border)',
-                  background: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.8)',
-                  color: 'var(--t-faint)',
+                  borderColor: 'rgba(212,168,67,0.35)',
+                  background: isDark ? 'rgba(212,168,67,0.08)' : 'rgba(255,250,235,0.9)',
+                  color: 'var(--t-gold)',
                 }}
+                title="Quay lại màn hình nhập thông tin ngày giờ sinh khác"
               >
-                ← Nhập lại thông tin khác
+                <span className="text-amber-400 font-sans text-sm leading-none">←</span>
+                <span>Nhập Lại Thông Tin Khác</span>
               </button>
               <button
                 type="button"
@@ -305,6 +307,7 @@ export default function ChartPage() {
                 onClick={() => setProfileBookOpen(true)}
                 className="hover:scale-[1.02] active:scale-[0.98] transition-all px-3.5 py-2 rounded-lg cursor-pointer inline-flex items-center gap-1.5 text-xs font-mystic font-semibold tracking-wider border border-amber-500/30"
                 style={{
+                  borderColor: 'rgba(212,168,67,0.35)',
                   background: isDark ? 'rgba(212,168,67,0.1)' : 'rgba(255,250,235,0.9)',
                   color: 'var(--t-gold)',
                 }}
@@ -331,15 +334,16 @@ export default function ChartPage() {
                     setProfileBookOpen(true);
                   }
                 }}
-                className="hover:scale-[1.02] active:scale-[0.98] transition-all px-3 py-2 rounded-lg cursor-pointer inline-flex items-center gap-1.5 text-xs font-medium border border-emerald-500/30 text-emerald-300 hover:text-emerald-100 hover:border-emerald-500/50"
+                className="hover:scale-[1.02] active:scale-[0.98] transition-all px-3.5 py-2 rounded-lg cursor-pointer inline-flex items-center gap-1.5 text-xs font-mystic font-semibold tracking-wider border"
                 style={{
-                  background: isDark ? 'rgba(16,185,129,0.06)' : 'rgba(236,253,245,0.8)',
+                  borderColor: 'rgba(212,168,67,0.35)',
+                  background: isDark ? 'rgba(212,168,67,0.08)' : 'rgba(255,250,235,0.9)',
+                  color: 'var(--t-gold)',
                 }}
                 title="Lưu lá số này trực tiếp vào máy của bạn (tuyệt đối không gửi lên máy chủ)"
               >
-                <span>🔒</span>
-                <span className="hidden sm:inline">Lưu Vào Máy</span>
-                <span className="sm:hidden">Lưu</span>
+                <span>🔖</span>
+                <span>Lưu Lá Số Này</span>
               </button>
             </div>
             <div className="flex items-center gap-2.5 text-[11px]" style={{ color: 'var(--t-faint)' }}>
