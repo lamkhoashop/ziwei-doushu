@@ -78,6 +78,7 @@ function ThemeToggle() {
         />
       </div>
       <span
+        className="hidden sm:inline"
         style={{
           fontSize: '11px',
           fontWeight: 500,
@@ -496,23 +497,23 @@ export default function HomePage() {
       </div>
 
       {/* ── Thanh điều hướng trên cùng ── */}
-      <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 sm:px-8 py-3 sm:py-4 gap-2"
+      <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-2.5 sm:px-8 py-2.5 sm:py-4 gap-2"
         style={{
           background: c.navBg,
         }}>
-        <div className="flex items-center gap-2.5 flex-shrink-0 group cursor-pointer" onClick={() => router.push('/')}>
+        <div className="flex items-center gap-2.5 shrink-0 whitespace-nowrap group cursor-pointer" onClick={() => router.push('/')}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/icon.svg"
             alt="Bát Quái"
-            className="w-5 h-5 sm:w-6 sm:h-6 rounded-full shadow-[0_0_10px_rgba(212,168,67,0.45)] group-hover:rotate-180 transition-transform duration-700 select-none"
+            className="w-5 h-5 sm:w-6 sm:h-6 rounded-full shadow-[0_0_10px_rgba(212,168,67,0.45)] group-hover:rotate-180 transition-transform duration-700 select-none shrink-0"
           />
-          <span className="text-[11px] sm:text-xs tracking-[0.25em] sm:tracking-[0.35em] font-medium font-serif transition-colors duration-300"
+          <span className="text-[11px] sm:text-xs tracking-[0.2em] sm:tracking-[0.35em] font-medium font-serif transition-colors duration-300 whitespace-nowrap"
             style={{ color: c.goldSolid }}>
             TỬ VI ĐẨU SỐ
           </span>
         </div>
-        <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0">
+        <div className="flex items-center gap-1 sm:gap-2.5 shrink-0">
           <ThemeToggle />
           <button
             type="button"
@@ -520,13 +521,12 @@ export default function HomePage() {
               setGuideOpen(true);
               setGuideSeen(true);
             }}
-            className="text-[11px] sm:text-xs px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-full transition-all duration-300 inline-flex items-center gap-1 sm:gap-1.5 cursor-pointer select-none relative"
+            className="text-[11px] sm:text-xs px-2 sm:px-3.5 py-1 sm:py-1.5 rounded-full transition-all duration-300 inline-flex items-center gap-1 sm:gap-1.5 cursor-pointer select-none relative shrink-0"
             style={{ border: `1px solid ${c.navBorder}`, color: c.textMuted }}
             title="Bí Kíp Xem Số & Thôi Diễn AI Nghê Hải Hà"
           >
-            <span>📖</span>
+            <span>🧭</span>
             <span className="hidden sm:inline">Hướng Dẫn</span>
-            <span className="sm:hidden">Chỉ Dẫn</span>
             {!guideSeen && (
               <span className="relative flex h-2 w-2 ml-0.5">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
@@ -537,14 +537,14 @@ export default function HomePage() {
           <Link
             href="/heming"
             prefetch={true}
-            className="text-[11px] sm:text-xs px-2.5 sm:px-4 py-1 sm:py-1.5 rounded-full transition-all duration-300 inline-flex items-center justify-center"
+            className="text-[11px] sm:text-xs px-2 sm:px-4 py-1 sm:py-1.5 rounded-full transition-all duration-300 inline-flex items-center justify-center shrink-0 whitespace-nowrap"
             style={{ border: `1px solid ${c.navBorder}`, color: c.textMuted }}>
             Hợp Số
           </Link>
           <Link
             href="/chart"
             prefetch={true}
-            className="text-[11px] sm:text-xs px-2.5 sm:px-4 py-1 sm:py-1.5 rounded-full transition-all duration-300 inline-flex items-center justify-center"
+            className="text-[11px] sm:text-xs px-2.5 sm:px-4 py-1 sm:py-1.5 rounded-full transition-all duration-300 inline-flex items-center justify-center shrink-0 whitespace-nowrap"
             style={{ border: `1px solid ${c.goldLine}`, color: c.goldSolid }}>
             Lập Lá Số
           </Link>

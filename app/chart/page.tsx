@@ -25,7 +25,7 @@ function ThemeToggle() {
       whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 0.95 }}
       aria-label={isDark ? 'Chuyển sang giao diện sáng' : 'Chuyển sang giao diện tối'}
-      className="inline-flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full border cursor-pointer select-none"
+      className="inline-flex items-center gap-1 sm:gap-2 px-1.5 sm:px-3 py-1 sm:py-1.5 rounded-full border cursor-pointer select-none shrink-0"
       style={{
         borderColor: isDark ? 'rgba(254,240,138,0.3)' : 'rgba(184,146,42,0.45)',
         background: isDark
@@ -64,6 +64,7 @@ function ThemeToggle() {
         />
       </div>
       <span
+        className="hidden sm:inline"
         style={{
           fontSize: '11px',
           fontWeight: 600,
@@ -210,21 +211,21 @@ export default function ChartPage() {
       </div>
 
       {/* ── Thanh điều hướng trên cùng ── */}
-      <header className="relative z-20 flex items-center justify-between px-3 sm:px-8 py-2.5 sm:py-3.5 border-b min-w-0"
+      <header className="relative z-20 flex items-center justify-between px-2.5 sm:px-8 py-2 sm:py-3.5 border-b min-w-0"
         style={{ borderColor: 'var(--t-border)', background: isDark ? 'rgba(2,8,16,0.85)' : 'rgba(245,239,224,0.85)', backdropFilter: 'blur(12px)' }}>
-        <Link href="/" className="flex items-center gap-2.5 text-decoration-none group">
+        <Link href="/" className="flex items-center gap-1.5 sm:gap-2.5 text-decoration-none group shrink-0 whitespace-nowrap">
           {/* Icon Bát Quái Huyền Bí */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/icon.svg"
             alt="Bát Quái"
-            className="w-6 h-6 rounded-full shadow-[0_0_10px_rgba(212,168,67,0.45)] group-hover:rotate-180 transition-transform duration-700 select-none"
+            className="w-5 h-5 sm:w-6 sm:h-6 rounded-full shadow-[0_0_10px_rgba(212,168,67,0.45)] group-hover:rotate-180 transition-transform duration-700 select-none shrink-0"
           />
-          <span className="text-sm font-bold tracking-[0.28em] font-mystic" style={{ color: 'var(--t-gold)', textShadow: '0 0 10px rgba(212,168,67,0.4)' }}>
+          <span className="text-xs sm:text-sm font-bold tracking-[0.14em] sm:tracking-[0.28em] font-mystic whitespace-nowrap" style={{ color: 'var(--t-gold)', textShadow: '0 0 10px rgba(212,168,67,0.4)' }}>
             TỬ VI ĐẨU SỐ
           </span>
         </Link>
-        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+        <div className="flex items-center gap-1 sm:gap-2.5 shrink-0">
           <ThemeToggle />
           <motion.button
             onClick={() => {
@@ -234,7 +235,7 @@ export default function ChartPage() {
             }}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="relative inline-flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full border cursor-pointer select-none text-xs font-mystic font-semibold tracking-wider transition-all"
+            className="relative inline-flex items-center gap-1 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full border cursor-pointer select-none text-xs font-mystic font-semibold tracking-wider transition-all shrink-0"
             style={{
               borderColor: isDark ? 'rgba(254,240,138,0.35)' : 'rgba(184,146,42,0.45)',
               background: isDark
@@ -245,11 +246,10 @@ export default function ChartPage() {
                 ? 'inset 0 1px 1px rgba(255,255,255,0.2), inset 0 -1.5px 2px rgba(0,0,0,0.6), 0 2px 6px rgba(0,0,0,0.35)'
                 : 'inset 0 1px 1px rgba(255,255,255,0.8), inset 0 -1.5px 2px rgba(140,100,20,0.15), 0 2px 5px rgba(120,53,15,0.06)',
             }}
-            title="Bí Kíp Xem Số & Thôi Diễn AI Nghê Hải Hà"
+            title="Bí Kíp Xem Số & Hướng Dẫn Sử Dụng"
           >
-            <span>📖</span>
+            <span>🧭</span>
             <span className="hidden sm:inline">Hướng Dẫn</span>
-            <span className="sm:hidden">Chỉ Dẫn</span>
             {!guideSeen && (
               <span className="relative flex h-2 w-2 ml-0.5">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
@@ -261,7 +261,7 @@ export default function ChartPage() {
             onClick={() => setProfileBookOpen(true)}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="relative inline-flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full border cursor-pointer select-none text-xs font-mystic font-semibold tracking-wider transition-all"
+            className="relative inline-flex items-center gap-1 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full border cursor-pointer select-none text-xs font-mystic font-semibold tracking-wider transition-all shrink-0"
             style={{
               borderColor: isDark ? 'rgba(254,240,138,0.35)' : 'rgba(184,146,42,0.45)',
               background: isDark
@@ -274,7 +274,7 @@ export default function ChartPage() {
             }}
             title="Sổ Tay Bản Mệnh: Quản lý danh sách gia đình & người thân"
           >
-            <span>📖</span>
+            <span>📜</span>
             <span>Sổ Tay</span>
             {savedProfileCount > 0 && (
               <span className="ml-0.5 px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-amber-500 text-slate-950 shadow-sm">
@@ -284,7 +284,7 @@ export default function ChartPage() {
           </motion.button>
           <Link
             href="/heming"
-            className="text-xs px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full border transition-all"
+            className="text-xs px-2 sm:px-3 py-1 sm:py-1.5 rounded-full border transition-all shrink-0 whitespace-nowrap"
             style={{
               borderColor: isDark ? 'rgba(212,168,67,0.25)' : 'rgba(184,146,42,0.35)',
               background: isDark
