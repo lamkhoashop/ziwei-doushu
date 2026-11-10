@@ -68,6 +68,54 @@ export function getAiConfig(): AiConfig {
 }
 
 /**
+ * Chuẩn hóa danh sách messages trước khi gửi tới Upstream AI:
+ * Với các proxy hoặc mô hình uncensored/jailbreak (như WusRouter),
+ * `role: 'system'` thường bị proxy bỏ qua hoặc ghi đè bằng prompt nội bộ của proxy.
+ * Do đó, ta gộp toàn bộ hướng dẫn hệ thống và dữ liệu lá số vào đầu tin nhắn 'user' đầu tiên,
+ * đồng thời lọc sạch các từ rác còn sót lại từ lịch sử chat.
+ */
+export function prepareMessagesForUpstream(messages: AiMessage[]): AiMessage[] {
+  let systemContent = '';
+  const result: AiMessage[] = [];
+
+  for (const m of messages) {
+    if (m.role === 'system') {
+      systemContent += (systemContent ? '\n\n' : '') + m.content;
+    } else {
+      // Làm sạch các từ rác proxy nếu có trong lịch sử trò chuyện
+      const cleanContent = m.content
+        .replace(/epileptichurts/gi, '')
+        .replace(/WsThanhDieu/gi, '')
+        .replace(/^I am ready,?\s*WusRouter\.Com\.?\s*/gi, '')
+        .trim();
+
+      if (cleanContent) {
+        result.push({ role: m.role, content: cleanContent });
+      }
+    }
+  }
+
+  // Nếu không có systemContent thì trả về danh sách đã lọc
+  if (!systemContent) {
+    return result.length > 0 ? result : messages;
+  }
+
+  // Nhúng toàn bộ systemContent vào tin nhắn 'user' đầu tiên để đảm bảo 100% dữ liệu được truyền tới model
+  const firstUserIdx = result.findIndex(m => m.role === 'user');
+  if (firstUserIdx >= 0) {
+    result[firstUserIdx].content =
+      `[HƯỚNG DẪN HỆ THỐNG & DỮ LIỆU LÁ SỐ TỬ VI]:\n${systemContent}\n\n[YÊU CẦU CỦA ĐƯƠNG SỐ]:\n${result[firstUserIdx].content}`;
+  } else {
+    result.unshift({
+      role: 'user',
+      content: `[HƯỚNG DẪN HỆ THỐNG & DỮ LIỆU LÁ SỐ TỬ VI]:\n${systemContent}\n\nXin hãy luận giải lá số theo đúng các đề mục trên.`,
+    });
+  }
+
+  return result;
+}
+
+/**
  * Tạo phản hồi dạng luồng (Server-Sent Events) tương thích với ChatPanel & InsightPanel
  * Tự động xoay vòng nhiều key và chuyển sang key kế tiếp nếu gặp lỗi 429
  */
@@ -103,6 +151,7 @@ export async function streamOpenAiResponse(messages: AiMessage[]): Promise<Respo
     });
   }
 
+  const payloadMessages = prepareMessagesForUpstream(messages);
   const endpoint = `${baseURL}/chat/completions`;
   const startIndex = globalKeyIndex++ % keys.length;
   let lastErrorMsg = '';
@@ -121,7 +170,7 @@ export async function streamOpenAiResponse(messages: AiMessage[]): Promise<Respo
         },
         body: JSON.stringify({
           model,
-          messages,
+          messages: payloadMessages,
           temperature: 0.7,
           stream: true,
         }),
@@ -159,23 +208,111 @@ export async function streamOpenAiResponse(messages: AiMessage[]): Promise<Respo
       const transformStream = new ReadableStream({
         async start(controller) {
           let buffer = '';
-          let prefixBuffer = '';
-          let prefixChecked = false;
+          let carry = '';
+          let preambleBuffer = '';
+          let streamStarted = false;
 
-          const emitDelta = (text: string) => {
-            if (!text) return;
-            const sseLine = `data: ${JSON.stringify({ delta: { text } })}\n\n`;
+          const sendRawDelta = (str: string) => {
+            if (!str) return;
+            const sseLine = `data: ${JSON.stringify({ delta: { text: str } })}\n\n`;
             controller.enqueue(encoder.encode(sseLine));
+          };
+
+          const emitDelta = (rawChunk: string) => {
+            if (!rawChunk) return;
+
+            let text = carry + rawChunk;
+            carry = '';
+
+            // Lọc bỏ triệt để các token nội bộ của proxy jailbreak ở bất kỳ vị trí nào
+            text = text.replace(/epileptichurts/gi, '');
+            text = text.replace(/WsThanhDieu/gi, '');
+
+            // Xử lý trường hợp từ khóa bị chia cắt giữa các chunks (ví dụ chunk A kết thúc bằng "epilep")
+            const lower = text.toLowerCase();
+            const blacklist = ['epileptichurts', 'wusrouter.com', 'wsthanhdieu'];
+            let partialLen = 0;
+            for (const word of blacklist) {
+              for (let l = Math.min(word.length - 1, text.length); l > 0; l--) {
+                if (word.startsWith(lower.slice(-l))) {
+                  if (l > partialLen) partialLen = l;
+                }
+              }
+            }
+
+            if (partialLen > 0) {
+              carry = text.slice(-partialLen);
+              text = text.slice(0, -partialLen);
+            }
+
+            if (!text) return;
+
+            // Nếu luồng chưa bắt đầu: kiểm tra và lọc sạch lời độc thoại/nháp tư duy trước nội dung chính thức
+            if (!streamStarted) {
+              preambleBuffer += text;
+
+              // 1. Kiểm tra nếu có phân cách chuyển từ nháp tư duy sang bài luận chính thức:
+              // Mô hình uncensored thường nháp tư duy rồi dùng \n---\n hoặc \n\n---\n trước khi xuất bài luận thật
+              const separatorMatch = preambleBuffer.match(/\n\s*---\s*\n+/);
+              if (separatorMatch && typeof separatorMatch.index === 'number') {
+                const afterSeparator = preambleBuffer.slice(separatorMatch.index + separatorMatch[0].length);
+                if (afterSeparator.trim().length > 0) {
+                  preambleBuffer = '';
+                  streamStarted = true;
+                  sendRawDelta(afterSeparator);
+                  return;
+                }
+              }
+
+              // 2. Hoặc nếu bài luận bắt đầu trực tiếp bằng tiêu đề chính thức ngay từ đầu:
+              // Ví dụ: # LUẬN GIẢI, **LÁ SỐ, **【, ## 
+              const titleMatch = preambleBuffer.match(/(?:^|\n)(#+\s+|(?:\*\*)?【|(?:\*\*)?LÁ SỐ)/);
+              if (titleMatch && typeof titleMatch.index === 'number') {
+                const startIdx = titleMatch.index + (titleMatch[0].startsWith('\n') ? 1 : 0);
+                if (startIdx < 30) {
+                  const validText = preambleBuffer.slice(startIdx);
+                  preambleBuffer = '';
+                  streamStarted = true;
+                  sendRawDelta(validText);
+                  return;
+                }
+              }
+
+              // 3. Fallback: Nếu phần nháp dài quá 3500 ký tự mà chưa thấy separator
+              if (preambleBuffer.length > 3500) {
+                sendRawDelta(preambleBuffer);
+                preambleBuffer = '';
+                streamStarted = true;
+              }
+            } else {
+              sendRawDelta(text);
+            }
+          };
+
+          const flushCarry = () => {
+            let remaining = (preambleBuffer + carry)
+              .replace(/epileptichurts/gi, '')
+              .replace(/WsThanhDieu/gi, '')
+              .replace(/^(?:I am ready,?\s*WusRouter\.Com\.?\s*)+/i, '');
+
+            if (remaining) {
+              const separatorMatch = remaining.match(/\n\s*---\s*\n+/);
+              if (separatorMatch && typeof separatorMatch.index === 'number') {
+                remaining = remaining.slice(separatorMatch.index + separatorMatch[0].length);
+              }
+              if (remaining.trim()) {
+                sendRawDelta(remaining);
+              }
+            }
+            preambleBuffer = '';
+            carry = '';
           };
 
           try {
             while (true) {
               const { done, value } = await reader.read();
               if (done) {
-                if (!prefixChecked && prefixBuffer) {
-                  const cleaned = prefixBuffer.replace(/^epileptichurts[\s\r\n]*/i, '');
-                  emitDelta(cleaned);
-                }
+                flushCarry();
                 controller.enqueue(encoder.encode('data: [DONE]\n\n'));
                 controller.close();
                 break;
@@ -190,10 +327,7 @@ export async function streamOpenAiResponse(messages: AiMessage[]): Promise<Respo
                 if (!trimmed || !trimmed.startsWith('data: ')) continue;
                 const rawData = trimmed.slice(6);
                 if (rawData === '[DONE]') {
-                  if (!prefixChecked && prefixBuffer) {
-                    const cleaned = prefixBuffer.replace(/^epileptichurts[\s\r\n]*/i, '');
-                    emitDelta(cleaned);
-                  }
+                  flushCarry();
                   controller.enqueue(encoder.encode('data: [DONE]\n\n'));
                   controller.close();
                   return;
@@ -207,18 +341,7 @@ export async function streamOpenAiResponse(messages: AiMessage[]): Promise<Respo
                     parsed.delta?.text ||
                     '';
                   if (deltaText) {
-                    if (!prefixChecked) {
-                      prefixBuffer += deltaText;
-                      // Khi đã gom đủ tiền tố hoặc có ký tự ngắt dòng, lọc bỏ nhãn rác hệ thống (như epileptichurts)
-                      if (prefixBuffer.length >= 20 || prefixBuffer.includes('\n')) {
-                        const cleaned = prefixBuffer.replace(/^epileptichurts[\s\r\n]*/i, '');
-                        emitDelta(cleaned);
-                        prefixBuffer = '';
-                        prefixChecked = true;
-                      }
-                    } else {
-                      emitDelta(deltaText);
-                    }
+                    emitDelta(deltaText);
                   }
                 } catch {
                   // Bỏ qua dòng json không hợp lệ
