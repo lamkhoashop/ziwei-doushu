@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
       `🔖 <b>Mã Ticket:</b> <code>#${sessionId}</code>\n\n` +
       `📝 <b>Nội dung sự cố:</b>\n"${safeText}"\n` +
       `────────────────────────\n` +
-      `👉 <i>Bấm Reply tin nhắn này hoặc gõ trực tiếp để phản hồi cho người dùng.</i>`;
+      `👇 <i>Chạm vào nút bên dưới để trả lời đúng cho khách này:</i>`;
 
     const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
       method: "POST",
@@ -56,8 +56,14 @@ export async function POST(req: NextRequest) {
         text: messageHtml,
         parse_mode: "HTML",
         reply_markup: {
-          force_reply: true,
-          input_field_placeholder: "Gõ câu trả lời gửi cho khách tại đây...",
+          inline_keyboard: [
+            [
+              {
+                text: `💬 Trả lời ${safeName} (#${sessionId})`,
+                callback_data: `reply:${sessionId}`,
+              },
+            ],
+          ],
         },
       }),
     });

@@ -59,6 +59,13 @@ function persistStore() {
 // Khởi tạo load từ disk một lần ban đầu
 loadStore();
 
+export function setActiveSession(sessionId: string): TicketData | null {
+  loadStore();
+  memStore.lastSessionId = sessionId;
+  persistStore();
+  return memStore.tickets[sessionId] || null;
+}
+
 export function addUserMessage(sessionId: string, userName: string, text: string): void {
   loadStore();
 
