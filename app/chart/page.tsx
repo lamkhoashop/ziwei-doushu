@@ -464,31 +464,6 @@ export default function ChartPage() {
                 <span className="hidden sm:inline">Lưu Lá Số Này</span>
                 <span className="sm:hidden truncate">Lưu Lá Số</span>
               </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setGuideInitialStep(2);
-                  setGuideOpen(true);
-                  setGuideSeen(true);
-                }}
-                className="col-span-1 hover:scale-[1.02] active:scale-[0.98] transition-all px-2.5 sm:px-3.5 py-2.5 rounded-lg cursor-pointer inline-flex items-center justify-center gap-1.5 text-xs font-mystic font-semibold tracking-wider border select-none w-full sm:w-auto text-center"
-                style={{
-                  borderColor: isDark ? 'rgba(254,240,138,0.3)' : 'rgba(184,146,42,0.45)',
-                  background: isDark
-                    ? 'linear-gradient(145deg, rgba(32, 40, 58, 0.95) 0%, rgba(14, 18, 30, 0.98) 60%, rgba(8, 10, 18, 1) 100%)'
-                    : 'linear-gradient(145deg, #FFFFFF 0%, #FAF5EA 60%, #F4EADA 100%)',
-                  color: isDark ? '#FEF08A' : '#78350F',
-                  textShadow: isDark ? '0 1px 2px rgba(0,0,0,0.8), 0 0 6px rgba(212,168,67,0.3)' : '0 1px 0 rgba(255,255,255,0.8)',
-                  boxShadow: isDark
-                    ? 'inset 0 1px 1.5px rgba(255,255,255,0.2), inset 0 -2px 3px rgba(0,0,0,0.7), 0 4px 12px rgba(0,0,0,0.45)'
-                    : 'inset 0 1px 1.5px rgba(255,255,255,0.9), inset 0 -2px 3px rgba(140,100,20,0.15), 0 3px 8px rgba(120,53,15,0.08)',
-                }}
-                title="Xem hướng dẫn cách thôi diễn Bản Mệnh, Đại Hạn, Lưu Niên cùng AI Nghê Hải Hà"
-              >
-                <span>☯️</span>
-                <span className="hidden sm:inline">Bí Kíp Thôi Diễn</span>
-                <span className="sm:hidden truncate">Bí Kíp AI</span>
-              </button>
             </div>
             <div className="flex items-center justify-between gap-2 text-[10.5px] sm:text-[11px] mt-2.5 px-0.5" style={{ color: isDark ? 'var(--t-faint)' : '#57534E' }}>
               <span className={clsx("inline-flex items-center gap-1 font-sans shrink-0", isDark ? "text-emerald-400/90" : "text-emerald-700 font-semibold")}>
