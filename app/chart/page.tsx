@@ -9,6 +9,7 @@ import InsightPanel from '@/components/InsightPanel';
 import StarField from '@/components/StarField';
 import ShareModal from '@/components/ShareModal';
 import ProfileBookModal from '@/components/ProfileBookModal';
+import UserGuideModal, { USER_GUIDE_STORAGE_KEY } from '@/components/UserGuideModal';
 import { useTheme } from '@/components/ThemeProvider';
 import { generateChart } from '@/lib/ziwei/algorithm';
 import { getSavedProfiles, saveProfile } from '@/lib/ziwei/profiles';
@@ -91,9 +92,19 @@ export default function ChartPage() {
   const [shareOpen, setShareOpen] = useState(false);
   const [profileBookOpen, setProfileBookOpen] = useState(false);
   const [savedProfileCount, setSavedProfileCount] = useState(0);
+  const [guideOpen, setGuideOpen] = useState(false);
+  const [guideInitialStep, setGuideInitialStep] = useState(0);
+  const [guideSeen, setGuideSeen] = useState(true);
   const boardRef = useRef<HTMLDivElement>(null);
   const { theme } = useTheme();
   const isDark = theme === 'dark';
+
+  useEffect(() => {
+    try {
+      const seen = localStorage.getItem(USER_GUIDE_STORAGE_KEY);
+      if (!seen) setGuideSeen(false);
+    } catch { /* ignore */ }
+  }, []);
 
   const handleGenerateChart = (info: BirthInfo) => {
     try {
@@ -215,6 +226,37 @@ export default function ChartPage() {
         </Link>
         <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           <ThemeToggle />
+          <motion.button
+            onClick={() => {
+              setGuideInitialStep(0);
+              setGuideOpen(true);
+              setGuideSeen(true);
+            }}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="relative inline-flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full border cursor-pointer select-none text-xs font-mystic font-semibold tracking-wider transition-all"
+            style={{
+              borderColor: isDark ? 'rgba(254,240,138,0.35)' : 'rgba(184,146,42,0.45)',
+              background: isDark
+                ? 'linear-gradient(145deg, rgba(32, 40, 58, 0.95) 0%, rgba(14, 18, 30, 0.98) 100%)'
+                : 'linear-gradient(145deg, #FFFFFF 0%, #FAF5EA 100%)',
+              color: isDark ? '#FEF08A' : '#78350F',
+              boxShadow: isDark
+                ? 'inset 0 1px 1px rgba(255,255,255,0.2), inset 0 -1.5px 2px rgba(0,0,0,0.6), 0 2px 6px rgba(0,0,0,0.35)'
+                : 'inset 0 1px 1px rgba(255,255,255,0.8), inset 0 -1.5px 2px rgba(140,100,20,0.15), 0 2px 5px rgba(120,53,15,0.06)',
+            }}
+            title="Bí Kíp Xem Số & Thôi Diễn AI Nghê Hải Hà"
+          >
+            <span>📖</span>
+            <span className="hidden sm:inline">Hướng Dẫn</span>
+            <span className="sm:hidden">Chỉ Dẫn</span>
+            {!guideSeen && (
+              <span className="relative flex h-2 w-2 ml-0.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+              </span>
+            )}
+          </motion.button>
           <motion.button
             onClick={() => setProfileBookOpen(true)}
             whileHover={{ scale: 1.05 }}
@@ -422,6 +464,31 @@ export default function ChartPage() {
                 <span className="hidden sm:inline">Lưu Lá Số Này</span>
                 <span className="sm:hidden truncate">Lưu Lá Số</span>
               </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setGuideInitialStep(2);
+                  setGuideOpen(true);
+                  setGuideSeen(true);
+                }}
+                className="col-span-1 hover:scale-[1.02] active:scale-[0.98] transition-all px-2.5 sm:px-3.5 py-2.5 rounded-lg cursor-pointer inline-flex items-center justify-center gap-1.5 text-xs font-mystic font-semibold tracking-wider border select-none w-full sm:w-auto text-center"
+                style={{
+                  borderColor: isDark ? 'rgba(254,240,138,0.3)' : 'rgba(184,146,42,0.45)',
+                  background: isDark
+                    ? 'linear-gradient(145deg, rgba(32, 40, 58, 0.95) 0%, rgba(14, 18, 30, 0.98) 60%, rgba(8, 10, 18, 1) 100%)'
+                    : 'linear-gradient(145deg, #FFFFFF 0%, #FAF5EA 60%, #F4EADA 100%)',
+                  color: isDark ? '#FEF08A' : '#78350F',
+                  textShadow: isDark ? '0 1px 2px rgba(0,0,0,0.8), 0 0 6px rgba(212,168,67,0.3)' : '0 1px 0 rgba(255,255,255,0.8)',
+                  boxShadow: isDark
+                    ? 'inset 0 1px 1.5px rgba(255,255,255,0.2), inset 0 -2px 3px rgba(0,0,0,0.7), 0 4px 12px rgba(0,0,0,0.45)'
+                    : 'inset 0 1px 1.5px rgba(255,255,255,0.9), inset 0 -2px 3px rgba(140,100,20,0.15), 0 3px 8px rgba(120,53,15,0.08)',
+                }}
+                title="Xem hướng dẫn cách thôi diễn Bản Mệnh, Đại Hạn, Lưu Niên cùng AI Nghê Hải Hà"
+              >
+                <span>☯️</span>
+                <span className="hidden sm:inline">Bí Kíp Thôi Diễn</span>
+                <span className="sm:hidden truncate">Bí Kíp AI</span>
+              </button>
             </div>
             <div className="flex items-center justify-between gap-2 text-[10.5px] sm:text-[11px] mt-2.5 px-0.5" style={{ color: isDark ? 'var(--t-faint)' : '#57534E' }}>
               <span className={clsx("inline-flex items-center gap-1 font-sans shrink-0", isDark ? "text-emerald-400/90" : "text-emerald-700 font-semibold")}>
@@ -501,6 +568,13 @@ export default function ChartPage() {
           setProfileBookOpen(false);
         }}
         currentBirthInfo={chart ? chart.birthInfo : lastSavedInfo}
+      />
+
+      {/* Modal Hướng Dẫn Sử Dụng & Bí Kíp Xem Số */}
+      <UserGuideModal
+        open={guideOpen}
+        onClose={() => setGuideOpen(false)}
+        initialStep={guideInitialStep}
       />
     </div>
   );

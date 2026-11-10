@@ -6,6 +6,7 @@ import { motion, useScroll, useTransform, useInView, AnimatePresence } from 'fra
 import StarField from '@/components/StarField';
 import { useTheme, type Theme } from '@/components/ThemeProvider';
 import AnnouncementModal from '@/components/AnnouncementModal';
+import UserGuideModal, { USER_GUIDE_STORAGE_KEY } from '@/components/UserGuideModal';
 
 // ─── Hiệu ứng FadeIn khi cuộn trang ───────────────────────
 function FadeIn({
@@ -453,6 +454,15 @@ export default function HomePage() {
   const router = useRouter();
   const { theme } = useTheme();
   const c = useColors(theme);
+  const [guideOpen, setGuideOpen] = useState(false);
+  const [guideSeen, setGuideSeen] = useState(true);
+
+  useEffect(() => {
+    try {
+      const seen = localStorage.getItem(USER_GUIDE_STORAGE_KEY);
+      if (!seen) setGuideSeen(false);
+    } catch { /* skip */ }
+  }, []);
 
   const heroRef = useRef(null);
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ['start start', 'end start'] });
@@ -471,6 +481,7 @@ export default function HomePage() {
   return (
     <div style={{ background: c.bgBase, transition: 'background 0.35s ease' }} className="overflow-x-hidden">
       <AnnouncementModal />
+      <UserGuideModal open={guideOpen} onClose={() => setGuideOpen(false)} />
 
       <StarField />
 
@@ -503,6 +514,26 @@ export default function HomePage() {
         </div>
         <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0">
           <ThemeToggle />
+          <button
+            type="button"
+            onClick={() => {
+              setGuideOpen(true);
+              setGuideSeen(true);
+            }}
+            className="text-[11px] sm:text-xs px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-full transition-all duration-300 inline-flex items-center gap-1 sm:gap-1.5 cursor-pointer select-none relative"
+            style={{ border: `1px solid ${c.navBorder}`, color: c.textMuted }}
+            title="Bí Kíp Xem Số & Thôi Diễn AI Nghê Hải Hà"
+          >
+            <span>📖</span>
+            <span className="hidden sm:inline">Hướng Dẫn</span>
+            <span className="sm:hidden">Chỉ Dẫn</span>
+            {!guideSeen && (
+              <span className="relative flex h-2 w-2 ml-0.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+              </span>
+            )}
+          </button>
           <Link
             href="/heming"
             prefetch={true}
