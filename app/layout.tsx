@@ -22,6 +22,20 @@ export const metadata: Metadata = {
     siteName: 'Tử Vi Đẩu Số',
     locale: 'vi_VN',
     type: 'website',
+    images: [
+      {
+        url: '/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'Tử Vi Đẩu Số · Trường Phái Thiên Kỷ Nghê Hải Hà',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Tử Vi Đẩu Số · Trường Phái Thiên Kỷ Nghê Hải Hà',
+    description: 'Hệ thống an sao Tử Vi Đẩu Số chuẩn chính thống kết hợp AI Agent luận giải chuyên sâu theo trường phái Nghê Hải Hà',
+    images: ['/og-image.png'],
   },
   icons: {
     icon: [
@@ -42,10 +56,78 @@ export const metadata: Metadata = {
   },
 };
 
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'WebSite',
+      '@id': `${SITE_URL}/#website`,
+      url: SITE_URL,
+      name: 'Tử Vi Đẩu Số · Trường Phái Thiên Kỷ Nghê Hải Hà',
+      description: 'Hệ thống an sao Tử Vi Đẩu Số chuẩn chính thống kết hợp AI Agent luận giải chuyên sâu theo trường phái Nghê Hải Hà',
+      inLanguage: 'vi-VN',
+      potentialAction: {
+        '@type': 'SearchAction',
+        target: {
+          '@type': 'EntryPoint',
+          urlTemplate: `${SITE_URL}/library/search?q={search_term_string}`,
+        },
+        'query-input': 'required name=search_term_string',
+      },
+    },
+    {
+      '@type': 'WebApplication',
+      '@id': `${SITE_URL}/#webapp`,
+      name: 'Tử Vi Đẩu Số AI',
+      url: SITE_URL,
+      applicationCategory: 'LifestyleApplication',
+      operatingSystem: 'All',
+      browserRequirements: 'Requires JavaScript. Requires HTML5.',
+      softwareVersion: '1.1.0',
+      inLanguage: 'vi-VN',
+      image: `${SITE_URL}/og-image.png`,
+      offers: {
+        '@type': 'Offer',
+        price: '0',
+        priceCurrency: 'VND',
+        availability: 'https://schema.org/InStock',
+      },
+      featureList: [
+        'An sao Tử Vi Đẩu Số 12 cung chính thống',
+        'Hiệu chỉnh giờ mặt trời thực tự động theo kinh độ địa lý',
+        'Luận giải chuyên sâu cùng AI Agent Thiên Kỷ',
+        'Tra cứu kho tàng cổ thư Tử Vi Đẩu Số Toàn Thư, Toàn Tập',
+        'Xuất thiệp lá số tử vi độ phân giải cao',
+      ],
+      author: {
+        '@type': 'Person',
+        name: 'Nghê Hải Hà',
+      },
+    },
+    {
+      '@type': 'Organization',
+      '@id': `${SITE_URL}/#organization`,
+      name: 'Tử Vi Đẩu Số',
+      url: SITE_URL,
+      logo: {
+        '@type': 'ImageObject',
+        url: `${SITE_URL}/icon.svg`,
+        width: 512,
+        height: 512,
+      },
+    },
+  ],
+};
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="vi" suppressHydrationWarning>
       <head>
+        {/* Google Schema JSON-LD Structured Data */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
         {GA_MEASUREMENT_ID && (
           <>
             <script
