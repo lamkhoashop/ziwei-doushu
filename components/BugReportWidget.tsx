@@ -175,7 +175,7 @@ export default function BugReportWidget() {
                   Phản Ánh Sự Cố Kỹ Thuật
                 </h3>
                 <p className="text-[10px]" style={{ color: 'var(--tx-3)' }}>
-                  Kết nối trực tiếp quản trị viên qua Telegram
+                  Kết nối trực tiếp quản trị viên
                 </p>
               </div>
             </div>
@@ -278,7 +278,7 @@ export default function BugReportWidget() {
             </div>
             <div className="flex justify-between items-center pt-0.5">
               <span className="text-[10px]" style={{ color: sentSuccess ? '#2D7A4A' : 'var(--tx-3)' }}>
-                {sentSuccess ? '✓ Đã chuyển sự cố sang Telegram' : 'Tự động đính kèm URL trang bị lỗi'}
+                {sentSuccess ? '✓ Đã gửi thông báo thành công' : 'Tự động đính kèm URL trang bị lỗi'}
               </span>
               <button
                 type="submit"
