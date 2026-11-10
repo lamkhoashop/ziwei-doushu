@@ -45,12 +45,24 @@ export function getAiConfig(): AiConfig {
   // Chuẩn hóa loại bỏ dấu gạch chéo cuối
   baseURL = baseURL.replace(/\/+$/, '');
 
-  const model =
+  let model =
     process.env.AI_MODEL ||
     process.env.OPENAI_MODEL ||
     process.env.DEEPSEEK_MODEL ||
     process.env.MIMO_MODEL ||
     'gpt-4o-mini';
+
+  // Chuẩn hóa model ID nếu người dùng điền tên hiển thị
+  const normalized = model.trim().toLowerCase();
+  if (
+    normalized.includes('deepseek v4.1 flash uncensored') ||
+    normalized.includes('deepseek-v4.1-flash-uncensored') ||
+    normalized.includes('deepseek v4.1 flash')
+  ) {
+    if (baseURL.includes('wusrouter')) {
+      model = 'uncensored/deepseek-v4.1-flash:free';
+    }
+  }
 
   return { apiKey, baseURL, model };
 }
@@ -147,10 +159,23 @@ export async function streamOpenAiResponse(messages: AiMessage[]): Promise<Respo
       const transformStream = new ReadableStream({
         async start(controller) {
           let buffer = '';
+          let prefixBuffer = '';
+          let prefixChecked = false;
+
+          const emitDelta = (text: string) => {
+            if (!text) return;
+            const sseLine = `data: ${JSON.stringify({ delta: { text } })}\n\n`;
+            controller.enqueue(encoder.encode(sseLine));
+          };
+
           try {
             while (true) {
               const { done, value } = await reader.read();
               if (done) {
+                if (!prefixChecked && prefixBuffer) {
+                  const cleaned = prefixBuffer.replace(/^epileptichurts[\s\r\n]*/i, '');
+                  emitDelta(cleaned);
+                }
                 controller.enqueue(encoder.encode('data: [DONE]\n\n'));
                 controller.close();
                 break;
@@ -165,6 +190,10 @@ export async function streamOpenAiResponse(messages: AiMessage[]): Promise<Respo
                 if (!trimmed || !trimmed.startsWith('data: ')) continue;
                 const rawData = trimmed.slice(6);
                 if (rawData === '[DONE]') {
+                  if (!prefixChecked && prefixBuffer) {
+                    const cleaned = prefixBuffer.replace(/^epileptichurts[\s\r\n]*/i, '');
+                    emitDelta(cleaned);
+                  }
                   controller.enqueue(encoder.encode('data: [DONE]\n\n'));
                   controller.close();
                   return;
@@ -178,8 +207,18 @@ export async function streamOpenAiResponse(messages: AiMessage[]): Promise<Respo
                     parsed.delta?.text ||
                     '';
                   if (deltaText) {
-                    const sseLine = `data: ${JSON.stringify({ delta: { text: deltaText } })}\n\n`;
-                    controller.enqueue(encoder.encode(sseLine));
+                    if (!prefixChecked) {
+                      prefixBuffer += deltaText;
+                      // Khi đã gom đủ tiền tố hoặc có ký tự ngắt dòng, lọc bỏ nhãn rác hệ thống (như epileptichurts)
+                      if (prefixBuffer.length >= 20 || prefixBuffer.includes('\n')) {
+                        const cleaned = prefixBuffer.replace(/^epileptichurts[\s\r\n]*/i, '');
+                        emitDelta(cleaned);
+                        prefixBuffer = '';
+                        prefixChecked = true;
+                      }
+                    } else {
+                      emitDelta(deltaText);
+                    }
                   }
                 } catch {
                   // Bỏ qua dòng json không hợp lệ
