@@ -55,6 +55,10 @@ export async function POST(req: NextRequest) {
         chat_id: adminChatId,
         text: messageHtml,
         parse_mode: "HTML",
+        reply_markup: {
+          force_reply: true,
+          input_field_placeholder: "Gõ câu trả lời gửi cho khách tại đây...",
+        },
       }),
     });
 
