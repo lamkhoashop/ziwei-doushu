@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
+import { addUserMessage } from "@/lib/bug-report/store";
 
-declare global {
-  var bugStore: Record<string, Array<{ id: string; sender: "user" | "admin"; text: string; time: number }>>;
-}
-global.bugStore = global.bugStore || {};
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 function escapeHtml(text: string): string {
   return text
@@ -28,14 +27,8 @@ export async function POST(req: NextRequest) {
 
     const senderName = name?.trim() || `Khách (#${sessionId.slice(0, 4)})`;
 
-    // Lưu log tin nhắn vào bộ nhớ
-    if (!global.bugStore[sessionId]) global.bugStore[sessionId] = [];
-    global.bugStore[sessionId].push({
-      id: `${Date.now()}-user`,
-      sender: "user",
-      text,
-      time: Date.now(),
-    });
+    // Lưu log tin nhắn vào store bền vững
+    addUserMessage(sessionId, senderName, text.trim());
 
     // Soạn tin thông báo HTML an toàn cho Telegram
     const safeName = escapeHtml(senderName);
@@ -53,7 +46,7 @@ export async function POST(req: NextRequest) {
       `🔖 <b>Mã Ticket:</b> <code>#${sessionId}</code>\n\n` +
       `📝 <b>Nội dung sự cố:</b>\n"${safeText}"\n` +
       `────────────────────────\n` +
-      `👉 <i>Bấm Reply (Trả lời) tin nhắn này để phản hồi trực tiếp cho người dùng.</i>`;
+      `👉 <i>Bấm Reply tin nhắn này hoặc gõ trực tiếp để phản hồi cho người dùng.</i>`;
 
     const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
       method: "POST",

@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getMessages } from "@/lib/bug-report/store";
 
-declare global {
-  var bugStore: Record<string, Array<{ id: string; sender: "user" | "admin"; text: string; time: number }>>;
-}
-global.bugStore = global.bugStore || {};
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
   const sessionId = req.nextUrl.searchParams.get("sessionId");
@@ -11,6 +10,15 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ messages: [] });
   }
 
-  const list = global.bugStore[sessionId] || [];
-  return NextResponse.json({ messages: list });
+  const list = getMessages(sessionId);
+  return NextResponse.json(
+    { messages: list },
+    {
+      headers: {
+        "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+        Pragma: "no-cache",
+        Expires: "0",
+      },
+    }
+  );
 }

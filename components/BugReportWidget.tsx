@@ -58,8 +58,8 @@ export default function BugReportWidget() {
     };
 
     fetchReplies();
-    // Thăm dò mỗi 4 giây
-    const interval = setInterval(fetchReplies, 4000);
+    // Thăm dò nhanh hơn khi đang mở hộp thoại (2.5s) và 6s khi đang đóng
+    const interval = setInterval(fetchReplies, isOpen ? 2500 : 6000);
     return () => clearInterval(interval);
   }, [sessionId, isOpen]);
 
