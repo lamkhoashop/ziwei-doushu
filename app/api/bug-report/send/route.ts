@@ -27,8 +27,8 @@ export async function POST(req: NextRequest) {
 
     const senderName = name?.trim() || `Khách (#${sessionId.slice(0, 4)})`;
 
-    // Lưu log tin nhắn vào store bền vững
-    addUserMessage(sessionId, senderName, text.trim());
+    // Lưu log tin nhắn vào store bền vững và xác định xem có phải phiên mới không
+    const { isNewSession } = addUserMessage(sessionId, senderName, text.trim());
 
     // Soạn tin thông báo HTML an toàn cho Telegram
     const safeName = escapeHtml(senderName);
@@ -37,16 +37,25 @@ export async function POST(req: NextRequest) {
     const safeScreen = escapeHtml(screen || "Không rõ");
     const safeUa = escapeHtml(userAgent ? userAgent.slice(0, 70) + "..." : "Unknown");
 
-    const messageHtml =
-      `🚨 <b>BÁO CÁO SỰ CỐ / LỖI WEBSITE</b>\n` +
-      `────────────────────────\n` +
-      `👤 <b>Người báo:</b> ${safeName}\n` +
-      `📍 <b>Trang lỗi:</b> <code>${safeUrl}</code>\n` +
-      `💻 <b>Thiết bị:</b> ${safeScreen} | <i>${safeUa}</i>\n` +
-      `🔖 <b>Mã Ticket:</b> <code>#${sessionId}</code>\n\n` +
-      `📝 <b>Nội dung sự cố:</b>\n"${safeText}"\n` +
-      `────────────────────────\n` +
-      `👇 <i>Chạm vào nút bên dưới để trả lời đúng cho khách này:</i>`;
+    let messageHtml = "";
+    if (isNewSession) {
+      // 1. Bắt đầu phiên mới: Gửi đầy đủ thông số kỹ thuật (URL, màn hình, thiết bị)
+      messageHtml =
+        `🚨 <b>BÁO CÁO SỰ CỐ / LỖI WEBSITE</b>\n` +
+        `────────────────────────\n` +
+        `👤 <b>Người báo:</b> ${safeName}\n` +
+        `📍 <b>Trang lỗi:</b> <code>${safeUrl}</code>\n` +
+        `💻 <b>Thiết bị:</b> ${safeScreen} | <i>${safeUa}</i>\n` +
+        `🔖 <b>Mã Ticket:</b> <code>#${sessionId}</code>\n\n` +
+        `📝 <b>Nội dung sự cố:</b>\n"${safeText}"\n` +
+        `────────────────────────\n` +
+        `👇 <i>Chạm vào nút bên dưới để trả lời đúng cho khách này:</i>`;
+    } else {
+      // 2. Khách nhắn tiếp trong cùng phiên: Gửi cực kỳ gọn gàng, không lặp lại thông số rườm rà
+      messageHtml =
+        `💬 <b>Khách nhắn tiếp (${safeName} · <code>#${sessionId}</code>):</b>\n` +
+        `"${safeText}"`;
+    }
 
     const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
       method: "POST",

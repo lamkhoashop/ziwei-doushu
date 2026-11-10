@@ -66,8 +66,15 @@ export function setActiveSession(sessionId: string): TicketData | null {
   return memStore.tickets[sessionId] || null;
 }
 
-export function addUserMessage(sessionId: string, userName: string, text: string): void {
+export function addUserMessage(sessionId: string, userName: string, text: string): { isNewSession: boolean } {
   loadStore();
+
+  const existingTicket = memStore.tickets[sessionId];
+  // Coi là phiên mới nếu chưa có tin nhắn nào hoặc tin nhắn trước đã cách hơn 2 tiếng
+  const TWO_HOURS = 2 * 60 * 60 * 1000;
+  const isNewSession = !existingTicket ||
+    existingTicket.messages.length === 0 ||
+    (Date.now() - existingTicket.lastUpdated > TWO_HOURS);
 
   if (!memStore.tickets[sessionId]) {
     memStore.tickets[sessionId] = {
@@ -88,6 +95,8 @@ export function addUserMessage(sessionId: string, userName: string, text: string
   });
 
   persistStore();
+
+  return { isNewSession };
 }
 
 export function addAdminMessage(
