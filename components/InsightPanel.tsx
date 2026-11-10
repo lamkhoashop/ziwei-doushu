@@ -826,6 +826,39 @@ Tia ảnh hưởng đến cung đối chiếu và tam hợp.
     sendMessage(TOPIC_PROMPTS[topicKey], true);
   };
 
+  /**
+   * Tẩy Bàn Tái Luận:
+   * Thuật ngữ Đạo gia / Tử Vi kinh điển (Tẩy bàn = lau sạch bàn cờ/bàn toán, xóa bỏ tạp niệm hay lịch sử cũ,
+   * để thôi diễn lại thiên cơ từ đầu với tâm thái thanh tịnh nhất).
+   */
+  const handleResetChat = () => {
+    if (loadingRef.current) return;
+
+    // 1. Xóa sạch bộ nhớ đệm sessionStorage của lá số này
+    try {
+      sessionStorage.removeItem(chartKey);
+    } catch { /* ignore */ }
+
+    // 2. Reset các con trỏ trạng thái tracking
+    lastPalaceBranch.current = undefined;
+    lastSiHuaKey.current = undefined;
+    autoLoaded.current = true;
+
+    // 3. Chuẩn bị thông điệp mới theo chủ đề đang chọn (hoặc Mệnh Cách)
+    const activePrompt = TOPIC_PROMPTS[activeTopic] || TOPIC_PROMPTS.overview;
+    const userMsg: Message = { role: 'user', content: activePrompt, hidden: true };
+
+    // 4. Khởi tạo lại chuỗi tin nhắn hoàn toàn mới
+    messagesRef.current = [userMsg];
+    setMessages([userMsg, { role: 'assistant', content: '' }]);
+    loadingRef.current = true;
+    setLoading(true);
+    setInput('');
+
+    // 5. Thôi diễn lại với duy nhất dữ liệu lá số sạch
+    streamResponse([userMsg]);
+  };
+
   const handleSend = () => {
     sendMessage(input);
   };
@@ -900,6 +933,35 @@ Tia ảnh hưởng đến cung đối chiếu và tam hợp.
             );
           })}
         </div>
+
+        {/* Thanh công cụ phụ: Hiện chủ đề đang chọn & Nút Tẩy Bàn Tái Luận */}
+        <div className="flex items-center justify-between px-1 pt-1 text-[10px] select-none">
+          <div className="flex items-center gap-1.5 font-mystic" style={{ color: isDark ? 'rgba(254, 240, 138, 0.75)' : '#78350F' }}>
+            <span className="text-amber-400">✦</span>
+            <span>CHỦ ĐỀ: <strong className="font-bold text-amber-300">{TOPICS.find(t => t.key === activeTopic)?.label || 'Mệnh Cách'}</strong></span>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleResetChat}
+            disabled={loading}
+            title="Tẩy sạch bàn toán, xóa bỏ hội thoại cũ để thôi diễn lại từ đầu"
+            className="flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[10px] font-mystic font-semibold tracking-wider transition-all disabled:opacity-40 cursor-pointer hover:scale-105 active:scale-95"
+            style={{
+              background: isDark
+                ? 'linear-gradient(145deg, rgba(45, 32, 14, 0.85) 0%, rgba(24, 18, 8, 0.95) 100%)'
+                : 'linear-gradient(145deg, #FFFBEB 0%, #FEF3C7 100%)',
+              border: isDark ? '1px solid rgba(212, 168, 67, 0.4)' : '1px solid rgba(184, 146, 42, 0.5)',
+              color: isDark ? '#FEF08A' : '#78350F',
+              boxShadow: isDark
+                ? '0 1px 4px rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.1)'
+                : '0 1px 3px rgba(120,53,15,0.08), inset 0 1px 1px rgba(255,255,255,0.8)',
+            }}
+          >
+            <span className={loading ? 'animate-spin' : ''}>↺</span>
+            <span>Tẩy Bàn Tái Luận</span>
+          </button>
+        </div>
       </div>
 
       {/* ── Messages ── */}
@@ -965,13 +1027,35 @@ Tia ảnh hưởng đến cung đối chiếu và tam hợp.
                     </div>
 
                     {!isWaitingFirstToken && msg.content && (
-                      <CopyButton
-                        text={msg.content}
-                        label="Sao chép toàn bộ"
-                        copiedLabel="Đã chép toàn bộ ✓"
-                        variant="pill"
-                        isDark={isDark}
-                      />
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          onClick={handleResetChat}
+                          disabled={loading}
+                          title="Tẩy sạch bàn toán, xóa bỏ hội thoại cũ để thôi diễn lại từ đầu"
+                          className="px-2.5 py-1 text-[9.5px] font-mystic font-semibold rounded-full border transition-all cursor-pointer flex items-center gap-1 hover:scale-105 active:scale-95 disabled:opacity-40 select-none"
+                          style={{
+                            background: isDark
+                              ? 'linear-gradient(145deg, rgba(45, 32, 14, 0.85) 0%, rgba(24, 18, 8, 0.95) 100%)'
+                              : 'linear-gradient(145deg, #FFFBEB 0%, #FEF3C7 100%)',
+                            border: isDark ? '1px solid rgba(212, 168, 67, 0.4)' : '1px solid rgba(184, 146, 42, 0.5)',
+                            color: isDark ? '#FEF08A' : '#78350F',
+                            boxShadow: isDark
+                              ? '0 1px 4px rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.1)'
+                              : '0 1px 3px rgba(120,53,15,0.08), inset 0 1px 1px rgba(255,255,255,0.8)',
+                          }}
+                        >
+                          <span className={loading ? 'animate-spin' : ''}>↺</span>
+                          <span>Tẩy Bàn Tái Luận</span>
+                        </button>
+                        <CopyButton
+                          text={msg.content}
+                          label="Sao chép toàn bộ"
+                          copiedLabel="Đã chép toàn bộ ✓"
+                          variant="pill"
+                          isDark={isDark}
+                        />
+                      </div>
                     )}
                   </div>
 
@@ -1124,13 +1208,35 @@ Tia ảnh hưởng đến cung đối chiếu và tam hợp.
                             <span>💡</span>
                             <span>Chạm nút để sao chép trọn vẹn bài luận giải</span>
                           </div>
-                          <CopyButton
-                            text={msg.content}
-                            label="Sao Chép Toàn Bộ"
-                            copiedLabel="Đã Sao Chép Thành Công ✓"
-                            variant="pill"
-                            isDark={isDark}
-                          />
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={handleResetChat}
+                              disabled={loading}
+                              title="Tẩy sạch bàn toán, xóa bỏ hội thoại cũ để thôi diễn lại từ đầu"
+                              className="px-3 py-1.5 text-[10.5px] font-mystic font-semibold rounded-full border transition-all cursor-pointer flex items-center gap-1.5 hover:scale-105 active:scale-95 disabled:opacity-40 select-none"
+                              style={{
+                                background: isDark
+                                  ? 'linear-gradient(145deg, rgba(45, 32, 14, 0.85) 0%, rgba(24, 18, 8, 0.95) 100%)'
+                                  : 'linear-gradient(145deg, #FFFBEB 0%, #FEF3C7 100%)',
+                                border: isDark ? '1px solid rgba(212, 168, 67, 0.4)' : '1px solid rgba(184, 146, 42, 0.5)',
+                                color: isDark ? '#FEF08A' : '#78350F',
+                                boxShadow: isDark
+                                  ? '0 1px 4px rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.1)'
+                                  : '0 1px 3px rgba(120,53,15,0.08), inset 0 1px 1px rgba(255,255,255,0.8)',
+                              }}
+                            >
+                              <span className={loading ? 'animate-spin' : ''}>↺</span>
+                              <span>Tẩy Bàn Tái Luận</span>
+                            </button>
+                            <CopyButton
+                              text={msg.content}
+                              label="Sao Chép Toàn Bộ"
+                              copiedLabel="Đã Sao Chép Thành Công ✓"
+                              variant="pill"
+                              isDark={isDark}
+                            />
+                          </div>
                         </div>
                       )}
                     </>
