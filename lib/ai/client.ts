@@ -55,13 +55,22 @@ export function getAiConfig(): AiConfig {
   // Chuẩn hóa model ID nếu người dùng điền tên hiển thị
   const normalized = model.trim().toLowerCase();
   if (
-    normalized.includes('deepseek v4.1 flash uncensored') ||
-    normalized.includes('deepseek-v4.1-flash-uncensored') ||
-    normalized.includes('deepseek v4.1 flash')
+    normalized === 'deepseek v4.1 flash uncensored' ||
+    normalized === 'deepseek-v4.1-flash-uncensored'
   ) {
     if (baseURL.includes('wusrouter')) {
       model = 'uncensored/deepseek-v4.1-flash:free';
     }
+  } else if (
+    normalized === 'deepseek v4.1 flash' ||
+    normalized === 'deepseek-v4.1-flash'
+  ) {
+    model = 'deepseek-v4.1-flash';
+  } else if (
+    normalized === 'deepseek v4 pro' ||
+    normalized === 'deepseek-v4-pro'
+  ) {
+    model = 'deepseek-v4-pro';
   }
 
   return { apiKey, baseURL, model };
