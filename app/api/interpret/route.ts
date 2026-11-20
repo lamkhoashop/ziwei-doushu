@@ -12,15 +12,78 @@ import {
 } from '@/lib/ziwei/vietnamese';
 import { detectPatterns, getMingGongSummary } from '@/lib/ziwei/patterns';
 import { getYearStemIndex, getYearBranchIndex, getSiHuaByStem } from '@/lib/ziwei/sihua';
+import {
+  boshiShenNameVi,
+  jiangQianShenNameVi,
+  suiQianShenNameVi,
+} from '@/lib/ziwei/shier-shen';
 import { streamOpenAiResponse, type AiMessage } from '@/lib/ai/client';
 import { aiQueue } from '@/lib/ai/queue';
 
 export const runtime = 'nodejs';
 
+type InterpretTimeView = 'mingpan' | 'daxian' | 'liunian';
+
+function describeSiHuaLocations(chart: ZiweiChart, stemIndex: number): string {
+  const siHuaMap = getSiHuaByStem(stemIndex);
+  const entries: { key: '禄' | '权' | '科' | '忌'; label: string }[] = [
+    { key: '禄', label: 'Hóa Lộc' },
+    { key: '权', label: 'Hóa Quyền' },
+    { key: '科', label: 'Hóa Khoa' },
+    { key: '忌', label: 'Hóa Kỵ' },
+  ];
+  return entries
+    .map(({ key, label }) => {
+      const starRaw = siHuaMap[key];
+      const starVi = toVietnameseStar(starRaw);
+      const pal = chart.palaces.find((p) => p.stars.some((s) => s.name === starRaw));
+      const palDesc = pal
+        ? `tại ${toVietnamesePalace(pal.name)} (${STEMS_VI[pal.stem]} ${BRANCHES_VI[pal.branch]})`
+        : '';
+      return `${starVi} ${label}${palDesc ? ` [${palDesc}]` : ''}`;
+    })
+    .join('; ');
+}
+
+function describeLayeredPalaces(chart: ZiweiChart, anchorBranch: number, prefix: string): string[] {
+  const offsets: { label: string; offset: number }[] = [
+    { label: `${prefix} Mệnh`, offset: 0 },
+    { label: `${prefix} Phu Thê`, offset: 10 },
+    { label: `${prefix} Tài Bạch`, offset: 8 },
+    { label: `${prefix} Tật Ách`, offset: 7 },
+    { label: `${prefix} Thiên Di`, offset: 6 },
+    { label: `${prefix} Quan Lộc`, offset: 4 },
+    { label: `${prefix} Phúc Đức`, offset: 2 },
+    { label: `${prefix} Điền Trạch`, offset: 3 },
+  ];
+  return offsets.map(({ label, offset }) => {
+    const b = (anchorBranch + offset) % 12;
+    const basePal = chart.palaces.find((p) => p.branch === b);
+    if (!basePal) return `• ${label}: Cung ${BRANCHES_VI[b]}`;
+    const major = basePal.stars
+      .filter((s) => s.type === 'major')
+      .map((s) => {
+        const br = toVietnameseBrightness(s.brightnessRaw);
+        return `${toVietnameseStar(s.name)}${br ? `(${br})` : ''}`;
+      });
+    const majorDesc = major.length > 0
+      ? major.join(', ')
+      : `Vô Chính Diệu (mượn đối cung: ${(basePal.borrowedStars || []).map((s) => toVietnameseStar(s)).join(', ')})`;
+    const bs = boshiShenNameVi(chart.lunarInfo.yearStem, chart.birthInfo.gender, b);
+    const jq = jiangQianShenNameVi(anchorBranch, b);
+    const sq = suiQianShenNameVi(anchorBranch, b);
+    return `• ${label} (đóng tại ${toVietnamesePalace(basePal.name)} - ${STEMS_VI[basePal.stem]} ${BRANCHES_VI[b]}): ${majorDesc} | Thần sát: ${bs}, ${jq}, ${sq}`;
+  });
+}
+
 /**
  * Xây dựng báo cáo dữ liệu lá số Tử Vi có cấu trúc mạch lạc để đưa vào System Prompt
  */
-function buildChartContext(chart: ZiweiChart): string {
+function buildChartContext(
+  chart: ZiweiChart,
+  activeTimeView: InterpretTimeView,
+  targetYear: number,
+): string {
   const { birthInfo, lunarInfo, palaces, mingGongBranch, shenGongBranch, wuxingJuName, daXians, currentDaXianIndex } = chart;
   const patterns = detectPatterns(chart);
   const mingSummary = getMingGongSummary(chart);
@@ -42,12 +105,15 @@ function buildChartContext(chart: ZiweiChart): string {
   lines.push(`Cục số: ${toVietnameseJu(wuxingJuName)}`);
 
   if (currentDx) {
+    const dxPal = palaces.find((p) => p.branch === currentDx.palaceBranch);
+    const dxSiHuaStr = dxPal ? describeSiHuaLocations(chart, dxPal.stem) : '';
     lines.push(
-      `Đại Hạn hiện tại: ${currentDx.startAge}–${currentDx.endAge} tuổi, ngự tại ${toVietnamesePalace(currentDx.palaceName)} (Cung vị: ${BRANCHES_VI[currentDx.palaceBranch]})`
+      `Đại Hạn hiện tại: ${currentDx.startAge}–${currentDx.endAge} tuổi, ngự tại ${toVietnamesePalace(currentDx.palaceName)} (Cung vị: ${dxPal ? STEMS_VI[dxPal.stem] + ' ' : ''}${BRANCHES_VI[currentDx.palaceBranch]})`
     );
+    if (dxSiHuaStr) lines.push(`Tứ Hóa Đại Hạn hiện tại: ${dxSiHuaStr}`);
   }
 
-  // ─── THỜI ĐIỂM HIỆN TẠI (MỐC THAM CHIẾU LUẬN GIẢI THỰC TẾ) ───
+  // ─── THỜI ĐIỂM HIỆN TẠI (MỐC THAM CHIẾU THỰC TẾ) ───
   const now = new Date();
   const currentYear = now.getFullYear();
   const currentMonth = now.getMonth() + 1;
@@ -59,20 +125,52 @@ function buildChartContext(chart: ZiweiChart): string {
   const curBranchName = BRANCHES_VI[curBranchIdx];
   const nominalAge = currentYear - birthInfo.year + 1;
 
-  const curSiHua = getSiHuaByStem(curStemIdx);
-  const curSiHuaStr = `Hóa Lộc: ${toVietnameseStar(curSiHua['禄'])}; Hóa Quyền: ${toVietnameseStar(curSiHua['权'])}; Hóa Khoa: ${toVietnameseStar(curSiHua['科'])}; Hóa Kỵ: ${toVietnameseStar(curSiHua['忌'])}`;
+  lines.push('\n=== MỐC THỜI GIAN THỰC TẾ HÔM NAY ===');
+  lines.push(`• Ngày tra cứu thực tế: Ngày ${currentDay} tháng ${currentMonth} năm ${currentYear}`);
+  lines.push(`• Năm thực tế hiện tại: Năm ${currentYear} (${curStemName} ${curBranchName}), tuổi mụ: ${nominalAge} tuổi`);
 
-  lines.push('\n=== MỐC THỜI GIAN HIỆN TẠI & LƯU NIÊN (ĐẶC BIỆT QUAN TRỌNG) ===');
-  lines.push(`• Thời điểm tra cứu hôm nay: Ngày ${currentDay} tháng ${currentMonth} năm ${currentYear}`);
-  lines.push(`• Năm hiện tại (Lưu Niên): Năm ${currentYear} (${curStemName} ${curBranchName})`);
-  lines.push(`• Tuổi mụ (Âm lịch) năm ${currentYear} của đương số: ${nominalAge} tuổi`);
-  lines.push(`• Cung vị Lưu Thái Tuế năm ${currentYear}: Cung ${curBranchName}`);
-  lines.push(`• Lưu Tứ Hóa năm ${currentYear} (${curStemName} ${curBranchName}): ${curSiHuaStr}`);
-  lines.push(`* BẮT BUỘC: Khi đương số hỏi về "năm nay", "vận trình hiện tại", "sự nghiệp năm nay", "năm nay ra sao", bạn BẮT BUỘC PHẢI LUẬN THEO NĂM ${currentYear} (${curStemName} ${curBranchName}, ${nominalAge} TUỔI ÂM LỊCH), TUYỆT ĐỐI KHÔNG LUẬN THEO NĂM CŨ 2024 HAY 2025.`);
+  // ─── CHẾ ĐỘ ĐANG XEM HIỆN TẠI TRÊN BÀN CỜ ───
+  if (activeTimeView === 'liunian') {
+    const targetStemIdx = getYearStemIndex(targetYear);
+    const targetBranchIdx = getYearBranchIndex(targetYear);
+    const targetStemName = STEMS_VI[targetStemIdx];
+    const targetBranchName = BRANCHES_VI[targetBranchIdx];
+    const targetAge = targetYear - birthInfo.year + 1;
+    const targetDx = daXians.find((d) => targetAge >= d.startAge && targetAge <= d.endAge) || currentDx;
+    const luuThaiTuePalace = palaces.find((p) => p.branch === targetBranchIdx);
+    const targetSiHuaLocations = describeSiHuaLocations(chart, targetStemIdx);
+
+    lines.push(`\n=== TRỌNG TÂM ĐANG TRA CỨU: LƯU NIÊN NĂM ${targetYear} (${targetStemName} ${targetBranchName}) ===`);
+    lines.push(`• Năm Lưu Niên được chọn: ${targetYear} (${targetStemName} ${targetBranchName})`);
+    lines.push(`• Tuổi mụ (Âm lịch) của đương số trong năm ${targetYear}: ${targetAge} tuổi`);
+    if (targetDx) {
+      const tDxPal = palaces.find((p) => p.branch === targetDx.palaceBranch);
+      lines.push(
+        `• Đại Hạn chi phối năm ${targetYear}: ${targetDx.startAge}–${targetDx.endAge} tuổi tại ${toVietnamesePalace(targetDx.palaceName)} (${BRANCHES_VI[targetDx.palaceBranch]})${tDxPal ? ` | Tứ Hóa Đại Hạn: ${describeSiHuaLocations(chart, tDxPal.stem)}` : ''}`
+      );
+    }
+    lines.push(
+      `• Lưu Thái Tuế năm ${targetYear} đóng tại cung: ${targetBranchName} (chồng lên ${luuThaiTuePalace ? toVietnamesePalace(luuThaiTuePalace.name) : ''} bản mệnh)`
+    );
+    lines.push(`• Lưu Tứ Hóa năm ${targetYear} (Thiên Can ${targetStemName}): ${targetSiHuaLocations}`);
+    lines.push('• Hệ thống 12 Cung Lưu Niên & Thần Sát năm ' + targetYear + ':');
+    lines.push(...describeLayeredPalaces(chart, targetBranchIdx, `Lưu Niên ${targetYear}`));
+  } else if (activeTimeView === 'daxian' && currentDx) {
+    const dxPal = palaces.find((p) => p.branch === currentDx.palaceBranch);
+    lines.push(`\n=== TRỌNG TÂM ĐANG TRA CỨU: ĐẠI HẠN ${currentDx.startAge}–${currentDx.endAge} TUỔI ===`);
+    lines.push(
+      `• Mệnh Đại Hạn: Đóng tại ${toVietnamesePalace(currentDx.palaceName)} (${dxPal ? STEMS_VI[dxPal.stem] + ' ' : ''}${BRANCHES_VI[currentDx.palaceBranch]})`
+    );
+    if (dxPal) {
+      lines.push(`• Tứ Hóa Đại Hạn (Can ${STEMS_VI[dxPal.stem]}): ${describeSiHuaLocations(chart, dxPal.stem)}`);
+    }
+    lines.push(`• Hệ thống Cung vị & Thần Sát Đại Hạn (${currentDx.startAge}–${currentDx.endAge} tuổi):`);
+    lines.push(...describeLayeredPalaces(chart, currentDx.palaceBranch, 'Đại Hạn'));
+  }
 
   // Khái quát cung Mệnh
   const mingStars = mingSummary.stars.map(s => toVietnameseStar(s));
-  lines.push(`Chính tinh cung Mệnh: ${mingStars.length > 0 ? mingStars.join(', ') : 'Vô Chính Diệu (mượn đối cung)'}`);
+  lines.push(`\nChính tinh cung Mệnh: ${mingStars.length > 0 ? mingStars.join(', ') : 'Vô Chính Diệu (mượn đối cung)'}`);
   if (mingSummary.nature) lines.push(`Tính chất Mệnh chủ: ${mingSummary.nature}`);
 
   // Tứ Hóa Năm Sinh
@@ -143,9 +241,11 @@ function buildChartContext(chart: ZiweiChart): string {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { chart, messages, vipKey, vipExp } = body as {
+    const { chart, messages, timeView, liunianYear, vipKey, vipExp } = body as {
       chart: ZiweiChart;
       messages?: { role: string; content: string }[];
+      timeView?: InterpretTimeView;
+      liunianYear?: number;
       vipKey?: string;
       vipExp?: number;
     };
@@ -157,30 +257,60 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    const isVip = aiQueue.checkIsVip(req, vipKey, vipExp);
-    const chartContext = buildChartContext(chart);
-
     const now = new Date();
     const currentYear = now.getFullYear();
+    const activeTimeView: InterpretTimeView =
+      timeView === 'daxian' || timeView === 'liunian' ? timeView : 'mingpan';
+    const targetYear =
+      typeof liunianYear === 'number' && Number.isFinite(liunianYear)
+        ? liunianYear
+        : currentYear;
+
+    const isVip = aiQueue.checkIsVip(req, vipKey, vipExp);
+    const chartContext = buildChartContext(chart, activeTimeView, targetYear);
+
     const curStemIdx = getYearStemIndex(currentYear);
     const curBranchIdx = getYearBranchIndex(currentYear);
     const curStemName = STEMS_VI[curStemIdx];
     const curBranchName = BRANCHES_VI[curBranchIdx];
     const nominalAge = currentYear - chart.birthInfo.year + 1;
-    const curSiHua = getSiHuaByStem(curStemIdx);
-    const curSiHuaStr = `Thiên Can ${curStemName} biến hóa: ${toVietnameseStar(curSiHua['禄'])} Hóa Lộc, ${toVietnameseStar(curSiHua['权'])} Hóa Quyền, ${toVietnameseStar(curSiHua['科'])} Hóa Khoa, ${toVietnameseStar(curSiHua['忌'])} Hóa Kỵ`;
+
+    const targetStemIdx = getYearStemIndex(targetYear);
+    const targetBranchIdx = getYearBranchIndex(targetYear);
+    const targetStemName = STEMS_VI[targetStemIdx];
+    const targetBranchName = BRANCHES_VI[targetBranchIdx];
+    const targetAge = targetYear - chart.birthInfo.year + 1;
+    const targetSiHuaStr = describeSiHuaLocations(chart, targetStemIdx);
+
+    const currentDx = chart.daXians[chart.currentDaXianIndex];
+
+    let activeDimensionDirective = '';
+    if (activeTimeView === 'liunian') {
+      activeDimensionDirective = `
+CHẾ ĐỘ XEM ĐANG KÍCH HOẠT TRÊN MÀN HÌNH: 【LƯU NIÊN NĂM ${targetYear} (${targetStemName} ${targetBranchName}, ${targetAge} tuổi âm lịch)】
+- BẮT BUỘC TUYỆT ĐỐI: Mọi yêu cầu luận chủ đề (Mệnh Cách, Tình Duyên, Sự Nghiệp, Tài Bạch, Sức Khỏe, Tính Cách) hoặc câu hỏi về vận hạn hiện tại PHẢI ĐƯỢC LUẬN TRỌNG TÂM CHO NĂM ${targetYear} (${targetStemName} ${targetBranchName}).
+- KHÔNG ĐƯỢC nhầm sang năm thực tế ${currentYear} (nếu ${targetYear} khác ${currentYear}) hay chỉ nói chung chung về Bản Mệnh trọn đời mà bỏ quên biến động năm ${targetYear}.
+- Dựa chuẩn xác vào phần "TRỌNG TÂM ĐANG TRA CỨU: LƯU NIÊN NĂM ${targetYear}" trong dữ liệu dưới đây:
+  * Lưu Thái Tuế năm ${targetYear} tại cung ${targetBranchName}.
+  * Lưu Tứ Hóa năm ${targetYear} (Can ${targetStemName}): ${targetSiHuaStr}.
+  * Phối hợp các cung Lưu Niên (Lưu Quan Lộc, Lưu Tài Bạch, Lưu Phu Thê, Lưu Tật Ách) và 3 vòng Thần Sát năm ${targetYear}.`;
+    } else if (activeTimeView === 'daxian' && currentDx) {
+      activeDimensionDirective = `
+CHẾ ĐỘ XEM ĐANG KÍCH HOẠT TRÊN MÀN HÌNH: 【ĐẠI HẠN 10 NĂM (${currentDx.startAge}–${currentDx.endAge} tuổi tại ${toVietnamesePalace(currentDx.palaceName)} - cung ${BRANCHES_VI[currentDx.palaceBranch]})】
+- BẮT BUỘC TUYỆT ĐỐI: Mọi yêu cầu luận chủ đề PHẢI TẬP TRUNG VÀO VẬN TRÌNH ĐẠI HẠN ${currentDx.startAge}–${currentDx.endAge} TUỔI này.
+- Phân tích sâu Mệnh Đại Hạn, bộ Tứ Hóa Đại Hạn và các cung Đại Hạn (Đại Hạn Quan Lộc, Tài Bạch, Phu Thê...) phối hợp với Bản Mệnh gốc.`;
+    } else {
+      activeDimensionDirective = `
+CHẾ ĐỘ XEM ĐANG KÍCH HOẠT TRÊN MÀN HÌNH: 【BẢN MỆNH GỐC TIÊN THIÊN】
+- Trọng tâm phân tích cốt cách tiên thiên, nền tảng 12 cung bản mệnh và phối hợp xu hướng Đại Hạn hiện tại.
+- Nếu đương số hỏi cụ thể "năm nay", "vận trình năm nay" thì lấy năm thực tế ${currentYear} (${curStemName} ${curBranchName}, ${nominalAge} tuổi âm lịch) để giải đáp.`;
+    }
 
     const systemPrompt = `Bạn là bậc thầy Tử Vi Đẩu Số thông tuệ, điềm tĩnh, thấu tình đạt lý, am tường sâu sắc trường phái Thiên Kỷ của cụ Nghê Hải Hà (倪海厦) kết hợp với Dịch lý và học thuật Tử Vi Đẩu Số chính thống Việt Nam.
 
-QUY TẮC MỐC THỜI GIAN HIỆN TẠI (TUYỆT ĐỐI TUÂN THỦ):
-- MỐC THỜI GIAN THỰC TẾ HÔM NAY: Năm ${currentYear} (${curStemName} ${curBranchName}).
-- Đương số trong năm nay (${currentYear}) bước sang tuổi ${nominalAge} âm lịch.
-- Cung Lưu Thái Tuế năm nay đóng tại cung: ${curBranchName}.
-- Lưu Tứ Hóa năm ${currentYear} (${curStemName} ${curBranchName}): ${curSiHuaStr}.
-- Khi người dùng hỏi các câu hỏi liên quan đến thời điểm như "năm nay", "năm nay thế nào", "sự nghiệp năm nay", "vận trình hiện tại":
-  * BẮT BUỘC PHẢI LUẬN GIẢI CHO NĂM ${currentYear} (${curStemName} ${curBranchName}), tương ứng tuổi ${nominalAge} âm lịch của đương số.
-  * TUYỆT ĐỐI KHÔNG LUẬN THEO NĂM CŨ 2024 HAY 2025.
-  * Phân tích rõ sự tương tác giữa Lưu Thái Tuế tại cung ${curBranchName}, Đại Hạn 10 năm và Lưu Tứ Hóa năm ${currentYear}.
+QUY TẮC MỐC THỜI GIAN & CHIỀU KÍCH TRA CỨU (TUYỆT ĐỐI TUÂN THỦ):
+- Mốc thời gian thực tế hôm nay: Năm ${currentYear} (${curStemName} ${curBranchName}, đương số ${nominalAge} tuổi âm lịch).
+${activeDimensionDirective}
 
 NGUYÊN TẮC LUẬN GIẢI:
 1. Triết lý chỉ đạo: "Tri mệnh để tạo vận" (Biết mệnh để tạo dựng vận số, hiểu mình để làm chủ cuộc đời). Tuyệt đối KHÔNG phán xét mê tín dị đoan, không dọa dẫm tiêu cực. Mọi thách thức hay sát tinh đều được nhìn nhận như môi trường trui rèn bản lĩnh và có giải pháp hóa giải bằng nhận thức và hành động thực tế.

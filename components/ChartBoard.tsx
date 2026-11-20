@@ -20,6 +20,10 @@ import CenterLightning from './CenterLightning';
 
 interface ChartBoardProps {
   chart: ZiweiChart;
+  timeView?: TimeView;
+  liunianYear?: number;
+  onTimeViewChange?: (view: TimeView) => void;
+  onLiunianYearChange?: (year: number) => void;
   onStarSelect?: (star: Star, palace: Palace) => void;
   onPalaceSelect?: (palace: Palace) => void;
   onSiHuaClick?: (starName: string, siHua: string, view: TimeView) => void;
@@ -63,13 +67,34 @@ function getSanFangSiZheng(branch: number): [number, number, number, number] {
 
 const ANIMATION_ORDER = [5, 6, 7, 8, 9, 10, 11, 0, 1, 2, 3, 4];
 
-export default function ChartBoard({ chart, onStarSelect, onPalaceSelect, onSiHuaClick }: ChartBoardProps) {
+export default function ChartBoard({
+  chart,
+  timeView: controlledTimeView,
+  liunianYear: controlledLiunianYear,
+  onTimeViewChange,
+  onLiunianYearChange,
+  onStarSelect,
+  onPalaceSelect,
+  onSiHuaClick,
+}: ChartBoardProps) {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
 
   const [selectedBranch, setSelectedBranch] = useState<number | null>(null);
-  const [timeView, setTimeView] = useState<TimeView>('mingpan');
-  const [liunianYear, setLiunianYear] = useState<number>(new Date().getFullYear());
+  const [internalTimeView, setInternalTimeView] = useState<TimeView>('mingpan');
+  const [internalLiunianYear, setInternalLiunianYear] = useState<number>(new Date().getFullYear());
+
+  const timeView = controlledTimeView ?? internalTimeView;
+  const liunianYear = controlledLiunianYear ?? internalLiunianYear;
+
+  const setTimeView = (v: TimeView) => {
+    setInternalTimeView(v);
+    onTimeViewChange?.(v);
+  };
+  const setLiunianYear = (y: number) => {
+    setInternalLiunianYear(y);
+    onLiunianYearChange?.(y);
+  };
 
   const palaceMap: Record<number, Palace> = {};
   chart.palaces.forEach(p => { palaceMap[p.branch] = p; });

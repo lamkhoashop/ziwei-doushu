@@ -10,7 +10,10 @@ import {
   toVietnamesePalace,
   toVietnameseStar,
   toVietnameseSiHua,
+  STEMS_VI,
+  BRANCHES_VI,
 } from '@/lib/ziwei/vietnamese';
+import { getYearStemIndex, getYearBranchIndex, getSiHuaByStem } from '@/lib/ziwei/sihua';
 // import SpeechPlayer from './SpeechPlayer'; // Tạm thời ẩn phần đọc, sẽ tối ưu và bật lại sau
 
 interface Message {
@@ -29,6 +32,8 @@ interface InsightPanelProps {
   chart: ZiweiChart;
   selectedPalace?: Palace | null;
   selectedSiHua?: SelectedSiHua | null;
+  timeView?: TimeView;
+  liunianYear?: number;
 }
 
 const TOPICS = [
@@ -137,6 +142,198 @@ Thiên hướng tài năng và điểm mù tâm lý cần tỉnh thức vượt 
 **【BÀI HỌC TU DƯỠNG】**
 Định hướng phát triển bản thân để đạt tới sự cân bằng và thành tựu.`,
 };
+
+function buildTopicPrompt(
+  topicKey: string,
+  timeView: TimeView,
+  liunianYear: number,
+  chart: ZiweiChart,
+): string {
+  if (timeView === 'mingpan') {
+    return TOPIC_PROMPTS[topicKey] || TOPIC_PROMPTS.overview;
+  }
+
+  const currentDx = chart.daXians[chart.currentDaXianIndex];
+
+  if (timeView === 'daxian') {
+    const dxLabel = currentDx
+      ? `${currentDx.startAge}–${currentDx.endAge} tuổi tại ${toVietnamesePalace(currentDx.palaceName)} (${BRANCHES_VI[currentDx.palaceBranch]})`
+      : '10 năm hiện tại';
+    const dxPal = currentDx ? chart.palaces.find(p => p.branch === currentDx.palaceBranch) : undefined;
+    const dxSiHua = dxPal ? getSiHuaByStem(dxPal.stem) : null;
+    const dxSiHuaDesc = dxSiHua
+      ? `${toVietnameseStar(dxSiHua['禄'])} Hóa Lộc, ${toVietnameseStar(dxSiHua['权'])} Hóa Quyền, ${toVietnameseStar(dxSiHua['科'])} Hóa Khoa, ${toVietnameseStar(dxSiHua['忌'])} Hóa Kỵ`
+      : '';
+
+    const topicMap: Record<string, string> = {
+      overview: `Xin phân tích chuyên sâu 【TỔNG QUAN VẬN THẾ ĐẠI HẠN ${dxLabel.toUpperCase()}】 theo trường phái Nghê Hải Hà:
+
+**【CỤC DIỆN ĐẠI HẠN ${currentDx ? `${currentDx.startAge}–${currentDx.endAge} TUỔI` : ''}】**
+Khái quát thời thế 10 năm này: đây là giai đoạn tấn công mở mang hay ẩn nhẫn tích lũy.
+
+**【CUNG MỆNH ĐẠI HẠN & TINH DIỆU】**
+Phân tích chính tinh, phụ tinh tại cung Mệnh Đại Hạn và Tam Phương Tứ Chính Đại Hạn.
+
+**【TỨ HÓA ĐẠI HẠN】**
+Tác động của bộ Tứ Hóa Đại Hạn (${dxSiHuaDesc}) lên các phương diện công danh, tài lộc, tình cảm.
+
+**【CHIẾN LƯỢC 10 NĂM】**
+Hướng đi thực tế và bài học lớn nhất cần nắm bắt trong đại vận này.`,
+
+      love: `Xin phân tích chuyên sâu 【TÌNH DUYÊN & HÔN NHÂN TRONG ĐẠI HẠN ${dxLabel.toUpperCase()}】:
+
+**【XU HƯỚNG TÌNH CẢM 10 NĂM】**
+Biến chuyển tình cảm, hỷ sự hay thử thách hôn nhân trong chặng đại hạn này.
+
+**【CUNG ĐẠI HẠN PHU THÊ & PHÚC ĐỨC】**
+Sự giao hội giữa cung Phu Thê Đại Hạn, Tứ Hóa Đại Hạn (${dxSiHuaDesc}) và Phu Thê bản mệnh.
+
+**【LỜI KHUYÊN GIA ĐẠO ĐẠI HẠN】**
+Cách ứng xử, giữ gìn hòa khí hoặc chọn thời điểm thuận lợi cho lương duyên.`,
+
+      career: `Xin phân tích chuyên sâu 【SỰ NGHIỆP & CÔNG DANH TRONG ĐẠI HẠN ${dxLabel.toUpperCase()}】:
+
+**【THỜI VẬN CÔNG DANH 10 NĂM】**
+Đánh giá vận trình thăng tiến, cơ hội chuyển hướng nghề nghiệp hay khởi nghiệp trong đại vận này.
+
+**【CUNG ĐẠI HẠN QUAN LỘC & TAM PHƯƠNG】**
+Phân tích cung Quan Lộc Đại Hạn, Thiên Di Đại Hạn và Tứ Hóa Đại Hạn (${dxSiHuaDesc}).
+
+**【CHIẾN LƯỢC SỰ NGHIỆP 10 NĂM】**
+Mũi nhọn cần đầu tư, lĩnh vực nên mở rộng và cạm bẫy cần tránh.`,
+
+      wealth: `Xin phân tích chuyên sâu 【TÀI BẠCH & TIỀN BẠC TRONG ĐẠI HẠN ${dxLabel.toUpperCase()}】:
+
+**【VẬN TÀI CHÍNH 10 NĂM】**
+Dòng tiền đại vận này vượng hay tụ tán thất thường, khả năng tích lũy tài sản.
+
+**【CUNG ĐẠI HẠN TÀI BẠCH & ĐIỀN TRẠCH】**
+Tác động của bộ Tứ Hóa Đại Hạn (${dxSiHuaDesc}) đến cơ hội đầu tư, thu nhập và hao tài.
+
+**【KỶ LUẬT TÀI CHÍNH ĐẠI HẠN】**
+Chiến lược quản trị rủi ro và giữ tiền trong 10 năm.`,
+
+      health: `Xin phân tích chuyên sâu 【SỨC KHỎE & THỂ CHẤT TRONG ĐẠI HẠN ${dxLabel.toUpperCase()}】:
+
+**【THỂ TRẠNG TRONG ĐẠI HẠN】**
+Phân tích cung Tật Ách Đại Hạn phối hợp Tật Ách gốc và Tứ Hóa Đại Hạn (${dxSiHuaDesc}).
+
+**【TẠNG PHỦ & BỆNH LÝ CẦN LƯU TÂM】**
+Các nguy cơ sức khỏe, lao lực hoặc tai ách tiềm ẩn trong 10 năm này.
+
+**【PHÉP DƯỠNG SINH ĐẠI HẠN】**
+Chế độ sinh hoạt, phòng ngừa thiết thực.`,
+
+      personality: `Xin phân tích chuyên sâu 【TÂM THẾ & CHUYỂN BIẾN TÂM LÝ ĐẠI HẠN ${dxLabel.toUpperCase()}】:
+
+**【BIẾN CHUYỂN NỘI TÂM 10 NĂM】**
+Những thay đổi về tư duy, hoài bão và cách nhìn nhận cuộc đời trong đại vận này.
+
+**【ÁP LỰC & ĐIỂM TỰA TINH THẦN】**
+Ảnh hưởng của Đại Hạn Phúc Đức và Tứ Hóa Đại Hạn (${dxSiHuaDesc}) lên tâm lý.
+
+**【TÂM THẾ TU DƯỠNG】**
+Cách điều hòa cảm xúc để vững vàng đi qua 10 năm.`,
+    };
+    return topicMap[topicKey] || topicMap.overview;
+  }
+
+  // timeView === 'liunian'
+  const stemIdx = getYearStemIndex(liunianYear);
+  const branchIdx = getYearBranchIndex(liunianYear);
+  const canChi = `${STEMS_VI[stemIdx]} ${BRANCHES_VI[branchIdx]}`;
+  const age = liunianYear - chart.birthInfo.year + 1;
+  const lnSiHua = getSiHuaByStem(stemIdx);
+  const lnSiHuaDesc = `${toVietnameseStar(lnSiHua['禄'])} Hóa Lộc, ${toVietnameseStar(lnSiHua['权'])} Hóa Quyền, ${toVietnameseStar(lnSiHua['科'])} Hóa Khoa, ${toVietnameseStar(lnSiHua['忌'])} Hóa Kỵ`;
+  const branchName = BRANCHES_VI[branchIdx];
+
+  const topicMap: Record<string, string> = {
+    overview: `Xin phân tích chuyên sâu 【VẬN TRÌNH TỔNG QUAN LƯU NIÊN ${liunianYear} (${canChi} · ${age} tuổi âm lịch)】, tập trung hoàn toàn vào năm ${liunianYear}:
+
+**【TỔNG QUAN VẬN KHÍ NĂM ${liunianYear}】**
+Đánh giá hung cát tổng thể của năm ${canChi}: năm thuận lợi bứt phá hay năm cần giữ thế ổn định.
+
+**【LƯU THÁI TUẾ CUNG ${branchName.toUpperCase()} & TAM PHƯƠNG】**
+Phân tích cung vị Lưu Thái Tuế năm ${liunianYear} đóng tại ${branchName} cùng các cung tam hợp, xung chiếu và Thần Sát năm ${liunianYear}.
+
+**【TÁC ĐỘNG LƯU TỨ HÓA NĂM ${liunianYear}】**
+Giải mã ảnh hưởng của ${lnSiHuaDesc} phối hợp cùng Đại Hạn hiện tại.
+
+**【ĐỊNH HƯỚNG HÀNH ĐỘNG NĂM ${liunianYear}】**
+Lời khuyên cốt lõi về công việc, tiền bạc, gia đạo và những thời điểm then chốt trong năm ${liunianYear}.`,
+
+    love: `Xin phân tích chuyên sâu 【TÌNH DUYÊN & GIA ĐẠO NĂM ${liunianYear} (${canChi} · ${age} tuổi âm lịch)】, tập trung 100% vào năm ${liunianYear}:
+
+**【CỤC DIỆN TÌNH CẢM NĂM ${liunianYear}】**
+Xu hướng đào hoa, cơ hội kết hôn/hỷ sự hay nguy cơ mâu thuẫn tình cảm trong năm ${canChi}.
+
+**【CUNG LƯU PHU THÊ & LƯU PHÚC ĐỨC ${liunianYear}】**
+Phân tích cung Lưu Niên Phu Thê năm ${liunianYear} phối hợp Lưu Thái Tuế tại ${branchName} và Phu Thê gốc.
+
+**【TÁC ĐỘNG LƯU TỨ HÓA ĐẾN TÌNH CẢM ${liunianYear}】**
+Phân tích chi tiết ${lnSiHuaDesc} tác động lên duyên nợ và cảm xúc lứa đôi trong năm ${liunianYear}.
+
+**【LỜI KHUYÊN GIỮ GÌN HÒA KHÍ】**
+Cách hóa giải xung khắc và nắm bắt thời cơ tình cảm trong năm ${liunianYear}.`,
+
+    career: `Xin phân tích chuyên sâu 【SỰ NGHIỆP & CÔNG DANH NĂM ${liunianYear} (${canChi} · ${age} tuổi âm lịch)】, tập trung 100% vào năm ${liunianYear}:
+
+**【XU THẾ CÔNG DANH NĂM ${liunianYear}】**
+Đánh giá vận trình công việc, khả năng thăng chức, chuyển việc hay mở rộng làm ăn trong năm ${canChi}.
+
+**【LƯU QUAN LỘC & LƯU THÁI TUẾ ${liunianYear}】**
+Phân tích cung Lưu Quan Lộc năm ${liunianYear}, Lưu Thái Tuế tại ${branchName} và Tam Phương Tứ Chính hội chiếu.
+
+**【TÁC ĐỘNG LƯU TỨ HÓA NĂM ${liunianYear}】**
+Ảnh hưởng trực tiếp của ${lnSiHuaDesc} đến uy tín, quý nhân, hợp đồng và đối tác trong năm ${liunianYear}.
+
+**【CHIẾN LƯỢC CÔNG VIỆC NĂM ${liunianYear}】**
+Việc nên làm, việc cần tránh và lời khuyên hành động thực tế cho năm ${liunianYear}.`,
+
+    wealth: `Xin phân tích chuyên sâu 【TÀI BẠCH & TIỀN BẠC NĂM ${liunianYear} (${canChi} · ${age} tuổi âm lịch)】, tập trung 100% vào năm ${liunianYear}:
+
+**【TỔNG QUAN TÀI VẬN NĂM ${liunianYear}】**
+Năm ${canChi} tài lộc dồi dào sinh lời hay cần đề phòng hao tán, chi tiêu lớn.
+
+**【CUNG LƯU TÀI BẠCH & LƯU ĐIỀN TRẠCH ${liunianYear}】**
+Phân tích cung Lưu Tài Bạch năm ${liunianYear} và sự tương tác với cung Tài Bạch bản mệnh / Đại Hạn.
+
+**【LƯU TỨ HÓA TÀI LỘC NĂM ${liunianYear}】**
+Tác động của ${lnSiHuaDesc} (đặc biệt Lưu Hóa Lộc & Lưu Hóa Kỵ) đến dòng tiền, đầu tư, vay mượn trong năm ${liunianYear}.
+
+**【KẾ HOẠCH TÀI CHÍNH NĂM ${liunianYear}】**
+Chiến lược thu - chi, đầu tư an toàn và giữ tài lộc trong năm ${liunianYear}.`,
+
+    health: `Xin phân tích chuyên sâu 【SỨC KHỎE & BÌNH AN NĂM ${liunianYear} (${canChi} · ${age} tuổi âm lịch)】, tập trung 100% vào năm ${liunianYear}:
+
+**【XU HƯỚNG THỂ TRẠNG NĂM ${liunianYear}】**
+Đánh giá tổng quan sức khỏe, áp lực tinh thần và các hạn tai ách trong năm ${canChi}.
+
+**【CUNG LƯU TẬT ÁCH & THẦN SÁT NĂM ${liunianYear}】**
+Phân tích cung Lưu Tật Ách năm ${liunianYear}, các sát tinh và vòng Tuế Tiền/Tướng Tiền (Tang Môn, Bạch Hổ, Bệnh Phù...) năm ${liunianYear}.
+
+**【TÁC ĐỘNG LƯU TỨ HÓA & NGŨ HÀNH】**
+Cảnh báo cơ quan tạng phủ cần chăm sóc hoặc phòng ngừa đi lại trong năm ${liunianYear}.
+
+**【HƯỚNG DẪN DƯỠNG SINH ${liunianYear}】**
+Biện pháp phòng bệnh, giữ gìn thân tâm an lạc trong năm ${liunianYear}.`,
+
+    personality: `Xin phân tích chuyên sâu 【TÂM TRẠNG & ĐỐI NHÂN XỬ THẾ NĂM ${liunianYear} (${canChi} · ${age} tuổi âm lịch)】, tập trung 100% vào năm ${liunianYear}:
+
+**【TÂM THẾ & CẢM XÚC NĂM ${liunianYear}】**
+Trạng thái tinh thần, áp lực nội tâm và khao khát bứt phá của đương số trong năm ${canChi}.
+
+**【CUNG LƯU PHÚC ĐỨC & LƯU THIÊN DI ${liunianYear}】**
+Phân tích đời sống tinh thần và các mối quan hệ giao tế xã hội trong năm ${liunianYear}.
+
+**【TÁC ĐỘNG LƯU TỨ HÓA ĐẾN TÂM LÝ】**
+Cách ${lnSiHuaDesc} tác động lên suy nghĩ, quyết định và ứng xử năm ${liunianYear}.
+
+**【PHƯƠNG CHÂM SỐNG NĂM ${liunianYear}】**
+Tâm thế nên giữ để đón cát tránh hung trong năm ${liunianYear}.`,
+  };
+  return topicMap[topicKey] || topicMap.overview;
+}
 
 const PALACE_ROLES: Record<string, string> = {
   '命宫':   'Bản mệnh, cốt cách, ý chí và tính cách tiên thiên',
@@ -516,7 +713,13 @@ function AiContent({ text, streaming }: { text: string; streaming?: boolean }) {
   );
 }
 
-export default function InsightPanel({ chart, selectedPalace, selectedSiHua }: InsightPanelProps) {
+export default function InsightPanel({
+  chart,
+  selectedPalace,
+  selectedSiHua,
+  timeView = 'mingpan',
+  liunianYear = new Date().getFullYear(),
+}: InsightPanelProps) {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
 
@@ -536,6 +739,8 @@ export default function InsightPanel({ chart, selectedPalace, selectedSiHua }: I
   const autoLoaded = useRef(false);
   const lastPalaceBranch = useRef<number | undefined>(undefined);
   const lastSiHuaKey = useRef<string | undefined>(undefined);
+  const prevDimensionRef = useRef<string>(`${timeView}-${liunianYear}`);
+  const abortControllerRef = useRef<AbortController | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const isAtBottomRef = useRef(true);
 
@@ -640,7 +845,7 @@ export default function InsightPanel({ chart, selectedPalace, selectedSiHua }: I
     // Nếu chưa có tin nhắn nào được lưu, tự động bắt đầu luận giải Mệnh cách
     if (!autoLoaded.current) {
       autoLoaded.current = true;
-      sendMessage(TOPIC_PROMPTS.overview, true);
+      sendMessage(buildTopicPrompt('overview', timeView, liunianYear, chart), true);
     }
   }, [chartKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -653,6 +858,20 @@ export default function InsightPanel({ chart, selectedPalace, selectedSiHua }: I
     }
   }, [messages, chartKey]);
 
+  // Tự động luận giải lại chủ đề đang chọn khi người dùng chuyển Bản Mệnh / Đại Hạn / Lưu Niên (hoặc đổi năm)
+  useEffect(() => {
+    const currentDim = `${timeView}-${liunianYear}`;
+    if (prevDimensionRef.current === currentDim) return;
+    prevDimensionRef.current = currentDim;
+
+    const timer = setTimeout(() => {
+      const prompt = buildTopicPrompt(activeTopic, timeView, liunianYear, chart);
+      sendMessage(prompt, true, true);
+    }, 450);
+
+    return () => clearTimeout(timer);
+  }, [timeView, liunianYear]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Phân tích cung vị khi người dùng nhấn chọn một cung trên bàn cờ
   useEffect(() => {
     if (!selectedPalace || selectedPalace.branch === lastPalaceBranch.current) return;
@@ -664,11 +883,18 @@ export default function InsightPanel({ chart, selectedPalace, selectedSiHua }: I
       : 'Vô Chính Diệu (mượn chính tinh đối cung)';
     const palaceNameVi = toVietnamesePalace(selectedPalace.name);
     const role = PALACE_ROLES[selectedPalace.name] ?? PALACE_ROLES[selectedPalace.name + '宫'] ?? 'Cung vị then chốt';
+    const currentDx = chart.daXians[chart.currentDaXianIndex];
+    const dimContext =
+      timeView === 'liunian'
+        ? ` trong bối cảnh Lưu Niên năm ${liunianYear} (${STEMS_VI[getYearStemIndex(liunianYear)]} ${BRANCHES_VI[getYearBranchIndex(liunianYear)]})`
+        : timeView === 'daxian' && currentDx
+        ? ` trong bối cảnh Đại Hạn ${currentDx.startAge}–${currentDx.endAge} tuổi`
+        : '';
 
-    const prompt = `Xin phân tích chuyên sâu cung vị 【${palaceNameVi}】 (Chủ quản: ${role}), có chính tinh tọa thủ: ${starDesc}, trình bày theo cấu trúc sau:
+    const prompt = `Xin phân tích chuyên sâu cung vị 【${palaceNameVi}】${dimContext} (Chủ quản: ${role}), có chính tinh tọa thủ: ${starDesc}, trình bày theo cấu trúc sau:
 
 **【ĐỊNH TÍNH CUNG VỊ】**
-Ý nghĩa của ${palaceNameVi} trong mệnh bàn và đánh giá bố cục tinh diệu này.
+Ý nghĩa của ${palaceNameVi} trong mệnh bàn${dimContext} và đánh giá bố cục tinh diệu này.
 
 **【CHÍNH TINH TỌA THỦ】**
 Luận giải theo trường phái Thiên Kỷ Nghê Hải Hà về các sao tại cung vị này.
@@ -685,7 +911,7 @@ Tác động qua lại của đối cung và hai cung tam hợp đến ${palaceN
   // Phân tích khi bấm vào Tứ Hóa
   useEffect(() => {
     if (!selectedSiHua) return;
-    const key = `${selectedSiHua.starName}-${selectedSiHua.siHua}-${selectedSiHua.view}`;
+    const key = `${selectedSiHua.starName}-${selectedSiHua.siHua}-${selectedSiHua.view}-${liunianYear}`;
     if (key === lastSiHuaKey.current) return;
     lastSiHuaKey.current = key;
 
@@ -693,7 +919,10 @@ Tác động qua lại của đối cung và hai cung tam hợp đến ${palaceN
       p.stars.some(s => s.name === selectedSiHua.starName)
     );
     const palaceName = palaceOfStar ? toVietnamesePalace(palaceOfStar.name) : 'Cung vị tọa thủ';
-    const viewLabel = selectedSiHua.view === 'daxian' ? 'Đại Hạn' : 'Lưu Niên';
+    const viewLabel =
+      selectedSiHua.view === 'daxian'
+        ? 'Đại Hạn'
+        : `Lưu Niên ${liunianYear} (${STEMS_VI[getYearStemIndex(liunianYear)]} ${BRANCHES_VI[getYearBranchIndex(liunianYear)]})`;
     const starNameVi = toVietnameseStar(selectedSiHua.starName);
     const siHuaVi = toVietnameseSiHua(selectedSiHua.siHua);
 
@@ -711,10 +940,16 @@ Tia ảnh hưởng đến cung đối chiếu và tam hợp.
 **【VẬN THẾ HIỆN TẠI & LỜI KHUYÊN】**
 Ảnh hưởng trong chu kỳ ${viewLabel} và gợi ý hành động thiết thực.`;
 
-    sendMessage(prompt, true);
+    sendMessage(prompt, true, true);
   }, [selectedSiHua]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const streamResponse = async (apiMessages: { role: 'user' | 'assistant'; content: string }[]) => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
     try {
       const storedVip = typeof window !== 'undefined' ? localStorage.getItem('ziwei_vip') || undefined : undefined;
       const storedExp = typeof window !== 'undefined' ? Number(localStorage.getItem('ziwei_vip_exp')) || undefined : undefined;
@@ -728,7 +963,15 @@ Tia ảnh hưởng đến cung đối chiếu và tam hợp.
           'Content-Type': 'application/json',
           ...(validVip ? { 'x-vip-key': validVip, 'x-vip-exp': String(storedExp) } : {}),
         },
-        body: JSON.stringify({ chart, messages: apiMessages, vipKey: validVip, vipExp: storedExp }),
+        body: JSON.stringify({
+          chart,
+          messages: apiMessages,
+          timeView,
+          liunianYear,
+          vipKey: validVip,
+          vipExp: storedExp,
+        }),
+        signal: controller.signal,
       });
       if (res.status === 404) throw new Error('api-missing');
       if (!res.ok) {
@@ -781,6 +1024,9 @@ Tia ảnh hưởng đến cung đối chiếu và tam hợp.
         }
       }
     } catch (e: any) {
+      if (e?.name === 'AbortError' || controller.signal.aborted) {
+        return;
+      }
       const missing = e instanceof Error && e.message === 'api-missing';
       const errorMsg = missing
         ? 'Chưa kết nối backend /api/interpret. Vui lòng cấu hình AI_API_KEY trong file .env.local.'
@@ -795,27 +1041,39 @@ Tia ảnh hưởng đến cung đối chiếu và tam hợp.
         return [...prev, { role: 'assistant', content: errorMsg }];
       });
     } finally {
-      setLoading(false);
-      loadingRef.current = false;
-      setQueueStatus(null);
+      if (abortControllerRef.current === controller) {
+        setLoading(false);
+        loadingRef.current = false;
+        setQueueStatus(null);
+      }
     }
   };
 
-  const sendMessage = (text: string, hidden = false) => {
-    if (!text.trim() || loadingRef.current) return;
+  const sendMessage = (text: string, hidden = false, forceInterrupt = false) => {
+    if (!text.trim()) return;
+    if (loadingRef.current) {
+      if (!forceInterrupt) return;
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+      loadingRef.current = false;
+    }
+
     loadingRef.current = true;
     setLoading(true);
     isAtBottomRef.current = true;
     setShowScrollBottom(false);
 
     const userMsg: Message = { role: 'user', content: text, hidden };
-    const apiMessages = [...messagesRef.current, userMsg].map(m => ({
+    // Lọc bỏ các placeholder rỗng (nếu có từ request trước bị hủy)
+    const cleanHistory = messagesRef.current.filter(m => m.content && m.content.trim().length > 0);
+    const apiMessages = [...cleanHistory, userMsg].map(m => ({
       role: m.role,
       content: m.content,
     }));
 
     // Thêm ngay placeholder assistant rỗng để hiển thị trạng thái chờ tức thì (không bị trắng màn hình)
-    setMessages(prev => [...prev, userMsg, { role: 'assistant', content: '' }]);
+    setMessages([...cleanHistory, userMsg, { role: 'assistant', content: '' }]);
     setInput('');
     streamResponse(apiMessages);
   };
@@ -823,7 +1081,7 @@ Tia ảnh hưởng đến cung đối chiếu và tam hợp.
   const handleTopicClick = (topicKey: string) => {
     if (loadingRef.current) return;
     setActiveTopic(topicKey);
-    sendMessage(TOPIC_PROMPTS[topicKey], true);
+    sendMessage(buildTopicPrompt(topicKey, timeView, liunianYear, chart), true);
   };
 
   /**
@@ -832,7 +1090,10 @@ Tia ảnh hưởng đến cung đối chiếu và tam hợp.
    * để thôi diễn lại thiên cơ từ đầu với tâm thái thanh tịnh nhất).
    */
   const handleResetChat = () => {
-    if (loadingRef.current) return;
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      loadingRef.current = false;
+    }
 
     // 1. Xóa sạch bộ nhớ đệm sessionStorage của lá số này
     try {
@@ -844,8 +1105,8 @@ Tia ảnh hưởng đến cung đối chiếu và tam hợp.
     lastSiHuaKey.current = undefined;
     autoLoaded.current = true;
 
-    // 3. Chuẩn bị thông điệp mới theo chủ đề đang chọn (hoặc Mệnh Cách)
-    const activePrompt = TOPIC_PROMPTS[activeTopic] || TOPIC_PROMPTS.overview;
+    // 3. Chuẩn bị thông điệp mới theo chủ đề + chiều thời gian đang chọn
+    const activePrompt = buildTopicPrompt(activeTopic, timeView, liunianYear, chart);
     const userMsg: Message = { role: 'user', content: activePrompt, hidden: true };
 
     // 4. Khởi tạo lại chuỗi tin nhắn hoàn toàn mới
@@ -934,11 +1195,61 @@ Tia ảnh hưởng đến cung đối chiếu và tam hợp.
           })}
         </div>
 
-        {/* Thanh công cụ phụ: Hiện chủ đề đang chọn & Nút Tẩy Bàn Tái Luận */}
-        <div className="flex items-center justify-between px-1 pt-1 text-[10px] select-none">
-          <div className="flex items-center gap-1.5 font-mystic" style={{ color: isDark ? 'rgba(254, 240, 138, 0.75)' : '#78350F' }}>
+        {/* Thanh công cụ phụ: Hiện chủ đề + chiều thời gian đang chọn & Nút Tẩy Bàn Tái Luận */}
+        <div className="flex items-center justify-between gap-2 px-1 pt-1 text-[10px] select-none flex-wrap">
+          <div className="flex items-center gap-1.5 font-mystic flex-wrap" style={{ color: isDark ? 'rgba(254, 240, 138, 0.75)' : '#78350F' }}>
             <span className="text-amber-400">✦</span>
-            <span>CHỦ ĐỀ: <strong className="font-bold text-amber-300">{TOPICS.find(t => t.key === activeTopic)?.label || 'Mệnh Cách'}</strong></span>
+            <span>
+              CHỦ ĐỀ:{' '}
+              <strong className={clsx('font-bold', isDark ? 'text-amber-300' : 'text-amber-900')}>
+                {TOPICS.find(t => t.key === activeTopic)?.label || 'Mệnh Cách'}
+              </strong>
+            </span>
+            {(() => {
+              const dx = chart.daXians[chart.currentDaXianIndex];
+              if (timeView === 'liunian') {
+                const sName = STEMS_VI[getYearStemIndex(liunianYear)];
+                const bName = BRANCHES_VI[getYearBranchIndex(liunianYear)];
+                return (
+                  <span
+                    className={clsx(
+                      'px-1.5 py-0.5 rounded font-sans text-[9.5px] font-semibold border',
+                      isDark
+                        ? 'bg-emerald-500/15 border-emerald-400/40 text-emerald-300'
+                        : 'bg-emerald-50 border-emerald-400 text-emerald-800'
+                    )}
+                  >
+                    ⚡ Lưu Niên {liunianYear} ({sName} {bName})
+                  </span>
+                );
+              }
+              if (timeView === 'daxian' && dx) {
+                return (
+                  <span
+                    className={clsx(
+                      'px-1.5 py-0.5 rounded font-sans text-[9.5px] font-semibold border',
+                      isDark
+                        ? 'bg-purple-500/15 border-purple-400/40 text-purple-300'
+                        : 'bg-purple-50 border-purple-400 text-purple-800'
+                    )}
+                  >
+                    ⏳ Đại Hạn ({dx.startAge}–{dx.endAge}t)
+                  </span>
+                );
+              }
+              return (
+                <span
+                  className={clsx(
+                    'px-1.5 py-0.5 rounded font-sans text-[9.5px] font-semibold border',
+                    isDark
+                      ? 'bg-amber-500/10 border-amber-400/30 text-amber-200/90'
+                      : 'bg-amber-50 border-amber-400/60 text-amber-900'
+                  )}
+                >
+                  🌟 Bản Mệnh
+                </span>
+              );
+            })()}
           </div>
 
           <button
@@ -1279,7 +1590,15 @@ Tia ảnh hưởng đến cung đối chiếu và tam hợp.
             value={input}
             onChange={e => setInput(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && !e.shiftKey && handleSend()}
-            placeholder={loading ? 'Đang luận giải, vui lòng đợi hoàn tất để hỏi tiếp...' : 'Đặt câu hỏi thêm: Năm nay công danh thế nào?...'}
+            placeholder={
+              loading
+                ? 'Đang luận giải, vui lòng đợi hoàn tất để hỏi tiếp...'
+                : timeView === 'liunian'
+                ? `Đặt câu hỏi thêm về Lưu Niên ${liunianYear}...`
+                : timeView === 'daxian'
+                ? 'Đặt câu hỏi thêm về Đại Hạn 10 năm...'
+                : 'Đặt câu hỏi thêm: Năm nay công danh thế nào?...'
+            }
             disabled={loading}
             className={`flex-1 rounded-lg px-3 py-2 text-[12px] font-mystic focus:outline-none transition-colors ${
               loading ? 'opacity-50 cursor-not-allowed' : ''

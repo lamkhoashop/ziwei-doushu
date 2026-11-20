@@ -10,6 +10,7 @@ import StarField from '@/components/StarField';
 import ShareModal from '@/components/ShareModal';
 import ProfileBookModal from '@/components/ProfileBookModal';
 import UserGuideModal, { USER_GUIDE_STORAGE_KEY } from '@/components/UserGuideModal';
+import type { TimeView } from '@/components/TimeNav';
 import { useTheme } from '@/components/ThemeProvider';
 import { generateChart } from '@/lib/ziwei/algorithm';
 import { getSavedProfiles, saveProfile } from '@/lib/ziwei/profiles';
@@ -88,6 +89,9 @@ function ThemeToggle() {
 export default function ChartPage() {
   const [chart, setChart] = useState<ZiweiChart | null>(null);
   const [selectedPalace, setSelectedPalace] = useState<Palace | null>(null);
+  const [selectedSiHua, setSelectedSiHua] = useState<{ starName: string; siHua: string; view: TimeView } | null>(null);
+  const [timeView, setTimeView] = useState<TimeView>('mingpan');
+  const [liunianYear, setLiunianYear] = useState<number>(new Date().getFullYear());
   const [boardHeight, setBoardHeight] = useState<number | undefined>(undefined);
   const [lastSavedInfo, setLastSavedInfo] = useState<BirthInfo | null>(null);
   const [shareOpen, setShareOpen] = useState(false);
@@ -112,6 +116,8 @@ export default function ChartPage() {
       localStorage.setItem('ziwei_active_birth_info', JSON.stringify(info));
       sessionStorage.setItem('ziwei_chart_active', 'true');
     } catch { /* ignore */ }
+    setSelectedPalace(null);
+    setSelectedSiHua(null);
     setChart(generateChart(info));
   };
 
@@ -123,6 +129,7 @@ export default function ChartPage() {
     setChart(null);
     setLastSavedInfo(null);
     setSelectedPalace(null);
+    setSelectedSiHua(null);
   };
 
   // Đếm số lượng hồ sơ đã lưu trong sổ tay
@@ -484,13 +491,27 @@ export default function ChartPage() {
             className="grid grid-cols-1 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,0.95fr)] min-w-0"
           >
             <div ref={boardRef} className="w-full min-w-0 overflow-hidden">
-              <ChartBoard chart={chart} onPalaceSelect={setSelectedPalace} />
+              <ChartBoard
+                chart={chart}
+                timeView={timeView}
+                liunianYear={liunianYear}
+                onTimeViewChange={setTimeView}
+                onLiunianYearChange={setLiunianYear}
+                onPalaceSelect={setSelectedPalace}
+                onSiHuaClick={(starName, siHua, view) => setSelectedSiHua({ starName, siHua, view })}
+              />
             </div>
             <div
               className="insight-panel-container w-full"
               style={boardHeight ? { height: `${boardHeight}px`, maxHeight: `${boardHeight}px` } : undefined}
             >
-              <InsightPanel chart={chart} selectedPalace={selectedPalace} />
+              <InsightPanel
+                chart={chart}
+                selectedPalace={selectedPalace}
+                selectedSiHua={selectedSiHua}
+                timeView={timeView}
+                liunianYear={liunianYear}
+              />
             </div>
           </div>
 
