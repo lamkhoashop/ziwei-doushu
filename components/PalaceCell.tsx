@@ -14,8 +14,15 @@ import {
 import { useTheme } from '@/components/ThemeProvider';
 import clsx from 'clsx';
 
+export interface ShierShenDisplay {
+  boshi: string;
+  jiangQian: string;
+  suiQian: string;
+}
+
 interface PalaceCellProps {
   palace: Palace;
+  shierShen?: ShierShenDisplay;
   onClick?: () => void;
   onStarClick?: (star: Star) => void;
   isSelected?: boolean;
@@ -92,7 +99,7 @@ const SiHuaBadge = ({
 };
 
 export default function PalaceCell({
-  palace, onClick, onStarClick, isSelected, isSanFang, delay = 0,
+  palace, shierShen, onClick, onStarClick, isSelected, isSanFang, delay = 0,
   overlayStarSiHua, overlayLabel, onSiHuaClick,
 }: PalaceCellProps) {
   const { theme } = useTheme();
@@ -352,14 +359,59 @@ export default function PalaceCell({
         </div>
       )}
 
-      {/* 杂曜 */}
+      {/* Tạp Diệu */}
       {minorStars.length > 0 && (
-        <div className="flex flex-wrap gap-x-1">
-          {minorStars.map(s => (
-            <span key={s.name} className="text-[9px] leading-tight" style={{ color: 'var(--t-faint)', opacity: 0.75 }}>
-              {s.name}{s.brightnessRaw ? `[${s.brightnessRaw}]` : ''}{s.siHua && <SiHuaBadge siHua={s.siHua} />}
-            </span>
-          ))}
+        <div className="flex flex-wrap gap-x-1.5 mt-0.5">
+          {minorStars.map(s => {
+            const starNameVi = toVietnameseStar(s.name);
+            const brightStr = s.brightnessRaw
+              ? (s.name === '测试杂耀' ? s.brightnessRaw : toVietnameseBrightness(s.brightnessRaw))
+              : '';
+            return (
+              <span key={s.name} className="text-[9px] leading-tight" style={{ color: 'var(--t-faint)', opacity: 0.78 }}>
+                {starNameVi}{brightStr ? `[${brightStr}]` : ''}{s.siHua && <SiHuaBadge siHua={s.siHua} />}
+              </span>
+            );
+          })}
+        </div>
+      )}
+
+      {/* ── Vòng Thần Sát: Bác Sỹ · Tướng Tiền · Tuế Tiền ── */}
+      {shierShen && (
+        <div
+          className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 mt-1 pt-1 text-[8.5px] font-sans leading-tight"
+          style={{
+            borderTop: isDark ? '1px dashed rgba(212,168,67,0.18)' : '1px dashed rgba(184,146,42,0.28)',
+          }}
+        >
+          <span
+            data-shier-shen="boshi"
+            className={clsx(
+              'font-medium',
+              isDark ? 'text-violet-400/90' : 'text-violet-700'
+            )}
+            title="Vòng Bác Sỹ (cố định theo Can năm sinh)"
+          >
+            {shierShen.boshi}
+          </span>
+          <span
+            data-shier-shen="jiangQian"
+            className={clsx(
+              isDark ? 'text-sky-300/80' : 'text-sky-800/85'
+            )}
+            title="Vòng Tướng Tiền (biến đổi theo Bản Mệnh / Đại Hạn / Lưu Niên)"
+          >
+            {shierShen.jiangQian}
+          </span>
+          <span
+            data-shier-shen="suiQian"
+            className={clsx(
+              isDark ? 'text-amber-300/85' : 'text-amber-800/90'
+            )}
+            title="Vòng Tuế Tiền (biến đổi theo Bản Mệnh / Đại Hạn / Lưu Niên)"
+          >
+            {shierShen.suiQian}
+          </span>
         </div>
       )}
 

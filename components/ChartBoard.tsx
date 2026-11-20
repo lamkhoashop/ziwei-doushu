@@ -9,6 +9,11 @@ import {
   toVietnameseJu,
   BRANCHES_VI,
 } from '@/lib/ziwei/vietnamese';
+import {
+  boshiShenNameVi,
+  jiangQianShenNameVi,
+  suiQianShenNameVi,
+} from '@/lib/ziwei/shier-shen';
 import PalaceCell from './PalaceCell';
 import TimeNav, { type TimeView, getYearStemIndex, buildSiHuaOverlay } from './TimeNav';
 import CenterLightning from './CenterLightning';
@@ -82,6 +87,15 @@ export default function ChartBoard({ chart, onStarSelect, onPalaceSelect, onSiHu
     return {};
   })();
   const overlayLabel = timeView === 'daxian' ? 'Hạn' : timeView === 'liunian' ? 'Niên' : undefined;
+
+  // Vòng Thần Sát (Bác Sỹ, Tướng Tiền, Tuế Tiền) tính ở tầng hiển thị:
+  // - Tuế Tiền & Tướng Tiền biến chuyển theo Chi của Bản Mệnh / Đại Hạn / Lưu Niên
+  // - Bác Sỹ cố định theo Can năm sinh & Giới tính (khởi từ Lộc Tồn năm sinh)
+  const shierShenAnchor = timeView === 'liunian'
+    ? (((liunianYear - 4) % 12) + 12) % 12
+    : timeView === 'daxian' && currentDx
+    ? currentDx.palaceBranch
+    : chart.lunarInfo.yearBranch;
 
   const handlePalaceClick = (branch: number) => {
     const isDeselecting = selectedBranch === branch;
@@ -266,6 +280,11 @@ export default function ChartBoard({ chart, onStarSelect, onPalaceSelect, onSiHu
             <div key={branch} style={{ gridRow: row, gridColumn: col, background: 'var(--t-bg)' }}>
               <PalaceCell
                 palace={palace}
+                shierShen={{
+                  boshi: boshiShenNameVi(chart.lunarInfo.yearStem, chart.birthInfo.gender, branch),
+                  jiangQian: jiangQianShenNameVi(shierShenAnchor, branch),
+                  suiQian: suiQianShenNameVi(shierShenAnchor, branch),
+                }}
                 onClick={() => handlePalaceClick(branch)}
                 onStarClick={(star) => onStarSelect?.(star, palace)}
                 isSelected={selectedBranch === branch}

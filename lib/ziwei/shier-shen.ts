@@ -130,6 +130,41 @@ export function boshiShenName(
   return BOSHI_SHEN[boshiShenByStem(yearStem, gender)[((palaceBranch % 12) + 12) % 12]];
 }
 
+/** Vòng Tướng Tiền 12 Thần (Tiếng Việt) */
+export const JIANG_QIAN_SHEN_VI = [
+  'Tướng Tinh', 'Phan An', 'Tuế Dịch', 'Tức Thần', 'Hoa Cái', 'Kiếp Sát',
+  'Tai Sát', 'Thiên Sát', 'Chỉ Bối', 'Hàm Trì', 'Nguyệt Sát', 'Vong Thần',
+] as const;
+
+/** Vòng Tuế Tiền 12 Thần (Tiếng Việt) */
+export const SUI_QIAN_SHEN_VI = [
+  'Tuế Kiến', 'Hối Khí', 'Tang Môn', 'Quán Sách', 'Quan Phù', 'Tiểu Hao',
+  'Tuế Phá', 'Long Đức', 'Bạch Hổ', 'Thiên Đức', 'Điếu Khách', 'Bệnh Phù',
+] as const;
+
+/** Vòng Bác Sỹ 12 Thần (Tiếng Việt) */
+export const BOSHI_SHEN_VI = [
+  'Bác Sỹ', 'Lực Sĩ', 'Thanh Long', 'Tiểu Hao', 'Tướng Quân', 'Tấu Thư',
+  'Phi Liêm', 'Hỷ Thần', 'Bệnh Phù', 'Đại Hao', 'Phục Binh', 'Quan Phủ',
+] as const;
+
+/** Tên Tiếng Việt cho sao thuộc vòng Tướng Tiền tại một cung */
+export function jiangQianShenNameVi(anchorBranch: number, palaceBranch: number): string {
+  return JIANG_QIAN_SHEN_VI[jiangQianShenByBranch(anchorBranch)[((palaceBranch % 12) + 12) % 12]];
+}
+
+/** Tên Tiếng Việt cho sao thuộc vòng Tuế Tiền tại một cung */
+export function suiQianShenNameVi(anchorBranch: number, palaceBranch: number): string {
+  return SUI_QIAN_SHEN_VI[suiQianShenByBranch(anchorBranch)[((palaceBranch % 12) + 12) % 12]];
+}
+
+/** Tên Tiếng Việt cho sao thuộc vòng Bác Sỹ tại một cung */
+export function boshiShenNameVi(
+  yearStem: number, gender: 'male' | 'female', palaceBranch: number,
+): string {
+  return BOSHI_SHEN_VI[boshiShenByStem(yearStem, gender)[((palaceBranch % 12) + 12) % 12]];
+}
+
 /**
  * 十二神的英文名 —— 专用表
  *

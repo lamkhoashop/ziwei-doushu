@@ -139,6 +139,15 @@ export const OTHER_STARS_CN_TO_VI: Record<string, string> = {
   '天才': 'Thiên Tài',
   '天寿': 'Thiên Thọ',
   '华盖': 'Hoa Cái',
+  '天厨': 'Thiên Trù',
+  '年解': 'Niên Giải',
+  '天空': 'Thiên Không',
+  '副截': 'Phó Triệt',
+  '副旬': 'Phó Tuần',
+  '天伤': 'Thiên Thương',
+  '天使': 'Thiên Sứ',
+  '劫煞': 'Kiếp Sát',
+  '龙德': 'Long Đức',
 };
 
 // ─── Tứ Hóa ────────────────────────────────────────────────
