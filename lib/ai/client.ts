@@ -181,6 +181,7 @@ export async function streamOpenAiResponse(messages: AiMessage[]): Promise<Respo
           model,
           messages: payloadMessages,
           temperature: 0.7,
+          max_tokens: 8192,
           stream: true,
         }),
       });
@@ -351,6 +352,10 @@ export async function streamOpenAiResponse(messages: AiMessage[]): Promise<Respo
                     '';
                   if (deltaText) {
                     emitDelta(deltaText);
+                  }
+                  if (parsed.choices?.[0]?.finish_reason === 'length') {
+                    flushCarry();
+                    sendRawDelta('\n\n*(Bài luận đã chạm giới hạn độ dài tối đa của lượt phản hồi — bạn có thể gõ **"Viết tiếp"** để AI trình bày trọn vẹn phần còn lại.)*');
                   }
                 } catch {
                   // Bỏ qua dòng json không hợp lệ
